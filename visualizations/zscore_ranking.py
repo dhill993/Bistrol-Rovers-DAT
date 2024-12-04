@@ -1,21 +1,25 @@
 from scipy.stats import zscore
 from utilities.default_metrics import profiles_zcore
 
-def top_10_players_by_profile(league_name, position, profile_name, df):
+def top_10_players_by_profile(league_name, season, position, profile_name, df):
 
-    if league_name != 'All':
-        df = df[df['League'] == league_name]    
-
-    df = df[df['Minutes']>600]
-    df = df[df['Position'] == position]
-
-    # Find the selected profile for the given position
     profile = next(
         (p for p in profiles_zcore.get(position, []) if p["Profile Name"] == profile_name), None
     )
     if not profile:
         raise ValueError(f"Profile '{profile_name}' for position '{position}' not found.")
 
+
+    if position == 'Number 6':
+        position = 'Number 8'
+
+    if league_name != 'All':
+        df = df[df['League'] == league_name]    
+
+    df = df[df['Season'] == season]    
+    df = df[df['Position'] == position]
+
+    # Find the selected profile for the given position
     # Extract metrics and weighted metrics
     metrics = profile["Using Metrics"]
     weighted_metrics = profile["Weighted Metrics"]
@@ -42,6 +46,6 @@ def top_10_players_by_profile(league_name, position, profile_name, df):
 
     # Sort the dataframe by the calculated profile score in descending order and get the top 10
     top_10_players = df.sort_values(by=z_score_name, ascending=False).head(10).reset_index(drop=True)
-    
+
     # Display the top 10 players with relevant columns
     return top_10_players[['Player Name', 'Team', 'League', 'Minutes', 'Position', 'Age' ,z_score_name]]

@@ -5,6 +5,9 @@ import numpy as np
 
 def create_scatter_chart(df, league, season, player, player_position, x_metric, y_metric, min_age, max_age, min_minutes, max_minutes):
 
+    if player_position == 'Number 6':
+        player_position = 'Number 8'
+
     player_df = df[df["Player Name"] == player]
     if league != 'All':
         df = df[df['League'] == league]    

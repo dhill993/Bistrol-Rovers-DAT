@@ -4,9 +4,9 @@ from visualizations.radar_chart import create_radar_chart
 from visualizations.pizza_chart import create_pizza_chart
 from visualizations.overall_rank import create_rank_visualization
 from visualizations.scatter_plot import create_scatter_chart
-# from visualizations.zscore_ranking import top_10_players_by_profile
+from visualizations.zscore_ranking import top_10_players_by_profile
 from visualizations.similarity_chart import filter_similar_players
-# from utilities.default_metrics import profiles_zcore as profiles, all_numeric_metrics
+from utilities.default_metrics import profiles_zcore as profiles
 from st_pages import show_pages_from_config
 from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
 
@@ -70,11 +70,11 @@ st.markdown("""
 st.markdown("")
 with st.spinner("Retrieving data from statsbomb api"):
     statsbomb_data = get_statsbomb_player_season_stats()
-    statsbomb_data["Minutes"] = statsbomb_data['Minutes'].astype(int)
 leagues = list(statsbomb_data['League'].unique())
 leagues.append('All')
 seasons = list(statsbomb_data['Season'].unique())
 playing_positions = list(statsbomb_data['Position'].unique())
+playing_positions.append("Number 6")
 
 with st.expander("Expand to view pizza chart", expanded=False):
 
@@ -82,7 +82,10 @@ with st.expander("Expand to view pizza chart", expanded=False):
     season = st.selectbox('Select Season:', seasons, index=0, key='pizza_season')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='pizza_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league, season, position), index=0, key='pizza_player')
+    if position == 'Number 6':
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league, season, "Number 8"), index=0, key='pizza_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league, season, position), index=0, key='pizza_player')
 
     # Button to generate pizza chart
     if st.button('Generate Pizza Chart'):
@@ -98,7 +101,11 @@ with st.expander("Expand to view player comparison radar chart", expanded=False)
     season = st.selectbox('Select Season:', seasons, index=0, key='radar_season')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='radar_positon')
-    player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league, season, position), index=0, key='radar_player')
+    if position == 'Number 6':
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league, season, 'Number 8'), index=0, key='radar_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league, season, position), index=0, key='radar_player')
+
 
     # Button to generate pizza chart
     if st.button('Generate Radar Chart'):
@@ -114,7 +121,10 @@ with st.expander("Expand to view scatter plot", expanded=False):
     season = st.selectbox('Select Season:', seasons, index=0, key='scatter_season')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='scatter_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league,season, position), index=0, key='scataer_player')
+    if position == 'Number 6':
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league,season, 'Number 8'), index=0, key='scataer_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league,season, position), index=0, key='scataer_player')
 
     # age_range = st.slider("Select Age Range", min_value=int(df['Age'].min()), max_value=int(df['Age'].max()), 
     #                       value=(int(df['Age'].min()), int(df['Age'].max())))
@@ -178,19 +188,21 @@ with st.expander("Expand to view players overall rank score", expanded=False):
         except Exception as e:
             st.error(f"Error : {e}")
 
-# with st.expander("Expand to view players zscore rank score", expanded=False):
-#     league = st.selectbox('Select League:',leaguesoptions[::-1], index=0, key='overall_league_zcs')
-#     position = st.selectbox("Select Player Position", options=list(profiles.keys()))
-#     profile_options = [profile["Profile Name"] for profile in profiles[position]]
-#     profile_name = st.selectbox("Select Profile", options=profile_options)
+with st.expander("Expand to view players zscore rank score", expanded=False):
+    league = st.selectbox('Select League:',leagues[::-1], index=0, key='ra_lague')
+    season = st.selectbox('Select Season:', seasons, index=0, key='ra_seaosn')
 
-#     # Button to generate pizza chart
-#     if st.button(f'Generate Zscore Ranks'):
-#         try:
-#             top_10_players = top_10_players_by_profile(league, position, profile_name, data_frame)
-#             st.dataframe(top_10_players, use_container_width=True)
-#         except Exception as e:
-#             st.error(f"Error : {e}")
+    position = st.selectbox("Select Player Position", options=list(profiles.keys()), key='ra_prof')
+    profile_options = [profile["Profile Name"] for profile in profiles[position]]
+    profile_name = st.selectbox("Select Profile", options=profile_options)
+
+    # Button to generate pizza chart
+    if st.button(f'Generate Zscore Ranks'):
+        try:
+            top_10_players = top_10_players_by_profile(league, season, position, profile_name, statsbomb_data)
+            st.dataframe(top_10_players, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error : {e}")
 
 with st.expander("Expand to view player similarity", expanded=False):
 
@@ -198,7 +210,10 @@ with st.expander("Expand to view player similarity", expanded=False):
     season = st.selectbox('Select Season:', seasons, index=0, key='sim_seaosn')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='sim_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league,season, position), index=0, key='sim_player')
+    if position == 'Number 6':
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league,season, 'Number 8'), index=0, key='sim_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league,season, position), index=0, key='sim_player')
 
     similarity_threshold = st.slider('Similarity Percent Threshold (%)', 50, 100, 90) / 100  # Converts slider percentage to decimal
 

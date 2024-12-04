@@ -16,12 +16,17 @@ def filter_similar_players(df, player_name, league_name, season, position, simil
         pd.DataFrame: DataFrame with players that match the similarity criteria.
     """
     # Extract the selected player's metrics as reference
+
+    num_columns = get_metrics_by_position(position)
+
+    if position == 'Number 6':
+        position = 'Number 8'
+
     if league_name != 'All':
         df = df[df['League'] == league_name]    
     df = df[df['Position'] == position]
     df = df[df['Season'] == season]
 
-    num_columns = get_metrics_by_position(position)
     columns = ['Player Name', 'Team', 'League', 'Minutes', 'Age', 'Position'] + num_columns
     df = df[columns]
     

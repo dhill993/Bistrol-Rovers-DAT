@@ -7,16 +7,16 @@ def get_overall_rank(data, league_name, season, position):
     This function calculates the percentile rank for each metric column and then averages these percentiles
     to compute the overall score for each player, rounding to two decimal places.
     """
+    all_numeric_metrics = get_metrics_by_position(position)
+    if position == 'Number 6':
+        position = 'Number 8'
     if league_name!='All':
         data = data[data['League'] == league_name]    
     data = data[data['Position']==position]
     data = data[data['Season']==season]
-    data = data[data['Minutes']>=600]
     data['Age'] = data['Age'].fillna(0)  # Replace NaN with 0
     data['Age'] = data['Age'].replace([float('inf'), -float('inf')], 0)
     data['Age'] = data['Age'].astype(int)
-
-    all_numeric_metrics = get_metrics_by_position(position)
 
     for metric in all_numeric_metrics:
         # Calculate the percentile rank for each metric and round to 2 decimal places
@@ -26,6 +26,8 @@ def get_overall_rank(data, league_name, season, position):
     data['Overall Score'] = data[[f'{metric}_percentile' for metric in all_numeric_metrics]].mean(axis=1)
 
     data = data.sort_values(by='Overall Score', ascending=False)
+    data["Overall Score"] = data["Overall Score"].astype(int)
+
     return data[['Player Name', 'Team', 'Age', 'Minutes', 'Overall Score']]
 
 def create_rank_visualization(data, league_name,season, position):
@@ -49,12 +51,11 @@ def create_rank_visualization(data, league_name,season, position):
 
     overall_rank_df = get_overall_rank(data, league_name, season, position)
     overall_rank_df['Overall Score'] = pd.to_numeric(overall_rank_df['Overall Score'], errors='coerce')
-    overall_rank_df['Overall Score'] = overall_rank_df['Overall Score'].apply(lambda x: round(x, 2))
+    # overall_rank_df['Overall Score'] = overall_rank_df['Overall Score'].apply(lambda x: x)
     overall_rank_df = overall_rank_df.reset_index()
     overall_rank_df.index = overall_rank_df.index + 1  # Start the index from 1
 
     styled_df = overall_rank_df[['Player Name', 'Team', 'Age', 'Minutes', 'Overall Score']].style \
-        .format({"Overall Score": "{:.2f}"}) \
         .apply(color_overall_score, axis=1, subset=['Overall Score'])
 
     return styled_df

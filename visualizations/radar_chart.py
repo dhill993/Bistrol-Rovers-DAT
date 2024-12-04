@@ -7,12 +7,17 @@ from utilities.utils import custom_fontt
 
 
 def create_radar_chart(complete_data, league_name,player_name, position, season):
+
+    all_metrics = get_metrics_by_position(position)
+
+    if position == 'Number 6':
+        position = 'Number 8'
+
     if league_name!='All':
         complete_data = complete_data[complete_data['League'] == league_name]    
 
     complete_data = complete_data[complete_data['Season'] == season]    
     player_data = complete_data[complete_data['Player Name'] == player_name]
-    all_metrics = get_metrics_by_position(position)
 
     player_metrics_df, positional_means_df = get_player_and_avg_metrics(complete_data, player_name, position,all_metrics)
     stats1, stats2 = get_stat_values(all_metrics, player_metrics_df, positional_means_df)
