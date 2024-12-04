@@ -1,0 +1,6 @@
+streamlit==1.24.1
+pandas 
+mplsoccer
+plotly
+st-pages==0.4.3
+statsbombpy

@@ -1,0 +1,9 @@
+[[pages]]
+path = "main.py"
+name = "Visualizations"
+icon = "💹"
+
+[[pages]]
+path = "data/view_data.py"
+name = "View StatsBomb Data"
+icon = "📊"
