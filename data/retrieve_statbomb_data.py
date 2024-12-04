@@ -62,7 +62,10 @@ position_mapping = {
 
 @st.cache_data(ttl=86400,show_spinner=False)
 def get_statsbomb_player_season_stats():
-    creds = {"user": "alfiesparks1@hotmail.co.uk", "passwd": "CQGYojVR"}
+    user = st.secrets["user"]
+    passwd = st.secrets["passwd"]
+
+    creds = {"user": user, "passwd": passwd}
     all_comps = sb.competitions(creds=creds)
     
     dataframes = []
