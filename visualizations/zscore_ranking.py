@@ -25,21 +25,22 @@ def top_10_players_by_profile(league_name, season, position, profile_name, df):
     weighted_metrics = profile["Weighted Metrics"]
     z_score_name = profile["Z Score Name"]
 
+    all_metrics = metrics + weighted_metrics
     # Fill missing values with the mean of each column in the selected metrics
-    df[metrics] = df[metrics].apply(lambda x: x.fillna(x.mean()))
+    df[all_metrics] = df[all_metrics].apply(lambda x: x.fillna(x.mean()))
     
     # Calculate z-scores for each metric
-    for metric in metrics:
+    for metric in all_metrics:
         df[metric + '_z'] = zscore(df[metric])
     
     # Define weights for each metric z-score
-    weights = {metric + '_z': 1.5 if metric in weighted_metrics else 1 for metric in metrics}
-    
+    weights = {metric + '_z': 2 if metric in weighted_metrics else 1 for metric in all_metrics}
+
     # Initialize the profile score column to 0
     df[z_score_name] = 0
     
     # Calculate the profile score based on weighted z-scores
-    for metric in metrics:
+    for metric in all_metrics:
         df[z_score_name] += df[metric + '_z'] * weights[metric + '_z']
 
     df[z_score_name] = df[z_score_name].round(2)

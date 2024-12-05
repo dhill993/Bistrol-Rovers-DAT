@@ -105,12 +105,16 @@ profiles_zcore = {
         {
             "Profile Name": "Outside Centre Back",
             "Using Metrics":[
+            "Aerial Win %",
             "Blocks/Shots",
             "Dribbles Stopped %",
             "PADJ Tackles",
             "PADJ Interceptions",
             "PADJ Clearances",
             "Defensive Actions",
+            "Defensive Regains",
+            "DA OBV",
+            "Ball Recoveries"
             ],
             "Weighted Metrics": ["Carries", "Dribbles", "OP F3 Passes"],
             "Z Score Name": "Outside CB Score"
@@ -236,10 +240,8 @@ profiles_zcore = {
             "Profile Name": "Progressive 6",
             "Using Metrics": [
             "PADJ Tackles",
-            "PADJ Interceptions",
             "Defensive Actions",
             "Passing %",
-            "Ball Recoveries",
             "Aerial Win %",
             "Dribbles Stopped %",
             "PADJ Pressures",
@@ -251,15 +253,11 @@ profiles_zcore = {
         {
             "Profile Name": "Progressive 8",
             "Using Metrics": [
-            "PADJ Tackles",
-            "PADJ Interceptions",
-            "Defensive Actions",
             "Passing %",
             "Ball Recoveries",
             "Aerial Win %",
             "Dribbles Stopped %",
             "PADJ Pressures",
-            "DA OBV",
             "Deep Progressions"
             ],
             "Weighted Metrics": ["PADJ Tackles", "PADJ Interceptions", "Defensive Actions", "Defensive Regains", "DA OBV",],
@@ -291,12 +289,9 @@ profiles_zcore = {
             "OP F3 Passes",
             "PINTIN",
             "Shots",
-            "Deep Progressions",
-            "xG Buildup",
             "OP Key Passes",
             "Dribbles",
             "Pass OBV",
-            "Ball Recoveries",
             "OBV D&C"
             ],
             "Weighted Metrics": ["Deep Progressions", "xG Buildup", "Pass OBV", "PADJ Interceptions", "Ball Recoveries"],
