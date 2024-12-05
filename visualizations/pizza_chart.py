@@ -89,6 +89,15 @@ def create_pizza_chart(complete_data,league_name,season, player_name, position):
         ha="left", fontproperties=custom_fontt, color="#F2F2F2", alpha=0.8
     )
 
+    colors_list = ["#58AC4E", "#1A78CF", "#aa42af"]
+    legend_elements = [
+        Patch(facecolor=colors_list[0], edgecolor='white', label='>=70%'),
+        Patch(facecolor=colors_list[1], edgecolor='white', label='50 - 69%'),
+        Patch(facecolor=colors_list[2], edgecolor='white', label='<50%')
+    ]
+    ax.legend(handles=legend_elements, loc='lower right', bbox_to_anchor=(1.25, 0), fontsize=12, frameon=False, labelcolor='white')
+
+
     # Add a horizontal line at the top with the team's primary color
     fig.add_artist(plt.Line2D((0, 1.2), (0.87, 0.87), color='white', linewidth=2, alpha=0.8, transform=fig.transFigure))
        
