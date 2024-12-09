@@ -3,5 +3,5 @@ pandas
 mplsoccer
 plotly
 st-pages==0.4.3
-statsbombpy
-openpyxls
+statsbombpy==1.14.0
+openpyxl==3.1.5
