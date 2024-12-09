@@ -3,15 +3,17 @@ import matplotlib.pyplot as plt
 from utilities.utils import custom_fontt
 import numpy as np
 
-def create_scatter_chart(df, league, season, player, player_position, x_metric, y_metric, min_age, max_age, min_minutes, max_minutes):
+def create_scatter_chart(df, league, season, player, player_position, x_metric, y_metric, min_age, max_age, min_minutes, max_minutes, api='statbomb'):
 
-    if player_position == 'Number 6':
+    if player_position == 'Number 6' and api=='statbomb':
         player_position = 'Number 8'
 
     player_df = df[df["Player Name"] == player]
-    if league != 'All':
+    if league not in ['All', '']:
         df = df[df['League'] == league]    
-    df = df[df['Season'] == season]    
+    if season!='':
+        df = df[df['Season']==season]
+
     df = df[df['Position'] == player_position]
     df = df[(df['Minutes'] >= min_minutes) & (df['Minutes'] <= max_minutes)]
     df = df[(df['Age'] >= min_age) & (df['Age'] <= max_age)]

@@ -1,9 +1,14 @@
 [[pages]]
 path = "main.py"
-name = "Visualizations"
+name = "Statbomb Data Visualizations"
+icon = "💹"
+
+[[pages]]
+path = "main_1.py"
+name = "Wyscout Data Visualizations"
 icon = "💹"
 
 [[pages]]
 path = "data/view_data.py"
-name = "View StatsBomb Data"
+name = "View Data"
 icon = "📊"

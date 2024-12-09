@@ -1,6 +1,7 @@
 import streamlit as st
 from st_pages import show_pages_from_config
 from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
+from data.retrieve_wyscout_data import get_wyscout_player_season_stats
 
 show_pages_from_config()
 st.set_page_config(
@@ -60,7 +61,14 @@ st.markdown("""
 
 
 st.markdown("")
-with st.spinner("Retrieving data from statsbomb api"):
-    statsbomb_data = get_statsbomb_player_season_stats()
-    statsbomb_data["Minutes"] = statsbomb_data['Minutes'].astype(int)
-st.dataframe(statsbomb_data, height=600, use_container_width=True)
+data = []
+api_name = st.selectbox("Select Data API", options=["Statbomb", "Wyscout"])
+if api_name=='Statbomb':
+    with st.spinner("Retrieving data from statsbomb api"):
+        data = get_statsbomb_player_season_stats()
+        data["Minutes"] = data['Minutes'].astype(int)
+elif api_name=='Wyscout':
+    with st.spinner("Retrieving data from wyscout api"):
+        data = get_wyscout_player_season_stats()
+
+st.dataframe(data, height=600, use_container_width=True,)

@@ -2,18 +2,19 @@
 import pandas as pd
 from utilities.utils import get_metrics_by_position
 
-def get_overall_rank(data, league_name, season, position):
+def get_overall_rank(data, league_name, season, position, api):
     """
     This function calculates the percentile rank for each metric column and then averages these percentiles
     to compute the overall score for each player, rounding to two decimal places.
     """
-    all_numeric_metrics = get_metrics_by_position(position)
-    if position == 'Number 6':
+    all_numeric_metrics = get_metrics_by_position(position, api)
+    if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
-    if league_name!='All':
+    if league_name not in ['All', '']:
         data = data[data['League'] == league_name]    
     data = data[data['Position']==position]
-    data = data[data['Season']==season]
+    if season!='':
+        data = data[data['Season']==season]
     data['Age'] = data['Age'].fillna(0)  # Replace NaN with 0
     data['Age'] = data['Age'].replace([float('inf'), -float('inf')], 0)
     data['Age'] = data['Age'].astype(int)
@@ -30,7 +31,7 @@ def get_overall_rank(data, league_name, season, position):
 
     return data[['Player Name', 'Team', 'Age', 'Minutes', 'Overall Score']]
 
-def create_rank_visualization(data, league_name,season, position):
+def create_rank_visualization(data, league_name,season, position, api='statbomb'):
     """
     Create an interactive horizontal bar visualization of the rank percentage.
 
@@ -49,7 +50,9 @@ def create_rank_visualization(data, league_name,season, position):
         else:
             return ['background-color: green']  # 75% and above
 
-    overall_rank_df = get_overall_rank(data, league_name, season, position)
+
+
+    overall_rank_df = get_overall_rank(data, league_name, season, position, api)
     overall_rank_df['Overall Score'] = pd.to_numeric(overall_rank_df['Overall Score'], errors='coerce')
     # overall_rank_df['Overall Score'] = overall_rank_df['Overall Score'].apply(lambda x: x)
     overall_rank_df = overall_rank_df.reset_index()

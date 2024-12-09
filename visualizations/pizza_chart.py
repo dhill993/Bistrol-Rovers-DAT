@@ -7,16 +7,18 @@ from utilities.utils import get_player_metrics_percentile_ranks
 from utilities.utils import custom_fontt
 
 
-def create_pizza_chart(complete_data,league_name,season, player_name, position):
+def create_pizza_chart(complete_data,league_name,season, player_name, position, api="statbomb"):
 
-    position_specific_metric = get_metrics_by_position(position)
+    position_specific_metric = get_metrics_by_position(position, api)
 
-    if position == 'Number 6':
+    if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
 
-    if league_name!='All':
+    if league_name not in ['All', '']:
         complete_data = complete_data[complete_data['League'] == league_name]    
-    complete_data = complete_data[complete_data['Season'] == season]    
+    if season!='':
+        complete_data = complete_data[complete_data['Season']==season]
+
     player_df_before = complete_data[complete_data['Player Name'] == player_name]    
 
     player_df = get_player_metrics_percentile_ranks(complete_data, player_name, position, position_specific_metric)
@@ -51,6 +53,11 @@ def create_pizza_chart(complete_data,league_name,season, player_name, position):
         inner_circle_size=20            # size of inner circle
     )
 
+    if api == "statbomb" :
+        font_size = 12
+    else:
+        font_size = 8
+
     fig, ax = baker.make_pizza(
         metric_values,
         figsize=(9.5, 11),
@@ -58,7 +65,7 @@ def create_pizza_chart(complete_data,league_name,season, player_name, position):
         blank_alpha=0.1,
         slice_colors=slice_colors,
         kwargs_slices=dict(edgecolor="#000000", zorder=2, linewidth=2),
-        kwargs_params=dict(color="#F2F2F2", fontsize=12, fontproperties=custom_fontt, va="center"),
+        kwargs_params=dict(color="#F2F2F2", fontsize=font_size, fontproperties=custom_fontt, va="center"),
         kwargs_values=dict(color="#F2F2F2", fontsize=0, alpha=0, fontproperties=custom_fontt, zorder=-5)
     )
 

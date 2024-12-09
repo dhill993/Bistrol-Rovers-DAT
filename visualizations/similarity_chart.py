@@ -1,7 +1,7 @@
 from utilities.utils import get_metrics_by_position
 
 
-def filter_similar_players(df, player_name, league_name, season, position, similarity_threshold, max_age):
+def filter_similar_players(df, player_name, league_name, season, position, similarity_threshold, max_age, api="statbomb"):
     """
     Filters players based on similarity to a selected player's metrics and age limit.
 
@@ -17,19 +17,24 @@ def filter_similar_players(df, player_name, league_name, season, position, simil
     """
     # Extract the selected player's metrics as reference
 
-    num_columns = get_metrics_by_position(position)
+    num_columns = get_metrics_by_position(position, api)
 
-    if position == 'Number 6':
+    if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
 
-    if league_name != 'All':
+    if league_name not in ['All', '']:
         df = df[df['League'] == league_name]    
+    if season!='':
+        df = df[df['Season']==season]
     df = df[df['Position'] == position]
-    df = df[df['Season'] == season]
 
-    columns = ['Player Name', 'Team', 'League', 'Minutes', 'Age', 'Position'] + num_columns
+    if api=='wyscout':
+        columns = ['Player Name', 'Team', 'Minutes', 'Age', 'Position'] + num_columns
+    else:
+        columns = ['Player Name', 'Team', 'League', 'Minutes', 'Age', 'Position'] + num_columns
+
     df = df[columns]
-    
+
     selected_player = df.loc[df['Player Name'] == player_name].iloc[0]
     df = df[df['Player Name']!= player_name]
 
@@ -53,5 +58,8 @@ def filter_similar_players(df, player_name, league_name, season, position, simil
             matching_indices.append(idx)
 
     # Final result with matching players and their similarity score
-    df = df[['Player Name', 'Team', 'League', 'Minutes', 'Age', 'Position',]]
+    if api == 'wyscout':
+        df = df[['Player Name', 'Team', 'Minutes', 'Age', 'Position',]]
+    else:
+        df = df[['Player Name', 'Team', 'Legue', 'Minutes', 'Age', 'Position',]]
     return df.loc[matching_indices].reset_index(drop=True)

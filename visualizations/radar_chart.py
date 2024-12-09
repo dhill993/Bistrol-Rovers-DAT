@@ -6,17 +6,18 @@ from utilities.utils import get_player_and_avg_metrics, get_stat_values
 from utilities.utils import custom_fontt
 
 
-def create_radar_chart(complete_data, league_name,player_name, position, season):
+def create_radar_chart(complete_data, league_name,player_name, position, season, api='statbomb'):
 
-    all_metrics = get_metrics_by_position(position)
+    all_metrics = get_metrics_by_position(position, api)
 
-    if position == 'Number 6':
+    if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
 
-    if league_name!='All':
+    if league_name not in ['All', '']:
         complete_data = complete_data[complete_data['League'] == league_name]    
+    if season!='':
+        complete_data = complete_data[complete_data['Season']==season]
 
-    complete_data = complete_data[complete_data['Season'] == season]    
     player_data = complete_data[complete_data['Player Name'] == player_name]
 
     player_metrics_df, positional_means_df = get_player_and_avg_metrics(complete_data, player_name, position,all_metrics)

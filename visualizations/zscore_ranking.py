@@ -1,7 +1,8 @@
 from scipy.stats import zscore
-from utilities.default_metrics import profiles_zcore
+from utilities.wyscout_default_metrics import profiles_zcore
+import pandas as pd
 
-def top_10_players_by_profile(league_name, season, position, profile_name, df):
+def top_10_players_by_profile(league_name, season, position, profile_name, df, api='statbomb'):
 
     profile = next(
         (p for p in profiles_zcore.get(position, []) if p["Profile Name"] == profile_name), None
@@ -10,13 +11,14 @@ def top_10_players_by_profile(league_name, season, position, profile_name, df):
         raise ValueError(f"Profile '{profile_name}' for position '{position}' not found.")
 
 
-    if position == 'Number 6':
+    if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
 
-    if league_name != 'All':
+    if league_name not in ['All', '']:
         df = df[df['League'] == league_name]    
+    if season!='':
+        df = df[df['Season']==season]
 
-    df = df[df['Season'] == season]    
     df = df[df['Position'] == position]
 
     # Find the selected profile for the given position
@@ -48,5 +50,8 @@ def top_10_players_by_profile(league_name, season, position, profile_name, df):
     # Sort the dataframe by the calculated profile score in descending order and get the top 10
     top_10_players = df.sort_values(by=z_score_name, ascending=False).head(10).reset_index(drop=True)
 
+    if api == 'statbomb':
     # Display the top 10 players with relevant columns
-    return top_10_players[['Player Name', 'Team', 'League', 'Minutes', 'Position', 'Age' ,z_score_name]]
+        return top_10_players[['Player Name', 'Team', 'League', 'Minutes', 'Position', 'Age' ,z_score_name]]
+    else:
+        return top_10_players[['Player Name', 'Team', 'Minutes', 'Position', 'Age' ,z_score_name]]

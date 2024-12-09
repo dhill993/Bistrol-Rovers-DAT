@@ -1,17 +1,23 @@
 import pandas as pd
 import matplotlib.font_manager as fm
 import numpy as np
-from .default_metrics import metrics_per_position
+from .statbomb_default_metrics import metrics_per_position
+from .wyscout_default_metrics import metrics_per_position as metrics_per_position_1
+
 custom_fontt = fm.FontProperties(fname="fonts/Alexandria-Regular.ttf")
 
 # Helper function to get players by position
-def get_metrics_by_position(position):
-    return metrics_per_position[position]
+def get_metrics_by_position(position, api='statbomb'):
+    if api=='statbomb':
+        return metrics_per_position[position]
+    elif api=='wyscout':
+        return metrics_per_position_1[position]
 
 def get_players_by_position(df, league, season, position):
-    if league!='All':
+    if league not in ['All', '']:
         df = df[df['League'] == league]    
-    df = df[df['Season'] == season]    
+    if season!='':  
+        df = df[df['Season'] == season]    
     return df[df['Position'] == position]['Player Name'].tolist()
 
 def get_player_metrics_percentile_ranks(df, player_name, position, all_metric):
