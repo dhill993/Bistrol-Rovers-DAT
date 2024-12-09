@@ -69,34 +69,43 @@ st.markdown("""
 
 st.markdown("")
 wyscout_data = []
-with st.spinner("Retrieving data from statsbomb api"):
+with st.spinner("Retrieving data from wyscout api"):
     wyscout_data = get_wyscout_player_season_stats()
-print(wyscout_data.head(5))
 playing_positions = list(wyscout_data['Position'].unique())
+leagues = list(wyscout_data['League'].unique())
+leagues.append('All')
+seasons = list(wyscout_data['Season'].unique())
 
 with st.expander("Expand to view pizza chart", expanded=False):
+    league = st.selectbox('Select League:',leagues[::-1], index=0, key='pizza_lague')
+    season = st.selectbox('Select Season:', seasons, index=0, key='pizza_seaosn')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='pizza_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, "", "",position), index=0, key='pizza_player')
+
+    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,position), index=0, key='pizza_player')
 
     # Button to generate pizza chart
     if st.button('Generate Pizza Chart'):
         try:
-            fig_pizza = create_pizza_chart(wyscout_data, "","", player_name, position, 'wyscout')
+            fig_pizza = create_pizza_chart(wyscout_data, league,season, player_name, position, 'wyscout')
             if fig_pizza is not None:
                 st.pyplot(fig_pizza)  # Display the pizza chart
         except Exception as e:
             st.error(f"Error : {e}")
 
 with st.expander("Expand to view player comparison radar chart", expanded=False):
+
+    league = st.selectbox('Select League:',leagues[::-1], index=0, key='radar_lague')
+    season = st.selectbox('Select Season:', seasons, index=0, key='radar_seaosn')
+
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='radar_positon')
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, '', "", position), index=0, key='radar_player')
+    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season, position), index=0, key='radar_player')
 
 
     # Button to generate pizza chart
     if st.button('Generate Radar Chart'):
         try:
-            fig_radar = create_radar_chart(wyscout_data, "",player_name, position,"", "wyscout")
+            fig_radar = create_radar_chart(wyscout_data, league,player_name, position,season, "wyscout")
             if fig_radar is not None:
                 st.pyplot(fig_radar)  # Display the pizza chart
         except Exception as e:
@@ -104,8 +113,12 @@ with st.expander("Expand to view player comparison radar chart", expanded=False)
 
 with st.expander("Expand to view scatter plot", expanded=False):
 
+
+    league = st.selectbox('Select League:',leagues[::-1], index=0, key='scatter_lague')
+    season = st.selectbox('Select Season:', seasons, index=0, key='scatter_seaosn')
+
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='scatter_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, "","", position), index=0, key='scataer_player')
+    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league, season, position), index=0, key='scataer_player')
 
     # age_range = st.slider("Select Age Range", min_value=int(df['Age'].min()), max_value=int(df['Age'].max()), 
     #                       value=(int(df['Age'].min()), int(df['Age'].max())))
@@ -134,7 +147,7 @@ with st.expander("Expand to view scatter plot", expanded=False):
     # Button to generate pizza chart
     if st.button(f'Generate Scatter Plot'):
         try:
-            fig_scatter = create_scatter_chart(wyscout_data, "","", player_name, position, x_metric_display, y_metric_display, age_range[0], age_range[1], minutes_range[0], minutes_range[1], 'wyscout')
+            fig_scatter = create_scatter_chart(wyscout_data, league, season, player_name, position, x_metric_display, y_metric_display, age_range[0], age_range[1], minutes_range[0], minutes_range[1], 'wyscout')
             if fig_scatter is not None:
                 st.pyplot(fig_scatter)  # Display the pizza chart
         except Exception as e:
@@ -142,12 +155,15 @@ with st.expander("Expand to view scatter plot", expanded=False):
 
 with st.expander("Expand to view players overall rank score", expanded=False):
 
+    league = st.selectbox('Select League:',leagues[::-1], index=0, key='rabk_lague')
+    season = st.selectbox('Select Season:', seasons, index=0, key='rank_seaosn')
+
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='rank_pos')
 
     # Button to generate pizza chart
     if st.button(f'Generate Overall Ranks for {position}'):
         try:
-            fig_roverall = create_rank_visualization(wyscout_data, "","", position, "wyscout")
+            fig_roverall = create_rank_visualization(wyscout_data, league,season, position, "wyscout")
             if fig_roverall is not None:
                 with st.container():
                     st.write(
@@ -168,23 +184,28 @@ with st.expander("Expand to view players overall rank score", expanded=False):
 
 with st.expander("Expand to view players zscore rank score", expanded=False):
 
+    league = st.selectbox('Select League:',leagues[::-1], index=0, key='z_lague')
+    season = st.selectbox('Select Season:', seasons, index=0, key='z_seaosn')
+
     position = st.selectbox("Select Player Position", options=list(profiles.keys()), key='ra_prof')
     profile_options = [profile["Profile Name"] for profile in profiles[position]]
     profile_name = st.selectbox("Select Profile", options=profile_options)
 
     # Button to generate pizza chart
     if st.button(f'Generate Zscore Ranks'):
-        # try:
-        top_10_players = top_10_players_by_profile("", "", position, profile_name, wyscout_data, 'wyscout')
-        st.dataframe(top_10_players, use_container_width=True)
-        # except Exception as e:
-        #     st.error(f"Error : {e}")
+        try:
+            top_10_players = top_10_players_by_profile(league, season, position, profile_name, wyscout_data, 'wyscout')
+            st.dataframe(top_10_players, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error : {e}")
 
 with st.expander("Expand to view player similarity", expanded=False):
 
+    league = st.selectbox('Select League:',leagues[::-1], index=0, key='sim_lague')
+    season = st.selectbox('Select Season:', seasons, index=0, key='sim_seaosn')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='sim_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, "","", position), index=0, key='sim_player')
+    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league, season, position), index=0, key='sim_player')
 
     similarity_threshold = st.slider('Similarity Percent Threshold (%)', 50, 100, 90) / 100  # Converts slider percentage to decimal
 
@@ -197,9 +218,9 @@ with st.expander("Expand to view player similarity", expanded=False):
             similar_players_df = filter_similar_players(
                 wyscout_data, 
                 player_name=player_name,
-                league_name="",
+                league_name=league,
                 position=position,
-                season="",
+                season=season,
                 similarity_threshold=similarity_threshold, 
                 max_age=max_age,
                 api="wyscout"

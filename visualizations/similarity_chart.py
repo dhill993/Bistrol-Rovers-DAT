@@ -28,10 +28,7 @@ def filter_similar_players(df, player_name, league_name, season, position, simil
         df = df[df['Season']==season]
     df = df[df['Position'] == position]
 
-    if api=='wyscout':
-        columns = ['Player Name', 'Team', 'Minutes', 'Age', 'Position'] + num_columns
-    else:
-        columns = ['Player Name', 'Team', 'League', 'Minutes', 'Age', 'Position'] + num_columns
+    columns = ['Player Name', 'Team', 'League', 'Minutes', 'Age', 'Position'] + num_columns
 
     df = df[columns]
 
@@ -58,8 +55,5 @@ def filter_similar_players(df, player_name, league_name, season, position, simil
             matching_indices.append(idx)
 
     # Final result with matching players and their similarity score
-    if api == 'wyscout':
-        df = df[['Player Name', 'Team', 'Minutes', 'Age', 'Position',]]
-    else:
-        df = df[['Player Name', 'Team', 'Legue', 'Minutes', 'Age', 'Position',]]
+    df = df[['Player Name', 'Team', 'League', 'Minutes', 'Age', 'Position',]]
     return df.loc[matching_indices].reset_index(drop=True)

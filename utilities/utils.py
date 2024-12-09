@@ -30,10 +30,8 @@ def get_player_metrics_percentile_ranks(df, player_name, position, all_metric):
 
     # Combine the ranked numeric data with the non-numeric columns
     result = pd.concat([non_numeric_columns.reset_index(drop=True), positional_percentile_data.reset_index(drop=True)], axis=1)
-    print(result)
 
     player_data = result[result['Player Name'] == player_name]
-    print(result)
 
     if not player_data.empty:
         return player_data

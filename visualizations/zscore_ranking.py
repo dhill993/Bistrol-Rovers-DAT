@@ -1,8 +1,13 @@
 from scipy.stats import zscore
-from utilities.wyscout_default_metrics import profiles_zcore
-import pandas as pd
+from utilities.statbomb_default_metrics import profiles_zcore as statbomb_profiles
+from utilities.wyscout_default_metrics import profiles_zcore as wyscout_zcore
 
 def top_10_players_by_profile(league_name, season, position, profile_name, df, api='statbomb'):
+
+    if api == 'statbomb' :
+        profiles_zcore = statbomb_profiles
+    else:
+        profiles_zcore = wyscout_zcore
 
     profile = next(
         (p for p in profiles_zcore.get(position, []) if p["Profile Name"] == profile_name), None
@@ -49,9 +54,4 @@ def top_10_players_by_profile(league_name, season, position, profile_name, df, a
 
     # Sort the dataframe by the calculated profile score in descending order and get the top 10
     top_10_players = df.sort_values(by=z_score_name, ascending=False).head(10).reset_index(drop=True)
-
-    if api == 'statbomb':
-    # Display the top 10 players with relevant columns
-        return top_10_players[['Player Name', 'Team', 'League', 'Minutes', 'Position', 'Age' ,z_score_name]]
-    else:
-        return top_10_players[['Player Name', 'Team', 'Minutes', 'Position', 'Age' ,z_score_name]]
+    return top_10_players[['Player Name', 'Team', 'League', 'Minutes', 'Position', 'Age' ,z_score_name]]

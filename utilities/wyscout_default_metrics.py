@@ -72,7 +72,7 @@ metrics_per_position = {
         "ACCURATE CROSSES %",
     ],
     "Centre Forward": [
-        "NON PENALITY GOALS PER 90",
+        "NON PENALTY GOALS PER 90",
         "SHOTS PER 90",
         "SHOTS ON TARGET %",
         "xG PER 90",
@@ -186,7 +186,7 @@ profiles_zcore = {
         {
             "Profile Name": "Providing Forward",
             "Using Metrics": [
-            "NON PENALITY GOALS PER 90",
+            "NON PENALTY GOALS PER 90",
             "SHOTS PER 90",
             "SHOTS ON TARGET %",
             "xG PER 90",
@@ -201,7 +201,7 @@ profiles_zcore = {
         {
             "Profile Name": "Target Man Forward",
             "Using Metrics": [
-            "NON PENALITY GOALS PER 90",
+            "NON PENALTY GOALS PER 90",
             "SHOTS ON TARGET %",
             "xG PER 90",
             "GOAL CONVERSION %",
@@ -215,7 +215,7 @@ profiles_zcore = {
         {
             "Profile Name": "Mobile Forward",
             "Using Metrics": [
-            "NON PENALITY GOALS PER 90",
+            "NON PENALTY GOALS PER 90",
             "SHOTS PER 90",
             "SHOTS ON TARGET %",
             "xG PER 90",
