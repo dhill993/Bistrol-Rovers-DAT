@@ -22,6 +22,9 @@ def filter_similar_players(df, player_name, league_name, season, position, simil
     if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
 
+    if (position == 'Number 8' or position == 'Number 10') and api=='wyscout':
+        position = 'Number 6'
+
     if league_name not in ['All', '']:
         df = df[df['League'] == league_name]    
     if season!='':

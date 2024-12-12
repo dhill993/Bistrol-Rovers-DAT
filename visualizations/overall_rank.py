@@ -10,6 +10,10 @@ def get_overall_rank(data, league_name, season, position, api):
     all_numeric_metrics = get_metrics_by_position(position, api)
     if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
+
+    if (position == 'Number 8' or position == 'Number 10') and api=='wyscout':
+        position = 'Number 6'
+
     if league_name not in ['All', '']:
         data = data[data['League'] == league_name]    
     data = data[data['Position']==position]
@@ -49,8 +53,6 @@ def create_rank_visualization(data, league_name,season, position, api='statbomb'
             return ['background-color: orange']  # between 56% and 74%
         else:
             return ['background-color: green']  # 75% and above
-
-
 
     overall_rank_df = get_overall_rank(data, league_name, season, position, api)
     overall_rank_df['Overall Score'] = pd.to_numeric(overall_rank_df['Overall Score'], errors='coerce')

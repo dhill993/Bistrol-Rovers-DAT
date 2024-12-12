@@ -72,6 +72,8 @@ wyscout_data = []
 with st.spinner("Retrieving data from wyscout api"):
     wyscout_data = get_wyscout_player_season_stats()
 playing_positions = list(wyscout_data['Position'].unique())
+playing_positions.append('Number 8')
+playing_positions.append('Number 10')
 leagues = list(wyscout_data['League'].unique())
 leagues.append('All')
 seasons = list(wyscout_data['Season'].unique())
@@ -81,8 +83,10 @@ with st.expander("Expand to view pizza chart", expanded=False):
     season = st.selectbox('Select Season:', seasons, index=0, key='pizza_seaosn')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='pizza_pos')
-
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,position), index=0, key='pizza_player')
+    if position in ['Number 8', 'Number 10'] :
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,'Number 6'), index=0, key='pizza_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,position), index=0, key='pizza_player')
 
     # Button to generate pizza chart
     if st.button('Generate Pizza Chart'):
@@ -99,7 +103,10 @@ with st.expander("Expand to view player comparison radar chart", expanded=False)
     season = st.selectbox('Select Season:', seasons, index=0, key='radar_seaosn')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='radar_positon')
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season, position), index=0, key='radar_player')
+    if position in ['Number 8', 'Number 10'] :
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,'Number 6'), index=0, key='radar_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,position), index=0, key='radar_player')
 
 
     # Button to generate pizza chart
@@ -118,7 +125,11 @@ with st.expander("Expand to view scatter plot", expanded=False):
     season = st.selectbox('Select Season:', seasons, index=0, key='scatter_seaosn')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='scatter_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league, season, position), index=0, key='scataer_player')
+    if position in ['Number 8', 'Number 10'] :
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,'Number 6'), index=0, key='scataer_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,position), index=0, key='scataer_player')
+
 
     # age_range = st.slider("Select Age Range", min_value=int(df['Age'].min()), max_value=int(df['Age'].max()), 
     #                       value=(int(df['Age'].min()), int(df['Age'].max())))
@@ -205,7 +216,10 @@ with st.expander("Expand to view player similarity", expanded=False):
     season = st.selectbox('Select Season:', seasons, index=0, key='sim_seaosn')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='sim_pos')
-    player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league, season, position), index=0, key='sim_player')
+    if position in ['Number 8', 'Number 10'] :
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,'Number 6'), index=0, key='sim_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,position), index=0, key='sim_player')
 
     similarity_threshold = st.slider('Similarity Percent Threshold (%)', 50, 100, 90) / 100  # Converts slider percentage to decimal
 

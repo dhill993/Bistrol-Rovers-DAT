@@ -13,6 +13,9 @@ def create_radar_chart(complete_data, league_name,player_name, position, season,
     if position == 'Number 6' and api=='statbomb':
         position = 'Number 8'
 
+    if (position == 'Number 8' or position == 'Number 10') and api=='wyscout':
+        position = 'Number 6'
+
     if league_name not in ['All', '']:
         complete_data = complete_data[complete_data['League'] == league_name]    
     if season!='':

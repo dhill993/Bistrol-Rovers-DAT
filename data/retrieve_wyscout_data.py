@@ -16,18 +16,15 @@ position_mapping = {
     "LDMF": "Number 6",
     "RDFM": "Number 6",
     "DMF": "Number 6",
-    "AMF": "Number 8",
-    "RAMF": "Number 8",
-    "LAMF": "Number 8",
+    "AMF": "Number 6",
     "LW": "Winger",
     "RW": "Winger",
     "RWF": "Winger",
     "LWF": "Winger",
-    "CF": "Centre Forward",
     "RAMF": "Winger",
-    "LAFM": "Winger"
+    "LAFM": "Winger",
+    "CF": "Centre Forward",
 }
-
 
 # Original column names
 original_columns = [
@@ -227,7 +224,7 @@ def get_wyscout_player_season_stats(folder_path=data_path):
             
             # Add league and season columns
             df['League'] = league
-            df['Season'] = season
+            df['Season'] = transform_season(season)
             
             # Append the DataFrame to the list
             all_data.append(df)
@@ -246,3 +243,20 @@ def read_transform_individual_files(file_path):
 
     data.rename(columns=df_mapping, inplace=True)
     return data
+ 
+def transform_season(season_str):
+    season_str = season_str.strip()
+
+    if " " in season_str:  # Handles cases like "23 24"
+        parts = season_str.split()
+        start_year = f"20{parts[0]}"
+        end_year = f"20{parts[1]}"
+        return f"{start_year}/{end_year}"
+
+    elif len(season_str) == 2:  # Handles cases like "22"
+        start_year = f"20{season_str}"
+        end_year = f"20{int(season_str) + 1:02d}"
+        return f"{start_year}/{end_year}"
+
+    else:
+        return ""

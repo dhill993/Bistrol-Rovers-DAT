@@ -7,6 +7,10 @@ def create_scatter_chart(df, league, season, player, player_position, x_metric, 
 
     if player_position == 'Number 6' and api=='statbomb':
         player_position = 'Number 8'
+    
+    if (player_position == 'Number 8' or player_position == 'Number 10') and api=='wyscout':
+        player_position = 'Number 6'
+
 
     player_df = df[df["Player Name"] == player]
     if league not in ['All', '']:
