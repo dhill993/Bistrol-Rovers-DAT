@@ -3,9 +3,6 @@ import pandas as pd
 import os
 import shutil
 
-
-PASSWORD = "saqibhere"  # Replace with your desired password
-
 st.set_page_config(
     page_title='Bristol Rovers - Data Analysis Tool',
     page_icon='💹',
@@ -36,7 +33,7 @@ if password:
 
 if st.session_state.submitted:
 
-    if password == PASSWORD:
+    if password == st.secrets["PASSWORD"]:
         st.write("Please upload CSV or Excel files containing all the required metrics.")
         
         # File uploader for multiple files
