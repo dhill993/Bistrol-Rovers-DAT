@@ -6,9 +6,14 @@ icon = "💹"
 [[pages]]
 path = "main_1.py"
 name = "Wyscout Data Visualizations"
-icon = "💹"
+icon = "📊"
 
 [[pages]]
 path = "data/view_data.py"
 name = "View Data"
-icon = "📊"
+icon = "🗂️"
+
+[[pages]]
+path = "data/upload_data.py"
+name = "Upload Data"
+icon = "📋"
