@@ -22,7 +22,7 @@ position_mapping = {
     "RWF": "Winger",
     "LWF": "Winger",
     "RAMF": "Winger",
-    "LAFM": "Winger",
+    "LAMF": "Winger",
     "CF": "Centre Forward",
 }
 
