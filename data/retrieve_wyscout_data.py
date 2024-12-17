@@ -207,28 +207,29 @@ desired_columns = [
 # Create the mapping
 df_mapping = dict(zip(original_columns, desired_columns))
 
-@st.cache_data(ttl=86400,show_spinner=False)
+@st.cache_data(ttl=300,show_spinner=False)
 def get_wyscout_player_season_stats(folder_path=data_path):
     all_data = []
-    
+
     # Iterate through all files in the folder
     for filename in os.listdir(folder_path):
         if filename.endswith('.xlsx'):  # Check if it's an .xlsx file
             # Extract league and season from the filename
-            parts = filename.split(' ', 2)  # Split from the left into at most 3 parts
-            league = parts[0] + " " + parts[1]  # Combine the first two parts for the league name
-            season = parts[2].split('.')[0]  # Take the third part and remove the extension
+            parts = filename.split('_')
             # Read the file into a DataFrame
             file_path = os.path.join(folder_path, filename)
             df = read_transform_individual_files(file_path)
             
-            # Add league and season columns
-            df['League'] = league
-            df['Season'] = transform_season(season)
-            
-            # Append the DataFrame to the list
+            df['League'] = parts[0]
+
+            season = ''
+            if len(parts)>1:
+                season = parts[1].split('.')[0]
+                df['Season'] = transform_season(season)
+            else:
+                df['Season'] = season
             all_data.append(df)
-    
+
     # Concatenate all DataFrames
     combined_df = pd.concat(all_data, ignore_index=True)
     return combined_df

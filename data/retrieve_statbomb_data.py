@@ -57,7 +57,7 @@ position_mapping = {
     "Right Centre Forward": "Centre Forward"
 }
 
-@st.cache_data(ttl=86400,show_spinner=False)
+@st.cache_data(ttl=14400,show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
     passwd = st.secrets["passwd"]
