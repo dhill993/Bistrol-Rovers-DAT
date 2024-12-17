@@ -207,7 +207,7 @@ desired_columns = [
 # Create the mapping
 df_mapping = dict(zip(original_columns, desired_columns))
 
-@st.cache_data(ttl=86400,show_spinner=False)
+@st.cache_data(ttl=300,show_spinner=False)
 def get_wyscout_player_season_stats(folder_path=data_path):
     all_data = []
     
