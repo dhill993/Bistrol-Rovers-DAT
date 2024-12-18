@@ -69,6 +69,9 @@ if api_name=='Statbomb':
         data["Minutes"] = data['Minutes'].astype(int)
 elif api_name=='Wyscout':
     with st.spinner("Retrieving data from wyscout api"):
-        data = get_wyscout_player_season_stats()
-
+        if 'wyscout_data' not in st.session_state:
+            wyscout_data = get_wyscout_player_season_stats()
+            st.session_state.wyscout_data = wyscout_data
+        else:
+            data =  st.session_state.wysc
 st.dataframe(data, height=600, use_container_width=True,)

@@ -207,7 +207,6 @@ desired_columns = [
 # Create the mapping
 df_mapping = dict(zip(original_columns, desired_columns))
 
-@st.cache_data(ttl=300,show_spinner=False)
 def get_wyscout_player_season_stats(folder_path=data_path):
     all_data = []
 
@@ -242,6 +241,8 @@ def read_transform_individual_files(file_path):
     data = data.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
     data = data.apply(pd.to_numeric, errors='ignore')
 
+    if 'Team' in data.columns:
+        data = data.drop(columns=['Team'])
     data.rename(columns=df_mapping, inplace=True)
     return data
  

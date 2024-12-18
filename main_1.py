@@ -68,9 +68,12 @@ st.markdown("""
 
 
 st.markdown("")
-wyscout_data = []
-with st.spinner("Retrieving data from wyscout api"):
-    wyscout_data = get_wyscout_player_season_stats()
+if 'wyscout_data' not in st.session_state:
+    with st.spinner("Retrieving data from wyscout api"):
+        wyscout_data = get_wyscout_player_season_stats()
+        st.session_state.wyscout_data = wyscout_data
+
+wyscout_data = st.session_state.wyscout_data
 playing_positions = list(wyscout_data['Position'].unique())
 playing_positions.append('Number 8')
 playing_positions.append('Number 10')

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import shutil
+from data.retrieve_wyscout_data import get_wyscout_player_season_stats
 
 st.set_page_config(
     page_title='Bristol Rovers - Data Analysis Tool',
@@ -62,6 +63,9 @@ if st.session_state.submitted:
                         save_path = os.path.join(data_dir, f"{os.path.splitext(file_name)[0]}.xlsx")
                         df.to_excel(save_path, index=False, engine='openpyxl')
                         st.success(f"File {file_name} have been saved successfully.")
+                    wyscout_data = get_wyscout_player_season_stats()
+                    st.session_state.wyscout_data = wyscout_data
+
     else:
         st.sidebar.error("Invalid Password")
         st.warning("Please enter the correct password to proceed.")
