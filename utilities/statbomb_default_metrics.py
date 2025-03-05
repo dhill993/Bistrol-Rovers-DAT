@@ -3,7 +3,7 @@ metrics_per_position = {
     "Full Back": [
         "Dribbles Stopped %",
         "DA OBV",
-        "OP Passes into Box",
+        "OP XG ASSISTED",
         "Successful Dribbles",
         "Successful Crosses",
         "Ball Recoveries",
@@ -14,30 +14,29 @@ metrics_per_position = {
     ],
     "Centre Back": [
         "Aerial Win %",
-        "Blocks/Shots",
         "Dribbles Stopped %",
         "PADJ Tackles",
         "PADJ Interceptions",
         "PADJ Clearances",
-        "Defensive Actions",
         "Defensive Regains",
         "DA OBV",
-        "Ball Recoveries"
+        "Ball Recoveries",
+        "Passing %",
+        "PR. PASS %"
     ],
     "Number 6": [
         "PADJ Tackles",
         "PADJ Interceptions",
-        "Defensive Actions",
         "Passing %",
         "Ball Recoveries",
         "Aerial Win %",
         "Dribbles Stopped %",
-        "PADJ Pressures",
         "DA OBV",
-        "Deep Progressions"
+        "Deep Progressions",
+        "PR. PASS %",
+        "Pass OBV",
     ],
     "Number 8": [
-        "OP F3 Passes",
         "PINTIN",
         "Shots",
         "Deep Progressions",
@@ -46,19 +45,20 @@ metrics_per_position = {
         "Dribbles",
         "Pass OBV",
         "Ball Recoveries",
-        "OBV D&C"
+        "OBV D&C",
+        "PR. PASS %"
     ],
     "Number 10": [
         "Shots",
         "xG",
         "OBV",
-        "Ball Recoveries",
         "OP Key Passes",
         "Successful Dribbles",
         "PINTIN",
         "xG Assisted",
         "Carries",
-        "Shooting %"
+        "Shooting %",
+        "xG Buildup",
     ],
     "Winger": [
         "xG",
@@ -67,10 +67,10 @@ metrics_per_position = {
         "Dribbles",
         "Successful Dribbles",
         "OBV",
-        "Carries",
         "PINTIN",
         "Successful Crosses",
-        "xG Assisted"
+        "xG Assisted",
+        "OBV D&C",
     ],
     "Centre Forward": [
         "NP Goals",
@@ -79,10 +79,10 @@ metrics_per_position = {
         "xG",
         "xG/Shot",
         "Shot Touch %",
-        "Aerial Win %",
         "Touches in Box",
         "xG Assisted",
-        "Shot OBV"
+        "Shot OBV",
+        "OBV",
     ]
 }
 
@@ -389,3 +389,4 @@ profiles_zcore = {
         }
     ]
 }
+
