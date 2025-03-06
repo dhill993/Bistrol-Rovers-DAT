@@ -133,11 +133,25 @@ profiles_zcore = {
             "DA OBV",
             "Ball Recoveries"
             ],
-            "Weighted Metrics": ["Passing %", "Pass OBV"],
+            "Weighted Metrics": ["Passing %", "Pass OBV", "PR. PASS %"],
             "Z Score Name": "Ball Playing CB Score"
         },
     ],
     "Full Back": [
+        {
+            "Profile Name": "Defensive Full Back",
+            "Using Metrics": [
+            "Dribbles Stopped %",
+            "OP Passes into Box",
+            "Successful Dribbles",
+            "PADJ Tackles",
+            "Aerial Win %"
+            ],
+            "Weighted Metrics": [
+                "Ball Recoveries", "DA OBV", "Defensive Regains", "PADJ Interceptions"
+            ],
+            "Z Score Name": "Defensive Full Score"
+        },
         {
             "Profile Name": "Progressive Wing Back",
             "Using Metrics": [
@@ -151,14 +165,15 @@ profiles_zcore = {
             "Aerial Win %"
             ],
             "Weighted Metrics": [
-                "Successful Crosses", "xG Assisted", "Deep Progressions", "OBV D&C"
+                "Successful Crosses", "OP XG ASSISTED", "Deep Progressions", "OBV D&C"
             ],
             "Z Score Name": "Progressive WB Score"
         },
+
     ],
     "Winger": [
         {
-            "Profile Name": "Providing Winger",
+            "Profile Name": "Direct Winger",
             "Using Metrics": [
             "xG",
             "Shots",
@@ -168,8 +183,8 @@ profiles_zcore = {
             "Carries",
             "PINTIN",
             ],
-            "Weighted Metrics": ["Pass OBV", "xG Assisted", "Successful Crosses", "OP Key Passes"],
-            "Z Score Name": "Providing Winger Score"
+            "Weighted Metrics": ["OBV D&C", "OP Passes into Box", "Successful Crosses", "Carries"],
+            "Z Score Name": "Direct Winger Score"
         },
         {
             "Profile Name": "Goal Threat Winger",
@@ -213,9 +228,10 @@ profiles_zcore = {
             "xG",
             "xG/Shot",
             "xG Assisted",
-            "Shot OBV"
+            "Shot OBV",
+            "Shot Touch %",
             ],
-            "Weighted Metrics": ["Shot Touch %", "Aerial Win %", "Touches in Box"],
+            "Weighted Metrics": ["Aerial Win %", "Touches in Box"],
             "Z Score Name": "Target Man Forward Score"
         },
         {
@@ -229,9 +245,10 @@ profiles_zcore = {
             "Shot Touch %",
             "Aerial Win %",
             "Touches in Box",
-            "Shot OBV"
+            "Shot OBV",
+            "xG Assisted"
             ],
-            "Weighted Metrics": ["Dribbles", "Carries", "PINTIN", "xG Assisted", "PADJ Pressures"],
+            "Weighted Metrics": ["Dribbles", "Carries", "PADJ Pressures"],
             "Z Score Name": "Mobile Forward Score"
         }
     ],
@@ -247,7 +264,7 @@ profiles_zcore = {
             "PADJ Pressures",
             "DA OBV",
             ],
-            "Weighted Metrics": ["Deep Progressions", "xG Buildup", "Pass OBV", "PADJ Interceptions", "Ball Recoveries"],
+            "Weighted Metrics": ["Deep Progressions", "xG Buildup", "Pass OBV", "PR. Pass %"],
             "Z Score Name": "Progressive 6 Score"
         },
         {
@@ -294,7 +311,7 @@ profiles_zcore = {
             "Pass OBV",
             "OBV D&C"
             ],
-            "Weighted Metrics": ["Deep Progressions", "xG Buildup", "Pass OBV", "PADJ Interceptions", "Ball Recoveries"],
+            "Weighted Metrics": ["Deep Progressions", "xG Buildup", "Pass OBV", "PR. Pass %"],
             "Z Score Name": "Progressive 6 Score"
         },
         {
@@ -342,6 +359,21 @@ profiles_zcore = {
             ],
             "Weighted Metrics": ["PINTIN", "OP Key Passes", "OBV", "xG Assisted"],
             "Z Score Name": "Creative 10 Score"
+        },
+        {
+            "Profile Name": "Creative 8",
+            "Using Metrics": [
+            "OP F3 Passes",
+            "Shots",
+            "Deep Progressions",
+            "xG Buildup",
+            "Dribbles",
+            "Pass OBV",
+            "Ball Recoveries",
+            "OBV D&C"
+            ],
+            "Weighted Metrics": ["PINTIN", "OP Key Passes", "OBV", "xG Assisted"],
+            "Z Score Name": "Creative 8 Score"
         },
         {
             "Profile Name": "Goal Threat 10",

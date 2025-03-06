@@ -7,6 +7,7 @@ from visualizations.scatter_plot import create_scatter_chart
 from visualizations.zscore_ranking import top_10_players_by_profile
 from visualizations.similarity_chart import filter_similar_players
 from utilities.wyscout_default_metrics import profiles_zcore as profiles
+from visualizations.weighted_rank import get_weighted_rank
 from st_pages import show_pages_from_config
 from data.retrieve_wyscout_data import get_wyscout_player_season_stats
 
@@ -247,3 +248,35 @@ with st.expander("Expand to view player similarity", expanded=False):
         except Exception as e:
             st.error(f"Error : {e}")
 
+with st.expander("Expand to view players weighted rank", expanded=False):
+
+    league = st.selectbox('Select League:', list(wyscout_data['League'].unique()) , index=0, key='werank_league')
+    season = st.selectbox('Select Season:', seasons, index=0, key='werak__season')
+
+    position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='werank_pos')
+    if position == 'Number 6':
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season, 'Number 8'), index=0, key='wesim_player')
+    else:
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season, position), index=0, key='wesim_player')
+
+    # Button to generate pizza chart
+    if st.button(f'Generate Weighted Rank'):
+        try:
+            fig_roverall = get_weighted_rank(wyscout_data, player_name, league, season, position)
+            if fig_roverall is not None:
+                with st.container():
+                    st.write(
+                        """
+                        <style>
+                        .dataframe th:nth-child(1) {{ width: 150px; }}  /* Width for Name */
+                        .dataframe th:nth-child(2) {{ width: 100px; }}  /* Width for Team */
+                        .dataframe th:nth-child(3) {{ width: 80px; }}   /* Width for Minutes */
+                        .dataframe th:nth-child(4) {{ width: 120px; }}  /* Width for Overall Score */
+                        .dataframe th:nth-child(5) {{ width: 10px; }}   /* Width for Overall Rank */
+                        </style>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                    st.dataframe(fig_roverall, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error : {e}")

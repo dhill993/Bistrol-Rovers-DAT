@@ -250,13 +250,10 @@ with st.expander("Expand to view players weighted rank", expanded=False):
     else:
         player_name = st.selectbox('Select Player:', get_players_by_position(statsbomb_data, league,season, position), index=0, key='wesim_player')
 
-    filtered_leagues = [each_league for each_league in leagues if each_league != league]
-    comparison_league = st.selectbox('Select League you want to compare aganist:',filtered_leagues, index=0, key='werank_league_com')
-
     # Button to generate pizza chart
     if st.button(f'Generate Weighted Rank'):
         try:
-            fig_roverall = get_weighted_rank(statsbomb_data, player_name, league, comparison_league , season, position)
+            fig_roverall = get_weighted_rank(statsbomb_data, player_name, league, season, position)
             if fig_roverall is not None:
                 with st.container():
                     st.write(
