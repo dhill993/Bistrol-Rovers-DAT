@@ -41,7 +41,7 @@ metrics_mapping = {
     "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %", 
     "player_season_shot_on_target_ratio": "Shooting %", "player_season_shot_touch_ratio": "Shot Touch %", 
     "player_season_touches_inside_box_90": "Touches in Box", "player_season_xgbuildup_90": "xG Buildup", "player_season_op_xa_90": "OP XG ASSISTED",
-    "player_season_pressured_passing_ratio": "PR. PASS %"
+    "player_season_pressured_passing_ratio": "PR. Pass %"
 }
 
 position_mapping = {
