@@ -22,7 +22,7 @@ metrics_per_position = {
         "DA OBV",
         "Ball Recoveries",
         "Passing %",
-        "PR. PASS %"
+        "PR. Pass %"
     ],
     "Number 6": [
         "PADJ Tackles",
@@ -33,7 +33,7 @@ metrics_per_position = {
         "Dribbles Stopped %",
         "DA OBV",
         "Deep Progressions",
-        "PR. PASS %",
+        "PR. Pass %",
         "Pass OBV",
     ],
     "Number 8": [
@@ -46,7 +46,7 @@ metrics_per_position = {
         "Pass OBV",
         "Ball Recoveries",
         "OBV D&C",
-        "PR. PASS %"
+        "PR. Pass %"
     ],
     "Number 10": [
         "Shots",
@@ -145,7 +145,7 @@ profiles_zcore = {
             "DA OBV",
             "Ball Recoveries"
             ],
-            "Weighted Metrics": ["Passing %", "Pass OBV", "PR. PASS %"],
+            "Weighted Metrics": ["Passing %", "Pass OBV", "PR. Pass %"],
             "Z Score Name": "Ball Playing CB Score"
         },
     ],
