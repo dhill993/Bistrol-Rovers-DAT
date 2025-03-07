@@ -112,7 +112,10 @@ original_columns = [
     "Deep completions per 90",
     "Deep completed crosses per 90",
     "Progressive passes per 90",
-    "Accurate progressive passes, %"
+    "Accurate progressive passes, %",
+    "PR. Pass %",
+    "xA",
+    "Received passes per 90",
 ]
 
 # Desired column names
@@ -201,7 +204,10 @@ desired_columns = [
     "DEEP COMPLETIONS PER 90",
     "DEEP COMPLETED CROSSES per 90",
     "PROGRESSIVE PASSES PER 90",
-    "ACCURATE PROGRESSIVE PASSES %"
+    "ACCURATE PROGRESSIVE PASSES %",
+    "PR. Pass %",
+    "xA",
+    "Received passes per 90",
 ]
 
 # Create the mapping

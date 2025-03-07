@@ -36,9 +36,10 @@ def top_10_players_by_profile(league_name, season, position, profile_name, df, a
     z_score_name = profile["Z Score Name"]
 
     all_metrics = metrics + weighted_metrics
+    all_metrics = list(set(all_metrics))  # Remove duplicates
     # Fill missing values with the mean of each column in the selected metrics
     df[all_metrics] = df[all_metrics].apply(lambda x: x.fillna(x.mean()))
-    
+
     # Calculate z-scores for each metric
     for metric in all_metrics:
         df[metric + '_z'] = zscore(df[metric])

@@ -208,11 +208,13 @@ with st.expander("Expand to view players zscore rank score", expanded=False):
 
     # Button to generate pizza chart
     if st.button(f'Generate Zscore Ranks'):
-        try:
-            top_10_players = top_10_players_by_profile(league, season, position, profile_name, wyscout_data, 'wyscout')
-            st.dataframe(top_10_players, use_container_width=True)
-        except Exception as e:
-            st.error(f"Error : {e}")
+        top_10_players = top_10_players_by_profile(league, season, position, profile_name, wyscout_data, 'wyscout')
+        st.dataframe(top_10_players, use_container_width=True)
+        # try:
+        #     top_10_players = top_10_players_by_profile(league, season, position, profile_name, wyscout_data, 'wyscout')
+        #     st.dataframe(top_10_players, use_container_width=True)
+        # except Exception as e:
+        #     st.error(f"Error : {e}")
 
 with st.expander("Expand to view player similarity", expanded=False):
 
@@ -262,7 +264,7 @@ with st.expander("Expand to view players weighted rank", expanded=False):
     # Button to generate pizza chart
     if st.button(f'Generate Weighted Rank'):
         try:
-            fig_roverall = get_weighted_rank(wyscout_data, player_name, league, season, position)
+            fig_roverall = get_weighted_rank(wyscout_data, player_name, league, season, position, 'wyscout')
             if fig_roverall is not None:
                 with st.container():
                     st.write(

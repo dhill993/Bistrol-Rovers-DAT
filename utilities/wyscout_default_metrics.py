@@ -142,7 +142,7 @@ profiles_zcore = {
             "OFFENSIVE DUELS PER 90",
             "OFFENSIVE DUELS WON %",
             ],
-            "Weighted Metrics": ["AERIAL DUELS PER 90", "AERIAL DUEL WINS %", "DEFENSIVE DUELS WON %", "XG PER 90", "Head goals per 90"],
+            "Weighted Metrics": ["AERIAL DUELS PER 90", "AERIAL DUELS WON %", "DEFENSIVE DUELS WON %", "xG PER 90", "Head goals per 90"],
             "Z Score Name": "SET Piece CB Score"
         },
 
@@ -175,10 +175,8 @@ profiles_zcore = {
             "PASSES TO PENALTY AREA PER 90",
             "ACCURATE CROSSES %",
             "KEY PASSES PER 90",
-            "xG PER 90",
-            "SHOTS PER 90",
             ],
-            "Weighted Metrics": ["DRIBBLES PER 90", "ACCELERATIONS PER 90", "CROSSES PER 90",],
+            "Weighted Metrics": ["DRIBBLES PER 90", "ACCELERATIONS PER 90", "CROSSES PER 90"],
             "Z Score Name": "Direct Winger Score"
         },
         {
@@ -234,13 +232,12 @@ profiles_zcore = {
             "SHOTS ON TARGET %",
             "xG PER 90",
             "GOAL CONVERSION %",
-            "PROGRESSIVE RUNS PER 90",
             "AERIAL DUELS WON %",
             "TOUCHES IN BOX PER 90",
             "xA PER 90",
             "ASSISTS PER 90",
             ],
-            "Weighted Metrics": ["DRIBBLES PER 90", "ACCELERATIONS PER 90", "PROGRESSIVE RUNS PER 90",],
+            "Weighted Metrics": ["DRIBBLES PER 90", "ACCELERATIONS PER 90", "PROGRESSIVE RUNS PER 90"],
             "Z Score Name": "Mobile Forward Score"
         }
     ],
@@ -250,7 +247,6 @@ profiles_zcore = {
             "Using Metrics": [
             "DEFENSIVE DUELS PER 90",
             "DEFENSIVE DUELS WON %",
-            "ACCURATE PASSES %",
             "AERIAL DUELS WON %",
             "DUELS PER 90",
             "DUELS WON %",
