@@ -82,6 +82,18 @@ metrics_per_position = {
         "ASSISTS PER 90",
         "ACCELERATIONS PER 90"
     ],
+    "Goal Keeper": [
+        "Clean sheets",
+        "Save rate (%)",
+        "Prevented goals per 90",
+        "Accurate passes (%)",
+        "Short / medium passes per 90",
+        "Long passes per 90",
+        "Average long pass length ,m",
+        "Passes to final third per 90",
+        "Passes to penalty area per 90",
+        "Exits per 90"
+    ]
 }
 
 profiles_zcore = {

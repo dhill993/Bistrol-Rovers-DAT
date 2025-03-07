@@ -83,6 +83,18 @@ metrics_per_position = {
         "xG Assisted",
         "Shot OBV",
         "OBV",
+    ],
+    "Goal Keeper":[
+        "GK AGGRESSIVE DIST",
+        "CLAIMS %",
+        "PR. Pass %",
+        "SHOT STOPPING %",
+        "OP F3 Passes",
+        "GSAA",
+        "SAVE %",
+        "XSV %",
+        "POSITIVE OUTCOME",
+        "GOALKEEPER OBV"
     ]
 }
 

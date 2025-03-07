@@ -24,6 +24,7 @@ position_mapping = {
     "RAMF": "Winger",
     "LAMF": "Winger",
     "CF": "Centre Forward",
+    "GK": "Goal Keeper"
 }
 
 # Original column names
@@ -115,7 +116,13 @@ original_columns = [
     "Accurate progressive passes, %",
     "PR. Pass %",
     "xA",
-    "Received passes per 90",
+    "Clean sheets",
+    "Save rate (%)",
+    "Prevented goals per 90",
+    "Accurate passes (%)",
+    "Short / medium passes per 90",
+    "Average long pass length ,m",
+    "Exits per 90"
 ]
 
 # Desired column names
@@ -208,6 +215,13 @@ desired_columns = [
     "PR. Pass %",
     "xA",
     "Received passes per 90",
+    "Clean sheets",
+    "Save rate (%)",
+    "Prevented goals per 90",
+    "Accurate passes (%)",
+    "Short / medium passes per 90",
+    "Average long pass length ,m",
+    "Exits per 90"
 ]
 
 # Create the mapping
