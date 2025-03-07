@@ -117,11 +117,11 @@ original_columns = [
     "PR. Pass %",
     "xA",
     "Clean sheets",
-    "Save rate (%)",
+    "Save rate, %",
     "Prevented goals per 90",
-    "Accurate passes (%)",
+    "Accurate passes, %",
     "Short / medium passes per 90",
-    "Average long pass length ,m",
+    "Average long pass length, m",
     "Exits per 90"
 ]
 
