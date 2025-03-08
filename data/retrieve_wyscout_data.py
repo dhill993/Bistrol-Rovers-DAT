@@ -115,14 +115,12 @@ original_columns = [
     "Progressive passes per 90",
     "Accurate progressive passes, %",
     "PR. Pass %",
-    "xA",
     "Clean sheets",
     "Save rate, %",
     "Prevented goals per 90",
-    "Accurate passes, %",
     "Short / medium passes per 90",
-    "Average long pass length, m",
-    "Exits per 90"
+    "Exits per 90",
+    "Received passes per 90",
 ]
 
 # Desired column names
@@ -213,15 +211,12 @@ desired_columns = [
     "PROGRESSIVE PASSES PER 90",
     "ACCURATE PROGRESSIVE PASSES %",
     "PR. Pass %",
-    "xA",
-    "Received passes per 90",
     "Clean sheets",
     "Save rate (%)",
     "Prevented goals per 90",
-    "Accurate passes (%)",
     "Short / medium passes per 90",
-    "Average long pass length ,m",
-    "Exits per 90"
+    "Exits Per 90",
+    "Received PASSES PER 90"
 ]
 
 # Create the mapping

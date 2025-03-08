@@ -20,7 +20,7 @@ metrics_per_position = {
         "DUELS PER 90",
         "DUELS WON %",
         "PASSES PER 90",
-        "Received passes per 90"
+        "Received PASSES PER 90"
     ],
     "Number 6": [
         "INTERCEPTIONS PER 90",
@@ -32,7 +32,7 @@ metrics_per_position = {
         "DUELS WON %",
         "PASSES TO FINAL THIRD PER 90",
         "PASSES PER 90",
-        "Received passes per 90"
+        "Received PASSES PER 90"
     ],
     "Number 8": [
         "PASSES TO FINAL THIRD PER 90",
@@ -86,13 +86,13 @@ metrics_per_position = {
         "Clean sheets",
         "Save rate (%)",
         "Prevented goals per 90",
-        "Accurate passes (%)",
+        "ACCURATE PASSES %",
         "Short / medium passes per 90",
         "LONG PASSES PER 90",
-        "Average long pass length ,m",
+        "AVERAGE LONG PASS LENGTH",
         "PASSES TO FINAL THIRD PER 90",
         "PASSES TO PENALTY AREA PER 90",
-        "Exits per 90"
+        "Exits Per 90"
     ]
 }
 
