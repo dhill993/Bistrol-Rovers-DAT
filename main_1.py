@@ -256,10 +256,10 @@ with st.expander("Expand to view players weighted rank", expanded=False):
     season = st.selectbox('Select Season:', seasons, index=0, key='werak__season')
 
     position = st.selectbox('Select Playing Position:', playing_positions, index=0, key='werank_pos')
-    if position == 'Number 6':
-        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season, 'Number 8'), index=0, key='wesim_player')
+    if position in ['Number 8', 'Number 10'] :
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,'Number 6'), index=0, key='werankpizza_player')
     else:
-        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season, position), index=0, key='wesim_player')
+        player_name = st.selectbox('Select Player:', get_players_by_position(wyscout_data, league,season,position), index=0, key='werankpizza_player')
 
     # Button to generate pizza chart
     if st.button(f'Generate Weighted Rank'):
