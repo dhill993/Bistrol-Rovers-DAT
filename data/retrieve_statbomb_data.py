@@ -25,30 +25,62 @@ statbomb_metrics_needed = [
 ]
 
 metrics_mapping = {
-    'player_name': "Player Name", 'team_name': 'Team', 'season_name': "Season", 'competition_name': 'League', 
-    'player_season_minutes': 'Minutes', 'primary_position': 'Position', "player_season_aerial_ratio": "Aerial Win %",
-    "player_season_ball_recoveries_90": "Ball Recoveries", "player_season_blocks_per_shot": "Blocks/Shots", 
-    "player_season_carries_90": "Carries", "player_season_crossing_ratio": "Successful Crosses", "player_season_Pressures_90": "Pressures", "player_season_Counter_Pressures_90": "CounterPressures",
-    "player_season_deep_progressions_90": "Deep Progressions", "player_season_defensive_action_regains_90": "Defensive Regains", "player_season_Aggressive_actions_90": "Aggressive Actions",
-    "player_season_defensive_actions_90": "Defensive Actions", "player_season_dribble_faced_ratio": "Dribbles Stopped %",
-    "player_season_dribble_ratio": "Successful Dribbles", "player_season_dribbles_90": "Dribbles", 
-    "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG", "player_season_np_xg_per_shot": "xG/Shot", 
-    "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted", "player_season_obv_90": "OBV", 
-    "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C", 'player_season_Fouls_won': "Fouls Won", 
-    "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV", "player_season_op_f3_passes_90": "OP F3 Passes",
-    "player_season_op_key_passes_90": "OP Key Passes", "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", "player_season_Scoring_Contribution_90": "Scoring Contribution"
-    
+    'player_name': "Player Name", 
+    'team_name': 'Team', 
+    'season_name': "Season", 
+    'competition_name': 'League', 
+    'player_season_minutes': 'Minutes', 
+    'primary_position': 'Position', 
+    "player_season_aerial_ratio": "Aerial Win %",
+    "player_season_ball_recoveries_90": "Ball Recoveries", 
+    "player_season_blocks_per_shot": "Blocks/Shots", 
+    "player_season_carries_90": "Carries", 
+    "player_season_crossing_ratio": "Successful Crosses", 
+    "player_season_Pressures_90": "Pressures", 
+    "player_season_Counter_Pressures_90": "CounterPressures",
+    "player_season_deep_progressions_90": "Deep Progressions", 
+    "player_season_defensive_action_regains_90": "Defensive Regains", 
+    "player_season_Aggressive_actions_90": "Aggressive Actions",
+    "player_season_defensive_actions_90": "Defensive Actions", 
+    "player_season_dribble_faced_ratio": "Dribbles Stopped %",
+    "player_season_dribble_ratio": "Successful Dribbles", 
+    "player_season_dribbles_90": "Dribbles", 
+    "player_season_np_shots_90": "Shots", 
+    "player_season_np_xg_90": "xG", 
+    "player_season_np_xg_per_shot": "xG/Shot", 
+    "player_season_npg_90": "NP Goals", 
+    "player_season_npxgxa_90": "xG Assisted", 
+    "player_season_obv_90": "OBV", 
+    "player_season_obv_defensive_action_90": "DA OBV", 
+    "player_season_obv_dribble_carry_90": "OBV D&C", 
+    'player_season_Fouls_won': "Fouls Won",
+    "player_season_obv_pass_90": "Pass OBV", 
+    "player_season_obv_shot_90": "Shot OBV", 
+    "player_season_op_f3_passes_90": "OP F3 Passes",
+    "player_season_op_key_passes_90": "OP Key Passes", 
+    "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", 
+    "player_season_Scoring_Contribution_90": "Scoring Contribution",
     # Corrected capitalisation here:
     "player_season_op_passes_into_box_90": "OP Passes Into Box",
-    
     "player_season_padj_clearances_90": "PADJ Clearances", 
-    "player_season_padj_interceptions_90": "PADJ Interceptions", "player_season_padj_pressures_90": "PADJ Pressures", 
-    "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %", 
-    "player_season_shot_on_target_ratio": "Shooting %", "player_season_shot_touch_ratio": "Shot Touch %", 
-    "player_season_touches_inside_box_90": "Touches in Box", "player_season_xgbuildup_90": "xG Buildup", "player_season_op_xa_90": "OP XG ASSISTED",
-    "player_season_pressured_passing_ratio": "PR. Pass %", 'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST', 'player_season_clcaa': 'CLAIMS %',
-    'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA', 'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %',
-    'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV'
+    "player_season_padj_interceptions_90": "PADJ Interceptions", 
+    "player_season_padj_pressures_90": "PADJ Pressures", 
+    "player_season_padj_tackles_90": "PADJ Tackles", 
+    "player_season_passing_ratio": "Passing %", 
+    "player_season_shot_on_target_ratio": "Shooting %", 
+    "player_season_shot_touch_ratio": "Shot Touch %", 
+    "player_season_touches_inside_box_90": "Touches in Box", 
+    "player_season_xgbuildup_90": "xG Buildup", 
+    "player_season_op_xa_90": "OP XG ASSISTED",
+    "player_season_pressured_passing_ratio": "PR. Pass %", 
+    'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST', 
+    'player_season_clcaa': 'CLAIMS %',
+    'player_season_gsaa_ratio': 'SHOT STOPPING %', 
+    'player_season_gsaa_90': 'GSAA', 
+    'player_season_save_ratio': 'SAVE %', 
+    'player_season_xs_ratio': 'XSV %',
+    'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 
+    'player_season_obv_gk_90': 'GOALKEEPER OBV'
 }
 
 position_mapping = {
@@ -91,11 +123,16 @@ def get_statsbomb_player_season_stats():
             player_season['birth_date'] = pd.to_datetime(player_season['birth_date'])
             player_season['Age'] = player_season['birth_date'].apply(calculate_age)
 
-            player_season = player_season[statbomb_metrics_needed]
+            # Select only available columns to avoid KeyError
+            available_cols = [col for col in statbomb_metrics_needed if col in player_season.columns]
+            player_season = player_season[available_cols]
+
             player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
             player_season = player_season.apply(pd.to_numeric, errors='ignore')
 
-            player_season = player_season.rename(columns=metrics_mapping)
+            # Rename columns only for columns present
+            rename_cols = {k:v for k,v in metrics_mapping.items() if k in player_season.columns}
+            player_season = player_season.rename(columns=rename_cols)
             player_season['Position'] = player_season['Position'].map(position_mapping)
 
             # Drop rows where position mapping failed
@@ -105,18 +142,15 @@ def get_statsbomb_player_season_stats():
             player_season['Minutes'] = player_season['Minutes'].astype(int)
 
             # Add derived metrics
-            
-            # Correct typo and create Scoring Contribution (NP Goals + OP XG ASSISTED)
             if 'NP Goals' in player_season.columns and 'OP XG ASSISTED' in player_season.columns:
                 player_season['Scoring Contribution'] = player_season['NP Goals'] + player_season['OP XG ASSISTED']
 
-            # Placeholder for Pass Forward % (adjust if you get actual fields for forward passes)
             if 'Passing %' in player_season.columns:
                 player_season['Pass Forward %'] = player_season['Passing %'] * 0.6  # example placeholder
 
             dataframes.append(player_season)
         except Exception as e:
-            print(e)
+            print(f"Error processing competition_id {competition_id} season_id {season_id}: {e}")
 
     final_dataframe = pd.concat(dataframes, ignore_index=True)
     return final_dataframe
