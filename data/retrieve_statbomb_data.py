@@ -38,7 +38,7 @@ metrics_mapping = {
     "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG", "player_season_np_xg_per_shot": "xG/Shot",
     "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted", "player_season_obv_90": "OBV",
     "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
-    'player_season_foul_won': "Fouls Won",
+    'player_season_foul_won': "Foul Won",
     "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV", "player_season_op_f3_passes_90": "OP F3 Passes",
     "player_season_op_key_passes_90": "OP Key Passes", "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN",
     "player_season_Scoring_Contribution_90": "Scoring Contribution",
