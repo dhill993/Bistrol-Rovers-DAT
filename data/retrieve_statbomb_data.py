@@ -64,7 +64,8 @@ position_mapping = {
     "Right Wing": "Winger", "Centre Forward A": "Centre Forward", "Left Centre Forward": "Centre Forward", 
     "Right Centre Forward": "Centre Forward A", "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goal Keeper", "Outside Centre Back": "Centre Back", "Right Centre Back": "Centre Back", 
     "Left Centre Back": "Outside Centre Back", "Centre Forward B": "Centre Forward", "Left Centre Forward": "Centre Forward", 
-    "Right Centre Forward": "Centre Forward B"
+    "Right Centre Forward": "Centre Forward B", "Centre Forward A": "Centre Forward", "Left Centre Forward": "Centre Forward", 
+    "Right Centre Forward": "Centre Forward A"
 }
 
 @st.cache_data(ttl=14400, show_spinner=False)
