@@ -37,7 +37,11 @@ metrics_mapping = {
     "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C", 
     "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV", "player_season_op_f3_passes_90": "OP F3 Passes",
     "player_season_op_key_passes_90": "OP Key Passes", "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", 
-    "player_season_op_passes_into_box_90": "OP Passes into Box", "player_season_padj_clearances_90": "PADJ Clearances", 
+    
+    # Corrected capitalisation here:
+    "player_season_op_passes_into_box_90": "OP Passes Into Box",
+    
+    "player_season_padj_clearances_90": "PADJ Clearances", 
     "player_season_padj_interceptions_90": "PADJ Interceptions", "player_season_padj_pressures_90": "PADJ Pressures", 
     "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %", 
     "player_season_shot_on_target_ratio": "Shooting %", "player_season_shot_touch_ratio": "Shot Touch %", 
@@ -98,12 +102,14 @@ def get_statsbomb_player_season_stats():
             player_season['Minutes'] = player_season['Minutes'].astype(int)
 
             # Add derived metrics
+            
+            # Correct typo and create Scoring Contribution (NP Goals + OP XG ASSISTED)
             if 'NP Goals' in player_season.columns and 'OP XG ASSISTED' in player_season.columns:
                 player_season['Scoring Contribution'] = player_season['NP Goals'] + player_season['OP XG ASSISTED']
 
-            # Placeholder logic for Pass Forward % (adjust this based on your actual dataset)
+            # Placeholder for Pass Forward % (adjust if you get actual fields for forward passes)
             if 'Passing %' in player_season.columns:
-                player_season['Pass Forward %'] = player_season['Passing %'] * 0.6  # replace with actual logic
+                player_season['Pass Forward %'] = player_season['Passing %'] * 0.6  # example placeholder
 
             dataframes.append(player_season)
         except Exception as e:
