@@ -80,25 +80,55 @@ def calculate_age(birth_date):
 
 # --- Assign Position Profile (your custom split) ---
 def assign_position_profile(row):
-    base_pos = row['Position']  # Base mapped position
-    player_name = row.get('Player Name', '')  # Use player name to split
+    raw_pos = row['Raw_Position']  # We’ll need to keep the original raw position somewhere
+    player_name = row.get('Player Name', '')
 
-    if base_pos == 'Centre Back':
-        # Simple hash-based split between Centre Back and Outside Centre Back
+    # Full Back
+    if raw_pos in ["Left Back", "Right Back", "Left Wing Back", "Right Wing Back"]:
+        return "Full Back"
+
+    # Centre Back
+    elif raw_pos in ["Centre Back", "Left Centre Back", "Right Centre Back"]:
+        # Split Centre Back and Outside Centre Back by hash
         if hash(player_name) % 2 == 0:
-            return 'Centre Back'
+            return "Centre Back"
         else:
-            return 'Outside Centre Back'
-    elif base_pos == 'Centre Forward':
-        # Split between Centre Forward A and Centre Forward B
+            return "Outside Centre Back"
+
+    # Number 6
+    elif raw_pos in ["Left Defensive Midfielder", "Right Defensive Midfielder", "Defensive Midfielder", "Left Centre Midfield", "Right Centre Midfield", "Centre Midfield"]:
+        # For your purpose, Number 6 and Number 8 share same raw positions, so split here
+        # For simplicity, hash split
         if hash(player_name) % 2 == 0:
-            return 'Centre Forward A'
+            return "Number 6"
         else:
-            return 'Centre Forward B'
+            return "Number 8"
+
+    # Number 10
+    elif raw_pos in ["Left Attacking Midfield", "Right Attacking Midfield", "Attacking Midfield", "Right Midfielder", "Left Midfielder", "Left Wing", "Right Wing", "Secondary Striker"]:
+        return "Number 10"
+
+    # Winger
+    elif raw_pos in ["Left Attacking Midfield", "Right Attacking Midfield", "Right Midfielder", "Left Midfielder", "Left Wing", "Right Wing"]:
+        return "Winger"
+
+    # Centre Forward A / B
+    elif raw_pos in ["Centre Forward", "Left Centre Forward", "Right Centre Forward"]:
+        if hash(player_name) % 2 == 0:
+            return "Centre Forward A"
+        else:
+            return "Centre Forward B"
+
+    # Goal Keeper
+    elif raw_pos == "Goalkeeper":
+        return "Goal Keeper"
+
     else:
-        return base_pos
+        return "Other"
 
 # --- Main StatsBomb Load Function ---
+# ...imports and other code remain the same...
+
 @st.cache_data(ttl=14400, show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
@@ -112,30 +142,27 @@ def get_statsbomb_player_season_stats():
             comp_id, season_id = row["competition_id"], row["season_id"]
             df = sb.player_season_stats(comp_id, season_id, creds=creds)
 
-            # Calculate age
             df['birth_date'] = pd.to_datetime(df['birth_date'])
             df['Age'] = df['birth_date'].apply(calculate_age)
 
-            # Filter needed columns only if they exist in df
+            # Filter only needed columns
             available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
             df = df[available_cols]
 
             df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
             df = df.apply(pd.to_numeric, errors='ignore')
 
-            # Rename columns for display
             df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
 
-            # Map raw position to base position
-            df['Position'] = df['Position'].map(position_mapping)
-            df = df.dropna(subset=['Position'])
+            # Save raw position separately for profile assignment
+            df['Raw_Position'] = df['Position']
 
-            # Filter out players with less than 600 minutes
+            # Create Position Profile based on your detailed mapping
+            df['Position Profile'] = df.apply(assign_position_profile, axis=1)
+
+            # Drop players with less than 600 minutes
             df = df[df['Minutes'] >= 600]
             df['Minutes'] = df['Minutes'].astype(int)
-
-            # Assign the Position Profile (your custom position grouping)
-            df['Position Profile'] = df.apply(assign_position_profile, axis=1)
 
             dataframes.append(df)
 
@@ -145,9 +172,11 @@ def get_statsbomb_player_season_stats():
     if dataframes:
         return pd.concat(dataframes, ignore_index=True)
     else:
-        return pd.DataFrame()  # empty df if no data
+        return pd.DataFrame()
 
 # --- Example Streamlit usage ---
 if __name__ == "__main__":
     statsbomb_data = get_statsbomb_player_season_stats()
     st.write("Position Profiles in data:", statsbomb_data['Position Profile'].unique())
+    position_profiles = statsbomb_data['Position Profile'].unique()
+selected_position = st.selectbox("Select Playing Position:", options=sorted(position_profiles))
