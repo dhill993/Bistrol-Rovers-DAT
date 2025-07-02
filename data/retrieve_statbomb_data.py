@@ -178,5 +178,3 @@ def get_statsbomb_player_season_stats():
 if __name__ == "__main__":
     statsbomb_data = get_statsbomb_player_season_stats()
     st.write("Position Profiles in data:", statsbomb_data['Position Profile'].unique())
-    position_profiles = statsbomb_data['Position Profile'].unique()
-selected_position = st.selectbox("Select Playing Position:", options=sorted(position_profiles))
