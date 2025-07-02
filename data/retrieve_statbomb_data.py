@@ -6,31 +6,49 @@ import streamlit as st
 
 # --- Position Mapping ---
 position_mapping = {
+    # Full Backs
     "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back",
     "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
-    
+
+    # Centre Backs (including left/right)
     "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
 
-    # New Outside Centre Back as distinct from Centre Back
-    "Outside Centre Back": "Outside Centre Back", "Left Outside Centre Back": "Outside Centre Back", "Right Outside Centre Back": "Outside Centre Back",
+    # Outside Centre Backs (distinct position with own profile)
+    "Outside Centre Back": "Outside Centre Back",
+    "Left Outside Centre Back": "Outside Centre Back",
+    "Right Outside Centre Back": "Outside Centre Back",
 
+    # Number 6 positions
     "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", "Right Defensive Midfielder": "Number 6",
     "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
     "Left Centre Midfield": "Number 6", "Left Centre Midfielder": "Number 6",
     "Right Centre Midfield": "Number 6", "Right Centre Midfielder": "Number 6", "Centre Midfield": "Number 6",
 
+    # Number 8 positions
     "Number 8": "Number 8", "Left Attacking Midfielder": "Number 8", "Right Attacking Midfielder": "Number 8",
     "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8",
 
+    # Number 10s
     "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
 
+    # Wingers
     "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
     "Left Wing": "Winger", "Right Wing": "Winger",
 
-    # Centre Forward split into A and B:
-    "Centre Forward A": "Centre Forward A", "Left Centre Forward A": "Centre Forward A", "Right Centre Forward A": "Centre Forward A",
-    "Centre Forward B": "Centre Forward B", "Left Centre Forward B": "Centre Forward B", "Right Centre Forward B": "Centre Forward B",
+    # Centre Forwards A
+    "Centre Forward A": "Centre Forward A",
+    "Left Centre Forward A": "Centre Forward A",
+    "Right Centre Forward A": "Centre Forward A",
 
+    # Centre Forwards B
+    "Centre Forward B": "Centre Forward B",
+    "Left Centre Forward B": "Centre Forward B",
+    "Right Centre Forward B": "Centre Forward B",
+
+    # For backwards compatibility (map any remaining CFs to a default CF role)
+    "Centre Forward": "Centre Forward A",  # or "Centre Forward B" if preferred
+
+    # Goalkeeper
     "Goalkeeper": "Goal Keeper"
 }
 
