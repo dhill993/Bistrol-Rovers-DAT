@@ -63,17 +63,12 @@ position_mapping = {
     "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8",
     "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8",
     "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger",
+ "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger",
     "Right Wing": "Winger",
-    "Centre Forward A": "Centre Forward A",  # distinct now
-    "Left Centre Forward": "Centre Forward A",
-    "Right Centre Forward": "Centre Forward B",
-    "Left Attacking Midfielder": "Number 10",
-    "Goalkeeper": "Goal Keeper",
-    "Outside Centre Back": "Centre Back",
-    "Right Centre Back": "Centre Back",
+ "Centre Forward A": "Centre Forward A",  "Left Centre Forward": "Centre Forward A",     "Right Centre Forward": Centre Forward A, "Centre Forward": Centre Forward A, "Centre Forward B": "Centre Forward B",  "Left Centre Forward": "Centre Forward B",     "Right Centre Forward": Centre Forward B, "Centre Forward": Centre Forward B, "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goal Keeper",
+  "Outside Centre Back": "Centre Back",
+   "Right Centre Back": "Centre Back",
     "Left Centre Back": "Outside Centre Back",
-    "Centre Forward B": "Centre Forward B",
 }
 
 @st.cache_data(ttl=14400, show_spinner=False)
