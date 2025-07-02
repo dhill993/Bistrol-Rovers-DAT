@@ -53,22 +53,35 @@ metrics_mapping = {
     'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %', 'player_season_positive_outcome_score': 'POSITIVE OUTCOME',
     'player_season_obv_gk_90': 'GOALKEEPER OBV'
 }
-
 position_mapping = {
     "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back",
     "Right Wing Back": "Full Back", "Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
-    "Left Centre Back": "Centre Back", "Number 8": "Number 8",
+    "Left Centre Back": "Outside Centre Back",  # mapped uniquely to Outside CB
+    "Outside Centre Back": "Centre Back",
+
+    "Number 8": "Number 8",
     "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8",
     "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
     "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8",
     "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8",
+
     "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
- "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger",
-    "Right Wing": "Winger",
- "Centre Forward A": "Centre Forward A",  "Left Centre Forward": "Centre Forward A",     "Right Centre Forward": Centre Forward A, "Centre Forward": Centre Forward A, "Centre Forward B": "Centre Forward B",  "Left Centre Forward": "Centre Forward B",     "Right Centre Forward": Centre Forward B, "Centre Forward": Centre Forward B, "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goal Keeper",
-  "Outside Centre Back": "Centre Back",
-   "Right Centre Back": "Centre Back",
-    "Left Centre Back": "Outside Centre Back",
+    "Left Attacking Midfielder": "Number 10",
+
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", "Right Wing": "Winger",
+
+    # Centre Forwards split
+    "Centre Forward A": "Centre Forward A",
+    "Left Centre Forward A": "Centre Forward A",
+    "Right Centre Forward A": "Centre Forward A",
+
+    "Centre Forward B": "Centre Forward B",
+    "Left Centre Forward B": "Centre Forward B",
+    "Right Centre Forward B": "Centre Forward B",
+
+    "Goalkeeper": "Goal Keeper"
+}
+
 }
 
 @st.cache_data(ttl=14400, show_spinner=False)
