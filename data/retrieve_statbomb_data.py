@@ -4,44 +4,25 @@ import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
-# --- Position Group Mapping for Metric Profiles ---
-position_group_mapping = {
-    # Full Backs
+# --- Position Mapping (Raw StatsBomb position -> Base Position) ---
+position_mapping = {
     "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back",
     "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
-
-    # Centre Backs and Outside Centre Back share same metric group
     "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
-    "Outside Centre Back": "Centre Back",
-
-    # Number 6 and Number 8 share the same metric group
-    "Number 6": "Number 6/8", "Left Defensive Midfielder": "Number 6/8", "Right Defensive Midfielder": "Number 6/8",
-    "Defensive Midfielder": "Number 6/8", "Centre Defensive Midfielder": "Number 6/8",
-    "Left Centre Midfield": "Number 6/8", "Right Centre Midfield": "Number 6/8", "Centre Midfield": "Number 6/8",
-    "Number 8": "Number 6/8",
-
-    # Number 10 group (attacking mids & secondary striker, excluding defensive mids)
-    "Left Attacking Midfielder": "Number 10",
-    "Right Attacking Midfielder": "Number 10",
-    "Attacking Midfield": "Number 10",
-    "Secondary Striker": "Number 10",
-    "Centre Attacking Midfielder": "Number 10",
-
-    # Wingers
+    "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", "Right Defensive Midfielder": "Number 6",
+    "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
+    "Left Centre Midfield": "Number 6", "Left Centre Midfielder": "Number 6",
+    "Right Centre Midfield": "Number 6", "Right Centre Midfielder": "Number 6", "Centre Midfield": "Number 6",
+    "Number 8": "Number 8", "Left Attacking Midfielder": "Number 8", "Right Attacking Midfielder": "Number 8",
+    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8",
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
     "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
     "Left Wing": "Winger", "Right Wing": "Winger",
-
-    # Centre Forward A and B both map to Centre Forward metrics group
-    "Centre Forward A": "Centre Forward",
-    "Centre Forward B": "Centre Forward",
-    "Left Centre Forward": "Centre Forward",
-    "Right Centre Forward": "Centre Forward",
-
-    # Goalkeeper
+    "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", "Right Centre Forward": "Centre Forward",
     "Goalkeeper": "Goal Keeper"
 }
 
-# --- Metrics Needed ---
+# --- Metrics Needed (same as your original) ---
 statbomb_metrics_needed = [
     'player_name', 'team_name', 'season_name', 'competition_name', 'Age',
     'player_season_minutes', 'primary_position', "player_season_aerial_ratio",
@@ -64,7 +45,7 @@ statbomb_metrics_needed = [
     'player_season_obv_gk_90', "player_season_Aggressive_actions_90"
 ]
 
-# --- Metric Rename Mapping ---
+# --- Metric Rename Mapping (same as your original) ---
 metrics_mapping = {
     'player_name': "Player Name", 'team_name': 'Team', 'season_name': "Season", 'competition_name': 'League',
     'player_season_minutes': 'Minutes', 'primary_position': 'Position', "player_season_aerial_ratio": "Aerial Win %",
@@ -92,7 +73,32 @@ metrics_mapping = {
     'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV'
 }
 
-# --- Main Statsbomb Load Function ---
+# --- Helper function to calculate age ---
+def calculate_age(birth_date):
+    today = datetime.today()
+    return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
+# --- Assign Position Profile (your custom split) ---
+def assign_position_profile(row):
+    base_pos = row['Position']  # Base mapped position
+    player_name = row.get('Player Name', '')  # Use player name to split
+
+    if base_pos == 'Centre Back':
+        # Simple hash-based split between Centre Back and Outside Centre Back
+        if hash(player_name) % 2 == 0:
+            return 'Centre Back'
+        else:
+            return 'Outside Centre Back'
+    elif base_pos == 'Centre Forward':
+        # Split between Centre Forward A and Centre Forward B
+        if hash(player_name) % 2 == 0:
+            return 'Centre Forward A'
+        else:
+            return 'Centre Forward B'
+    else:
+        return base_pos
+
+# --- Main StatsBomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
@@ -101,44 +107,47 @@ def get_statsbomb_player_season_stats():
     all_comps = sb.competitions(creds=creds)
     dataframes = []
 
-    def calculate_age(birth_date):
-        today = datetime.today()
-        return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-
     for _, row in all_comps.iterrows():
         try:
             comp_id, season_id = row["competition_id"], row["season_id"]
             df = sb.player_season_stats(comp_id, season_id, creds=creds)
 
+            # Calculate age
             df['birth_date'] = pd.to_datetime(df['birth_date'])
             df['Age'] = df['birth_date'].apply(calculate_age)
 
-            # Filter columns to metrics needed that exist in df
+            # Filter needed columns only if they exist in df
             available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
             df = df[available_cols]
 
             df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
             df = df.apply(pd.to_numeric, errors='ignore')
 
-            # Rename columns as per mapping
+            # Rename columns for display
             df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
 
-            # Create Profile_Position (raw playing position)
-            df['Profile_Position'] = df['primary_position']
+            # Map raw position to base position
+            df['Position'] = df['Position'].map(position_mapping)
+            df = df.dropna(subset=['Position'])
 
-            # Create Metric_Position_Group for metric mapping & grouping
-            df['Metric_Position_Group'] = df['Profile_Position'].map(position_group_mapping)
-
-            # Drop rows where mapping failed
-            df = df.dropna(subset=['Metric_Position_Group'])
-
-            # Apply minutes filter
+            # Filter out players with less than 600 minutes
             df = df[df['Minutes'] >= 600]
             df['Minutes'] = df['Minutes'].astype(int)
+
+            # Assign the Position Profile (your custom position grouping)
+            df['Position Profile'] = df.apply(assign_position_profile, axis=1)
 
             dataframes.append(df)
 
         except Exception as e:
-            print(f"Error loading competition {row['competition_name']} - {e}")
+            print(f"Error: {e}")
 
-    return pd.concat(dataframes, ignore_index=True)
+    if dataframes:
+        return pd.concat(dataframes, ignore_index=True)
+    else:
+        return pd.DataFrame()  # empty df if no data
+
+# --- Example Streamlit usage ---
+if __name__ == "__main__":
+    statsbomb_data = get_statsbomb_player_season_stats()
+    st.write("Position Profiles in data:", statsbomb_data['Position Profile'].unique())
