@@ -4,7 +4,54 @@ import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
-# Metrics needed
+# --- Position Mapping ---
+position_mapping = {
+    # Full Backs
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back",
+    "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
+
+    # Centre Backs
+    "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
+    
+ # Outside Centre Backs
+    "Outside Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Outside Centre Back",
+
+     # Number 6s
+    "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", "Right Defensive Midfielder": "Number 6",
+    "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
+    "Left Centre Midfield": "Number 6", "Left Centre Midfielder": "Number 6",
+    "Right Centre Midfield": "Number 6", "Right Centre Midfielder": "Number 6", "Centre Midfield": "Number 6",
+
+    # Number 8s
+    "Number 8": "Number 8", "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8",
+    "Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8",
+    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8",
+    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8",
+    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8",
+
+    # Number 10s
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", "Left Attacking Midfielder": "Number 10",
+
+    # Wingers
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
+    "Left Wing": "Winger", "Right Wing": "Winger",
+
+    # Centre Forward A
+    "Centre Forward": "Centre Forward A",
+    "Left Centre Forward": "Centre Forward A",
+    "Right Centre Forward": "Centre Forward A",  
+
+       # Centre Forward B
+    "Centre Forward": "Centre Forward B",
+    "Left Centre Forward": "Centre Forward B",
+    "Right Centre Forward": "Centre Forward B",  
+    
+    # Goalkeeper
+    "Goalkeeper": "Goal Keeper"
+}
+
+# --- Statbomb Metrics Required ---
 statbomb_metrics_needed = [
     'player_name', 'team_name', 'season_name', 'competition_name', 'Age',
     'player_season_minutes', 'primary_position', "player_season_aerial_ratio",
@@ -27,7 +74,7 @@ statbomb_metrics_needed = [
     'player_season_obv_gk_90', "player_season_Aggressive_actions_90"
 ]
 
-# Friendly column names
+# --- Rename Mapping ---
 metrics_mapping = {
     'player_name': "Player Name", 'team_name': 'Team', 'season_name': "Season", 'competition_name': 'League',
     'player_season_minutes': 'Minutes', 'primary_position': 'Position', "player_season_aerial_ratio": "Aerial Win %",
@@ -40,7 +87,7 @@ metrics_mapping = {
     "player_season_dribbles_90": "Dribbles", "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG",
     "player_season_np_xg_per_shot": "xG/Shot", "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted",
     "player_season_obv_90": "OBV", "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
-    'player_season_foul_won': "Foul Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
+    'player_season_foul_won': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
     "player_season_op_f3_passes_90": "OP F3 Passes", "player_season_op_key_passes_90": "OP Key Passes",
     "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", "player_season_Scoring_Contribution_90": "Scoring Contribution",
     "player_season_op_passes_into_box_90": "OP Passes Into Box", "player_season_padj_clearances_90": "PADJ Clearances",
@@ -55,15 +102,13 @@ metrics_mapping = {
     'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV'
 }
 
-# Position mapping: basic passthrough
+# --- Data Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
     passwd = st.secrets["passwd"]
-
     creds = {"user": user, "passwd": passwd}
     all_comps = sb.competitions(creds=creds)
-
     dataframes = []
 
     def calculate_age(birth_date):
@@ -71,52 +116,38 @@ def get_statsbomb_player_season_stats():
         return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
     for _, row in all_comps.iterrows():
-        competition_id, season_id = row["competition_id"], row["season_id"]
         try:
-            player_season = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
-            player_season['birth_date'] = pd.to_datetime(player_season['birth_date'])
-            player_season['Age'] = player_season['birth_date'].apply(calculate_age)
+            comp_id, season_id = row["competition_id"], row["season_id"]
+            df = sb.player_season_stats(comp_id, season_id, creds=creds)
 
-            # Only keep valid columns
-            valid_cols = [col for col in statbomb_metrics_needed if col in player_season.columns]
-            player_season = player_season[valid_cols]
+            df['birth_date'] = pd.to_datetime(df['birth_date'])
+            df['Age'] = df['birth_date'].apply(calculate_age)
 
-            player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
-            player_season = player_season.apply(pd.to_numeric, errors='ignore')
+            # Subset only available cols
+            available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
+            df = df[available_cols]
 
-            # Rename metrics
-            rename_cols = {k: v for k, v in metrics_mapping.items() if k in player_season.columns}
-            player_season = player_season.rename(columns=rename_cols)
+            df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
+            df = df.apply(pd.to_numeric, errors='ignore')
 
-            # Map Centre Forward A and B (manual separation, default to A)
-            def map_centre_forward(pos):
-                if pos in ["Centre Forward", "Left Centre Forward", "Right Centre Forward"]:
-                    return "Centre Forward A"  # B logic to be separated later
-                return pos
+            df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
 
-            # Map Outside Centre Back separately
-            def map_centre_back(pos):
-                if pos in ["Centre Back", "Left Centre Back", "Right Centre Back"]:
-                    return "Centre Back"  # Outside logic to be separated later
-                return pos
+            # Apply position mapping
+            df['Position'] = df['Position'].map(position_mapping)
 
-            player_season['Position'] = player_season['Position'].apply(map_centre_forward)
-            player_season['Position'] = player_season['Position'].apply(map_centre_back)
+            df = df.dropna(subset=['Position'])
+            df = df[df['Minutes'] >= 600]
+            df['Minutes'] = df['Minutes'].astype(int)
 
-            player_season = player_season.dropna(subset=['Position'])
-            player_season = player_season[player_season['Minutes'] >= 600]
-            player_season['Minutes'] = player_season['Minutes'].astype(int)
+            if 'NP Goals' in df.columns and 'OP XG ASSISTED' in df.columns:
+                df['Scoring Contribution'] = df['NP Goals'] + df['OP XG ASSISTED']
 
-            # Scoring Contribution logic (fallback if rename fails)
-            if 'NP Goals' in player_season.columns and 'OP XG ASSISTED' in player_season.columns:
-                player_season['Scoring Contribution'] = player_season['NP Goals'] + player_season['OP XG ASSISTED']
+            if 'Passing %' in df.columns:
+                df['Pass Forward %'] = df['Passing %'] * 0.6
 
-            if 'Passing %' in player_season.columns:
-                player_season['Pass Forward %'] = player_season['Passing %'] * 0.6
+            dataframes.append(df)
 
-            dataframes.append(player_season)
         except Exception as e:
             print(f"Error: {e}")
 
-    final_df = pd.concat(dataframes, ignore_index=True)
-    return final_df
+    return pd.concat(dataframes, ignore_index=True)
