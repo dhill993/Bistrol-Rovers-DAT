@@ -53,53 +53,38 @@ metrics_mapping = {
     'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %', 'player_season_positive_outcome_score': 'POSITIVE OUTCOME',
     'player_season_obv_gk_90': 'GOALKEEPER OBV'
 }
+
 position_mapping = {
     "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back",
     "Right Wing Back": "Full Back", "Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
-    "Left Centre Back": "Outside Centre Back",  # mapped uniquely to Outside CB
-    "Outside Centre Back": "Centre Back",
-
+    "Left Centre Back": "Outside Centre Back", "Outside Centre Back": "Centre Back",
     "Number 8": "Number 8",
     "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8",
     "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
     "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8",
     "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8",
-
     "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
     "Left Attacking Midfielder": "Number 10",
-
     "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", "Right Wing": "Winger",
-
-    # Centre Forwards split
-    "Centre Forward A": "Centre Forward A",
-    "Left Centre Forward A": "Centre Forward A",
-    "Right Centre Forward A": "Centre Forward A",
-
-    "Centre Forward B": "Centre Forward B",
-    "Left Centre Forward B": "Centre Forward B",
-    "Right Centre Forward B": "Centre Forward B",
-
+    "Centre Forward A": "Centre Forward A", "Left Centre Forward A": "Centre Forward A", "Right Centre Forward A": "Centre Forward A",
+    "Centre Forward B": "Centre Forward B", "Left Centre Forward B": "Centre Forward B", "Right Centre Forward B": "Centre Forward B",
     "Goalkeeper": "Goal Keeper"
-}
-
 }
 
 @st.cache_data(ttl=14400, show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
     passwd = st.secrets["passwd"]
-
     creds = {"user": user, "passwd": passwd}
-    all_comps = sb.competitions(creds=creds)
 
+    all_comps = sb.competitions(creds=creds)
     dataframes = []
 
     def calculate_age(birth_date):
         today = datetime.today()
-        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-        return age
+        return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
-    for i, row in all_comps.iterrows():
+    for _, row in all_comps.iterrows():
         competition_id, season_id = row["competition_id"], row["season_id"]
         try:
             player_season = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
@@ -107,38 +92,33 @@ def get_statsbomb_player_season_stats():
             player_season['birth_date'] = pd.to_datetime(player_season['birth_date'])
             player_season['Age'] = player_season['birth_date'].apply(calculate_age)
 
-            # Select only columns that exist in this data frame to avoid KeyErrors
             available_cols = [col for col in statbomb_metrics_needed if col in player_season.columns]
             player_season = player_season[available_cols]
 
             player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
             player_season = player_season.apply(pd.to_numeric, errors='ignore')
 
-            # Rename columns only for those present
             rename_cols = {k: v for k, v in metrics_mapping.items() if k in player_season.columns}
             player_season = player_season.rename(columns=rename_cols)
 
-            player_season['Position'] = player_season['Position'].map(position_mapping)
+            if 'Position' in player_season.columns:
+                player_season['Position'] = player_season['Position'].map(position_mapping)
+                player_season = player_season.dropna(subset=['Position'])
 
-            # Drop rows where position mapping failed (NaN)
-            player_season = player_season.dropna(subset=['Position'])
+            if 'Minutes' in player_season.columns:
+                player_season = player_season[player_season['Minutes'] >= 600]
+                player_season['Minutes'] = player_season['Minutes'].astype(int)
 
-            player_season = player_season[player_season['Minutes'] >= 600]
-            player_season['Minutes'] = player_season['Minutes'].astype(int)
-
-            # Derived metrics
-
-            # Correct typo and create Scoring Contribution (NP Goals + OP XG ASSISTED)
             if 'NP Goals' in player_season.columns and 'OP XG ASSISTED' in player_season.columns:
                 player_season['Scoring Contribution'] = player_season['NP Goals'] + player_season['OP XG ASSISTED']
 
-            # Placeholder example for Pass Forward %
             if 'Passing %' in player_season.columns:
-                player_season['Pass Forward %'] = player_season['Passing %'] * 0.6  # example adjustment
+                player_season['Pass Forward %'] = player_season['Passing %'] * 0.6
 
             dataframes.append(player_season)
         except Exception as e:
-            print(f"Error processing competition_id={competition_id}, season_id={season_id}: {e}")
+            print(f"Error with comp={competition_id}, season={season_id}: {e}")
 
-    final_dataframe = pd.concat(dataframes, ignore_index=True)
-    return final_dataframe
+    if dataframes:
+        return pd.concat(dataframes, ignore_index=True)
+    return pd.DataFrame()
