@@ -4,6 +4,7 @@ import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
+# Required metrics from API
 statbomb_metrics_needed = [
     'player_name', 'team_name', 'season_name', 'competition_name', 'Age',
     'player_season_minutes', 'primary_position', "player_season_aerial_ratio",
@@ -16,7 +17,7 @@ statbomb_metrics_needed = [
     "player_season_obv_defensive_action_90", "player_season_obv_dribble_carry_90",
     "player_season_obv_pass_90", "player_season_obv_shot_90", "player_season_op_f3_passes_90",
     "player_season_op_key_passes_90", "player_season_op_passes_into_and_touches_inside_box_90",
-    "player_season_op_passes_into_box_90", "player_season_padj_clearances_90", "player_season_Scoring_Contribution_90",
+    "player_season_op_passes_into_box_90", "player_season_padj_clearances_90",
     "player_season_padj_interceptions_90", "player_season_padj_pressures_90", "player_season_padj_tackles_90",
     "player_season_passing_ratio", "player_season_shot_on_target_ratio", "player_season_shot_touch_ratio",
     "player_season_touches_inside_box_90", "player_season_xgbuildup_90", "player_season_op_xa_90", "player_season_pressured_passing_ratio",
@@ -25,6 +26,7 @@ statbomb_metrics_needed = [
     'player_season_positive_outcome_score', 'player_season_obv_gk_90', "player_season_Aggressive_actions_90"
 ]
 
+# Friendly names
 metrics_mapping = {
     'player_name': "Player Name", 'team_name': 'Team', 'season_name': "Season", 'competition_name': 'League',
     'player_season_minutes': 'Minutes', 'primary_position': 'Position', "player_season_aerial_ratio": "Aerial Win %",
@@ -32,42 +34,39 @@ metrics_mapping = {
     "player_season_carries_90": "Carries", "player_season_crossing_ratio": "Successful Crosses",
     "player_season_Pressures_90": "Pressures", "player_season_Counter_Pressures_90": "CounterPressures",
     "player_season_deep_progressions_90": "Deep Progressions", "player_season_defensive_action_regains_90": "Defensive Regains",
-    "player_season_Aggressive_actions_90": "Aggressive Actions",
-    "player_season_defensive_actions_90": "Defensive Actions", "player_season_dribble_faced_ratio": "Dribbles Stopped %",
-    "player_season_dribble_ratio": "Successful Dribbles", "player_season_dribbles_90": "Dribbles",
-    "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG", "player_season_np_xg_per_shot": "xG/Shot",
-    "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted", "player_season_obv_90": "OBV",
-    "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
-    'player_season_foul_won': "Foul Won",
+    "player_season_Aggressive_actions_90": "Aggressive Actions", "player_season_defensive_actions_90": "Defensive Actions",
+    "player_season_dribble_faced_ratio": "Dribbles Stopped %", "player_season_dribble_ratio": "Successful Dribbles",
+    "player_season_dribbles_90": "Dribbles", "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG",
+    "player_season_np_xg_per_shot": "xG/Shot", "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted",
+    "player_season_obv_90": "OBV", "player_season_obv_defensive_action_90": "DA OBV",
+    "player_season_obv_dribble_carry_90": "OBV D&C", 'player_season_foul_won': "Fouls Won",
     "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV", "player_season_op_f3_passes_90": "OP F3 Passes",
     "player_season_op_key_passes_90": "OP Key Passes", "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN",
-    "player_season_Scoring_Contribution_90": "Scoring Contribution",
-    "player_season_op_passes_into_box_90": "OP Passes Into Box",
-    "player_season_padj_clearances_90": "PADJ Clearances",
+    "player_season_op_passes_into_box_90": "OP Passes Into Box", "player_season_padj_clearances_90": "PADJ Clearances",
     "player_season_padj_interceptions_90": "PADJ Interceptions", "player_season_padj_pressures_90": "PADJ Pressures",
     "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %",
     "player_season_shot_on_target_ratio": "Shooting %", "player_season_shot_touch_ratio": "Shot Touch %",
-    "player_season_touches_inside_box_90": "Touches in Box", "player_season_xgbuildup_90": "xG Buildup", "player_season_op_xa_90": "OP XG ASSISTED",
-    "player_season_pressured_passing_ratio": "PR. Pass %", 'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST',
-    'player_season_clcaa': 'CLAIMS %', 'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA',
-    'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %', 'player_season_positive_outcome_score': 'POSITIVE OUTCOME',
+    "player_season_touches_inside_box_90": "Touches in Box", "player_season_xgbuildup_90": "xG Buildup",
+    "player_season_op_xa_90": "OP XG ASSISTED", "player_season_pressured_passing_ratio": "PR. Pass %",
+    'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST', 'player_season_clcaa': 'CLAIMS %',
+    'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA', 'player_season_save_ratio': 'SAVE %',
+    'player_season_xs_ratio': 'XSV %', 'player_season_positive_outcome_score': 'POSITIVE OUTCOME',
     'player_season_obv_gk_90': 'GOALKEEPER OBV'
 }
 
+# Position mapping - clean and split Centre Forward A & B correctly
 position_mapping = {
-    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back",
-    "Right Wing Back": "Full Back", "Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
-    "Left Centre Back": "Outside Centre Back", "Outside Centre Back": "Centre Back",
-    "Number 8": "Number 8",
-    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8",
-    "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
-    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8",
-    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8",
-    "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
-    "Left Attacking Midfielder": "Number 10",
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", "Right Wing": "Winger",
-    "Centre Forward A": "Centre Forward A", "Left Centre Forward A": "Centre Forward A", "Right Centre Forward A": "Centre Forward A",
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
+    "Centre Back": "Centre Back", "Right Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Outside Centre Back": "Centre Back",
+    "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
+    "Centre Midfield": "Number 8", "Left Centre Midfield": "Number 8", "Right Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", "Right Centre Midfielder": "Number 8",
+    "Attacking Midfield": "Number 10", "Centre Attacking Midfielder": "Number 10", "Left Attacking Midfielder": "Number 10", "Right Attacking Midfielder": "Number 10", "Secondary Striker": "Number 10",
+    "Winger": "Winger", "Left Midfielder": "Winger", "Right Midfielder": "Winger", "Left Wing": "Winger", "Right Wing": "Winger",
+
+    # Split CF positions
+    "Centre Forward A": "Centre Forward A", "Left Centre Forward": "Centre Forward A", "Right Centre Forward": "Centre Forward A", "Centre Forward": "Centre Forward A",
     "Centre Forward B": "Centre Forward B", "Left Centre Forward B": "Centre Forward B", "Right Centre Forward B": "Centre Forward B",
+
     "Goalkeeper": "Goal Keeper"
 }
 
@@ -76,8 +75,8 @@ def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
     passwd = st.secrets["passwd"]
     creds = {"user": user, "passwd": passwd}
-
     all_comps = sb.competitions(creds=creds)
+
     dataframes = []
 
     def calculate_age(birth_date):
@@ -87,38 +86,42 @@ def get_statsbomb_player_season_stats():
     for _, row in all_comps.iterrows():
         competition_id, season_id = row["competition_id"], row["season_id"]
         try:
-            player_season = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
+            df = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
+            df['birth_date'] = pd.to_datetime(df['birth_date'])
+            df['Age'] = df['birth_date'].apply(calculate_age)
 
-            player_season['birth_date'] = pd.to_datetime(player_season['birth_date'])
-            player_season['Age'] = player_season['birth_date'].apply(calculate_age)
+            # Only include columns that exist
+            available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
+            df = df[available_cols].copy()
 
-            available_cols = [col for col in statbomb_metrics_needed if col in player_season.columns]
-            player_season = player_season[available_cols]
+            df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
+            df = df.apply(pd.to_numeric, errors='ignore')
 
-            player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
-            player_season = player_season.apply(pd.to_numeric, errors='ignore')
+            # Rename only existing columns
+            rename_cols = {k: v for k, v in metrics_mapping.items() if k in df.columns}
+            df = df.rename(columns=rename_cols)
 
-            rename_cols = {k: v for k, v in metrics_mapping.items() if k in player_season.columns}
-            player_season = player_season.rename(columns=rename_cols)
+            # Map positions
+            if 'Position' in df.columns:
+                df['Position'] = df['Position'].map(position_mapping)
+                df = df.dropna(subset=['Position'])
 
-            if 'Position' in player_season.columns:
-                player_season['Position'] = player_season['Position'].map(position_mapping)
-                player_season = player_season.dropna(subset=['Position'])
+            # Filter out players with < 600 minutes
+            if 'Minutes' in df.columns:
+                df = df[df['Minutes'] >= 600]
+                df['Minutes'] = df['Minutes'].astype(int)
 
-            if 'Minutes' in player_season.columns:
-                player_season = player_season[player_season['Minutes'] >= 600]
-                player_season['Minutes'] = player_season['Minutes'].astype(int)
+            # Add derived metric
+            if 'NP Goals' in df.columns and 'OP XG ASSISTED' in df.columns:
+                df['Scoring Contribution'] = df['NP Goals'] + df['OP XG ASSISTED']
 
-            if 'NP Goals' in player_season.columns and 'OP XG ASSISTED' in player_season.columns:
-                player_season['Scoring Contribution'] = player_season['NP Goals'] + player_season['OP XG ASSISTED']
+            # Placeholder for Pass Forward %
+            if 'Passing %' in df.columns:
+                df['Pass Forward %'] = df['Passing %'] * 0.6
 
-            if 'Passing %' in player_season.columns:
-                player_season['Pass Forward %'] = player_season['Passing %'] * 0.6
+            dataframes.append(df)
 
-            dataframes.append(player_season)
         except Exception as e:
-            print(f"Error with comp={competition_id}, season={season_id}: {e}")
+            print(f"Error with comp {competition_id} - {season_id}: {e}")
 
-    if dataframes:
-        return pd.concat(dataframes, ignore_index=True)
-    return pd.DataFrame()
+    return pd.concat(dataframes, ignore_index=True)
