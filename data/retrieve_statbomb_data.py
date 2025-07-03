@@ -1,55 +1,27 @@
+origional***
+
 import pandas as pd
 from datetime import datetime
 import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
-# --- Position Mapping (raw StatsBomb positions to custom profiles) ---
-position_profile_mapping = {
-    # Full Back
-    "Left Back": ["Full Back"],
-    "Right Back": ["Full Back"],
-    "Left Wing Back": ["Full Back"],
-    "Right Wing Back": ["Full Back"],
-
-    # Centre Back & Outside Centre Back (both map same raw positions)
-    "Centre Back": ["Centre Back", "Outside Centre Back"],
-    "Left Centre Back": ["Centre Back", "Outside Centre Back"],
-    "Right Centre Back": ["Centre Back", "Outside Centre Back"],
-
-    # Number 6 & Number 8 (shared mappings)
-    "Left Defensive Midfielder": ["Number 6", "Number 8"],
-    "Right Defensive Midfielder": ["Number 6", "Number 8"],
-    "Defensive Midfielder": ["Number 6", "Number 8"],
-    "Centre Defensive Midfielder": ["Number 6", "Number 8"],
-    "Left Centre Midfield": ["Number 6", "Number 8"],
-    "Left Centre Midfielder": ["Number 6", "Number 8"],
-    "Right Centre Midfield": ["Number 6", "Number 8"],
-    "Right Centre Midfielder": ["Number 6", "Number 8"],
-    "Centre Midfield": ["Number 6", "Number 8"],
-
-    # Number 10
-    "Secondary Striker": ["Number 10"],
-    "Centre Attacking Midfielder": ["Number 10"],
-    "Left Attacking Midfielder": ["Number 10"],
-    "Right Attacking Midfielder": ["Number 10"],
-    "Attacking Midfield": ["Number 10"],
-
-    # Winger
-    "Left Attacking Midfielder": ["Winger"],
-    "Right Attacking Midfielder": ["Winger"],
-    "Right Midfielder": ["Winger"],
-    "Left Midfielder": ["Winger"],
-    "Left Wing": ["Winger"],
-    "Right Wing": ["Winger"],
-
-    # Centre Forward A & B
-    "Centre Forward": ["Centre Forward A", "Centre Forward B"],
-    "Left Centre Forward": ["Centre Forward A", "Centre Forward B"],
-    "Right Centre Forward": ["Centre Forward A", "Centre Forward B"],
-
-    # Goalkeeper
-    "Goalkeeper": ["Goal Keeper"]
+# --- Position Mapping ---
+position_mapping = {
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back",
+    "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
+    "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
+    "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", "Right Defensive Midfielder": "Number 6",
+    "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
+    "Left Centre Midfield": "Number 6", "Left Centre Midfielder": "Number 6",
+    "Right Centre Midfield": "Number 6", "Right Centre Midfielder": "Number 6", "Centre Midfield": "Number 6",
+    "Number 8": "Number 8", "Left Attacking Midfielder": "Number 8", "Right Attacking Midfielder": "Number 8",
+    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8",
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
+    "Left Wing": "Winger", "Right Wing": "Winger",
+    "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", "Right Centre Forward": "Centre Forward",
+    "Goalkeeper": "Goal Keeper"
 }
 
 # --- Metrics Needed ---
@@ -71,7 +43,7 @@ statbomb_metrics_needed = [
     "player_season_touches_inside_box_90", "player_season_xgbuildup_90", "player_season_op_xa_90",
     "player_season_pressured_passing_ratio", 'player_season_da_aggressive_distance', 'player_season_clcaa',
     'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90",
-    'player_season_xs_ratio', 'player_season_fouls_won', 'player_season_positive_outcome_score',
+    'player_season_xs_ratio', 'player_season_foul_won', 'player_season_positive_outcome_score',
     'player_season_obv_gk_90', "player_season_Aggressive_actions_90"
 ]
 
@@ -88,7 +60,7 @@ metrics_mapping = {
     "player_season_dribbles_90": "Dribbles", "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG",
     "player_season_np_xg_per_shot": "xG/Shot", "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted",
     "player_season_obv_90": "OBV", "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
-    'player_season_fouls_won': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
+    'player_season_foul_won': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
     "player_season_op_f3_passes_90": "OP F3 Passes", "player_season_op_key_passes_90": "OP Key Passes",
     "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", "player_season_Scoring_Contribution_90": "Scoring Contribution",
     "player_season_op_passes_into_box_90": "OP Passes Into Box", "player_season_padj_clearances_90": "PADJ Clearances",
@@ -132,21 +104,12 @@ def get_statsbomb_player_season_stats():
 
             df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
 
-            all_rows = []
-            for _, row in df.iterrows():
-                raw_pos = row['Position']
-                if raw_pos in position_profile_mapping:
-                    profiles = position_profile_mapping[raw_pos]
-                    for profile in profiles:
-                        new_row = row.copy()
-                        new_row['Position'] = profile
-                        all_rows.append(new_row)
+            df['Position'] = df['Position'].map(position_mapping)
+            df = df.dropna(subset=['Position'])
+            df = df[df['Minutes'] >= 600]
+            df['Minutes'] = df['Minutes'].astype(int)
 
-            if all_rows:
-                clean_df = pd.DataFrame(all_rows)
-                clean_df = clean_df[clean_df['Minutes'] >= 600]
-                clean_df['Minutes'] = clean_df['Minutes'].astype(int)
-                dataframes.append(clean_df)
+            dataframes.append(df)
 
         except Exception as e:
             print(f"Error: {e}")
