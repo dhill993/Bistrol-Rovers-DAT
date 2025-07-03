@@ -41,7 +41,7 @@ statbomb_metrics_needed = [
     "player_season_touches_inside_box_90", "player_season_xgbuildup_90", "player_season_op_xa_90",
     "player_season_pressured_passing_ratio", 'player_season_da_aggressive_distance', 'player_season_clcaa',
     'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90",
-    'player_season_xs_ratio', 'player_season_foul_won', 'player_season_positive_outcome_score',
+    'player_season_xs_ratio', 'player_season_fouls_won_90', 'player_season_positive_outcome_score',
     'player_season_obv_gk_90', "player_season_Aggressive_actions_90"
 ]
 
@@ -58,7 +58,7 @@ metrics_mapping = {
     "player_season_dribbles_90": "Dribbles", "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG",
     "player_season_np_xg_per_shot": "xG/Shot", "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted",
     "player_season_obv_90": "OBV", "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
-    'player_season_foul_won': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
+    'player_season_fouls_won_90': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
     "player_season_op_f3_passes_90": "OP F3 Passes", "player_season_op_key_passes_90": "OP Key Passes",
     "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", "player_season_Scoring_Contribution_90": "Scoring Contribution",
     "player_season_op_passes_into_box_90": "OP Passes Into Box", "player_season_padj_clearances_90": "PADJ Clearances",
