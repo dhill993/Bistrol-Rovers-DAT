@@ -102,10 +102,10 @@ def get_statsbomb_player_season_stats():
 
             df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
 
-df['Position'] = df['Position'].map(position_mapping)
-df = df.dropna(subset=['Position'])
-df['Position'] = df['Position'].astype(str).str.strip()  # Remove any whitespace issues
-df = df[df['Minutes'] >= 600]
+            df['Position'] = df['Position'].map(position_mapping)
+            df = df.dropna(subset=['Position'])
+            df['Position'] = df['Position'].astype(str).str.strip()
+            df = df[df['Minutes'] >= 600]
             df['Minutes'] = df['Minutes'].astype(int)
 
             dataframes.append(df)
