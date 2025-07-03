@@ -1,46 +1,117 @@
 metrics_per_position = {
     "Full Back": [
-        "Dribbles Stopped %", "Carries", "OP XG ASSISTED", "Successful Dribbles", "Successful Crosses",
-        "Ball Recoveries", "OP Passes Into Box", "PR. Pass %", "PADJ Interceptions", "Aerial Win %"
+        "Dribbles Stopped %", "Carries", "OP XG ASSISTED", "Successful Dribbles",
+        "Successful Crosses", "Ball Recoveries", "OP Passes Into Box", "PR. Pass %",
+        "PADJ Interceptions", "Aerial Win %"
     ],
     "Centre Back": [
-        "Aerial Win %", "Dribbles Stopped %", "PADJ Tackles", "PADJ Interceptions", "PADJ Clearances",
-        "Defensive Regains", "DA OBV", "Ball Recoveries", "Pass Forward %", "PR. Pass %"
-    ],
-    "Number 6": [
-        "PADJ Tackles", "PADJ Interceptions", "Pass Forward %", "Ball Recoveries", "Aerial Win %",
-        "Dribbles Stopped %", "DA OBV", "Deep Progressions", "PR. Pass %", "Pass OBV"
-    ],
-    "Number 8": [
-        "PINTIN", "Shots", "Aerial Win %", "xG Assisted", "OP Key Passes", "Dribbles", "Carries",
-        "OP Passes Into Box", "OBV D&C", "PR. Pass %"
-    ],
-    "Number 10": [
-        "Shots", "xG", "Scoring Contribution", "OP Key Passes", "Successful Dribbles", "PINTIN",
-        "xG Assisted", "Carries", "Shooting %", "PR. Pass %"
-    ],
-    "Winger": [
-        "xG", "Shots", "OP Key Passes", "Dribbles", "Successful Dribbles", "OBV", "PINTIN",
-        "Successful Crosses", "xG Assisted", "OBV D&C"
-    ],
-    "Centre Forward": [
-        "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %", "Touches in Box",
-        "Carries", "Shot OBV", "Fouls Won"
-    ],
-    "Goal Keeper": [
-        "GK AGGRESSIVE DIST", "CLAIMS %", "PR. Pass %", "SHOT STOPPING %", "OP F3 Passes", "GSAA",
-        "SAVE %", "XSV %", "POSITIVE OUTCOME", "GOALKEEPER OBV"
-    ],
-    "Centre Forward A": [
-        "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %", "Touches in Box",
-        "Carries", "Shot OBV", "Fouls Won"
-    ],
-    "Centre Forward B": [
-        "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %", "Fouls Won",
-        "Pressures", "CounterPressures", "Aggressive Actions"
+        "Aerial Win %", "Dribbles Stopped %", "PADJ Tackles", "PADJ Interceptions",
+        "PADJ Clearances", "Defensive Regains", "DA OBV", "Ball Recoveries",
+        "Pass Forward %", "PR. Pass %"
     ],
     "Outside Centre Back": [
-        "Aerial Win %", "Dribbles Stopped %", "PADJ Tackles", "PADJ Interceptions", "PR. Pass %",
-        "Carries", "Successful Crosses", "Dribbles", "OP Passes Into Box", "OP F3 Passes"
+        "Aerial Win %", "Dribbles Stopped %", "PADJ Tackles", "PADJ Interceptions",
+        "PR. Pass %", "Carries", "Successful Crosses", "Dribbles",
+        "OP Passes Into Box", "OP F3 Passes"
+    ],
+    "Number 6": [
+        "PADJ Tackles", "PADJ Interceptions", "Pass Forward %", "Ball Recoveries",
+        "Aerial Win %", "Dribbles Stopped %", "DA OBV", "Deep Progressions",
+        "PR. Pass %", "Pass OBV"
+    ],
+    "Number 8": [
+        "PINTIN", "Shots", "Aerial Win %", "xG Assisted", "OP Key Passes",
+        "Dribbles", "Carries", "OP Passes Into Box", "OBV D&C", "PR. Pass %"
+    ],
+    "Number 10": [
+        "Shots", "xG", "Scoring Contribution", "OP Key Passes",
+        "Successful Dribbles", "PINTIN", "xG Assisted", "Carries",
+        "Shooting %", "PR. Pass %"
+    ],
+    "Winger": [
+        "xG", "Shots", "OP Key Passes", "Dribbles", "Successful Dribbles",
+        "OBV", "PINTIN", "Successful Crosses", "xG Assisted", "OBV D&C"
+    ],
+    "Centre Forward": [
+        "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %",
+        "Touches in Box", "Carries", "Shot OBV", "Fouls Won"
+    ],
+    "Centre Forward A": [
+        "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %",
+        "Touches in Box", "Carries", "Shot OBV", "Fouls Won"
+    ],
+    "Centre Forward B": [
+        "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %",
+        "Fouls Won", "Pressures", "Counterpressures", "Aggressive Actions"
+    ],
+    "Goal Keeper": [
+        "GK AGGRESSIVE DIST", "CLAIMS %", "PR. Pass %", "SHOT STOPPING %",
+        "OP F3 Passes", "GSAA", "SAVE %", "XSV %", "POSITIVE OUTCOME", "GOALKEEPER OBV"
     ]
-}  
+}
+
+profiles_zcore = {
+    "Centre Back": [
+        {
+            "Profile Name": "No Nonsense Centre Back",
+            "Using Metrics": [
+                "Blocks/Shots", "PADJ Tackles", "PADJ Interceptions",
+                "PADJ Clearances", "Defensive Actions"
+            ],
+            "Weighted Metrics": ["Aerial Win %", "Defensive Regains", "Ball Recoveries", "DA OBV"],
+            "Z Score Name": "No Nonsense CB Score"
+        },
+        {
+            "Profile Name": "Outside Centre Back",
+            "Using Metrics": [
+                "Aerial Win %", "Blocks/Shots", "Dribbles Stopped %",
+                "PADJ Tackles", "PADJ Interceptions", "PADJ Clearances",
+                "Defensive Actions", "Defensive Regains", "DA OBV", "Ball Recoveries"
+            ],
+            "Weighted Metrics": ["Carries", "Dribbles", "OP F3 Passes"],
+            "Z Score Name": "Outside CB Score"
+        },
+        {
+            "Profile Name": "Ball Playing Centre Back",
+            "Using Metrics": [
+                "Aerial Win %", "Blocks/Shots", "Dribbles Stopped %",
+                "PADJ Tackles", "PADJ Interceptions", "PADJ Clearances",
+                "Defensive Actions", "Defensive Regains", "DA OBV", "Ball Recoveries"
+            ],
+            "Weighted Metrics": ["Passing %", "Pass OBV", "PR. Pass %"],
+            "Z Score Name": "Ball Playing CB Score"
+        }
+    ],
+    "Centre Forward": [
+        {
+            "Profile Name": "Providing Forward",
+            "Using Metrics": [
+                "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %",
+                "Aerial Win %", "Touches in Box", "Shot OBV"
+            ],
+            "Weighted Metrics": ["PINTIN", "xG Assisted", "OP Key Passes"],
+            "Z Score Name": "Providing Forward Score"
+        },
+        {
+            "Profile Name": "Target Man Forward",
+            "Using Metrics": [
+                "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "xG Assisted",
+                "Shot OBV", "Shot Touch %"
+            ],
+            "Weighted Metrics": ["Aerial Win %", "Touches in Box"],
+            "Z Score Name": "Target Man Forward Score"
+        },
+        {
+            "Profile Name": "Mobile Forward",
+            "Using Metrics": [
+                "NP Goals", "Shots", "Shooting %", "xG", "xG/Shot", "Shot Touch %",
+                "Aerial Win %", "Touches in Box", "Shot OBV", "xG Assisted"
+            ],
+            "Weighted Metrics": ["Dribbles", "Carries", "PADJ Pressures"],
+            "Z Score Name": "Mobile Forward Score"
+        }
+    ],
+    "Centre Forward A": "Centre Forward",
+    "Centre Forward B": "Centre Forward",
+    "Outside Centre Back": "Centre Back"
+}
