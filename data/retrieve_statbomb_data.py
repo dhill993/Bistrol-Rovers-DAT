@@ -4,80 +4,55 @@ import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
-# ----------------------------------------------------------------------
-# 1) RAW‑POSITION → BASE‑POSITION MAPPING  (only StatsBomb strings here)
-# ----------------------------------------------------------------------
-position_mapping = {
-    # Full Backs
-    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back",
-    "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
+# --- Position Mapping (raw StatsBomb positions to custom profiles) ---
+position_profile_mapping = {
+    # Full Back
+    "Left Back": ["Full Back"],
+    "Right Back": ["Full Back"],
+    "Left Wing Back": ["Full Back"],
+    "Right Wing Back": ["Full Back"],
 
-    # Centre Backs
-    "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
+    # Centre Back & Outside Centre Back (both map same raw positions)
+    "Centre Back": ["Centre Back", "Outside Centre Back"],
+    "Left Centre Back": ["Centre Back", "Outside Centre Back"],
+    "Right Centre Back": ["Centre Back", "Outside Centre Back"],
 
-    # D‑Mids and C‑Mids (base group is Number 6)
-    "Left Defensive Midfielder": "Number 6", "Right Defensive Midfielder": "Number 6",
-    "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
-    "Left Centre Midfield": "Number 6", "Right Centre Midfield": "Number 6", "Centre Midfield": "Number 6",
+    # Number 6 & Number 8 (shared mappings)
+    "Left Defensive Midfielder": ["Number 6", "Number 8"],
+    "Right Defensive Midfielder": ["Number 6", "Number 8"],
+    "Defensive Midfielder": ["Number 6", "Number 8"],
+    "Centre Defensive Midfielder": ["Number 6", "Number 8"],
+    "Left Centre Midfield": ["Number 6", "Number 8"],
+    "Left Centre Midfielder": ["Number 6", "Number 8"],
+    "Right Centre Midfield": ["Number 6", "Number 8"],
+    "Right Centre Midfielder": ["Number 6", "Number 8"],
+    "Centre Midfield": ["Number 6", "Number 8"],
 
-    # Attack‑Mids (base group is Number 8)
-    "Left Attacking Midfielder": "Number 8", "Right Attacking Midfielder": "Number 8",
-    "Attacking Midfield": "Number 8",
+    # Number 10
+    "Secondary Striker": ["Number 10"],
+    "Centre Attacking Midfielder": ["Number 10"],
+    "Left Attacking Midfielder": ["Number 10"],
+    "Right Attacking Midfielder": ["Number 10"],
+    "Attacking Midfield": ["Number 10"],
 
-    # Second striker / central 10
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
+    # Winger
+    "Left Attacking Midfielder": ["Winger"],
+    "Right Attacking Midfielder": ["Winger"],
+    "Right Midfielder": ["Winger"],
+    "Left Midfielder": ["Winger"],
+    "Left Wing": ["Winger"],
+    "Right Wing": ["Winger"],
 
-    # Wide roles
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
-    "Left Wing": "Winger", "Right Wing": "Winger",
-
-    # Forwards (base group)
-    "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward",
-    "Right Centre Forward": "Centre Forward",
+    # Centre Forward A & B
+    "Centre Forward": ["Centre Forward A", "Centre Forward B"],
+    "Left Centre Forward": ["Centre Forward A", "Centre Forward B"],
+    "Right Centre Forward": ["Centre Forward A", "Centre Forward B"],
 
     # Goalkeeper
-    "Goalkeeper": "Goal Keeper",
+    "Goalkeeper": ["Goal Keeper"]
 }
 
-# ----------------------------------------------------------------------
-# 2) POSITION‑PROFILE ASSIGNMENT  (creates your custom profiles)
-# ----------------------------------------------------------------------
-def assign_position_profile(row) -> str:
-    raw_pos   = row["Raw_Position"]          # untouched StatsBomb string
-    base_pos  = row["Base_Position"]         # after first mapping
-    name_seed = hash(row.get("Player Name", ""))
-
-    # ----- Full Back -----
-    if base_pos == "Full Back":
-        return "Full Back"
-
-    # ----- Centre Back & Outside Centre Back -----
-    if base_pos == "Centre Back":
-        return "Outside Centre Back" if name_seed % 2 else "Centre Back"
-
-    # ----- Number 6 & Number 8 (share same raw pool) -----
-    if base_pos == "Number 6":
-        return "Number 8" if name_seed % 2 else "Number 6"
-
-    # ----- Number 10 -----
-    if base_pos == "Number 10":
-        return "Number 10"
-
-    # ----- Winger -----
-    if base_pos == "Winger":
-        return "Winger"
-
-    # ----- Centre Forward A / B -----
-    if base_pos == "Centre Forward":
-        return "Centre Forward B" if name_seed % 2 else "Centre Forward A"
-
-    # ----- Goalkeeper or anything else -----
-    return base_pos
-
-
-# ----------------------------------------------------------------------
-# 3) STATSBOMB METRIC LIST  (unchanged from your original)
-# ----------------------------------------------------------------------
+# --- Metrics Needed ---
 statbomb_metrics_needed = [
     'player_name', 'team_name', 'season_name', 'competition_name', 'Age',
     'player_season_minutes', 'primary_position', "player_season_aerial_ratio",
@@ -97,12 +72,10 @@ statbomb_metrics_needed = [
     "player_season_pressured_passing_ratio", 'player_season_da_aggressive_distance', 'player_season_clcaa',
     'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90",
     'player_season_xs_ratio', 'player_season_foul_won', 'player_season_positive_outcome_score',
-    'player_season_obv_gk_90', "player_season_Aggressive_actions_90",
+    'player_season_obv_gk_90', "player_season_Aggressive_actions_90"
 ]
 
-# ----------------------------------------------------------------------
-# 4) COLUMN RENAME MAP  (unchanged from your original)
-# ----------------------------------------------------------------------
+# --- Metric Rename Mapping ---
 metrics_mapping = {
     'player_name': "Player Name", 'team_name': 'Team', 'season_name': "Season", 'competition_name': 'League',
     'player_season_minutes': 'Minutes', 'primary_position': 'Position', "player_season_aerial_ratio": "Aerial Win %",
@@ -127,56 +100,55 @@ metrics_mapping = {
     'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST', 'player_season_clcaa': 'CLAIMS %',
     'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA',
     'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %',
-    'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV',
+    'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV'
 }
 
-# ----------------------------------------------------------------------
-# 5) MAIN DATA‑FETCH FUNCTION
-# ----------------------------------------------------------------------
+# --- Main Statsbomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
 def get_statsbomb_player_season_stats():
-    user, passwd = st.secrets["user"], st.secrets["passwd"]
-    creds        = {"user": user, "passwd": passwd}
-    comps        = sb.competitions(creds=creds)
+    user = st.secrets["user"]
+    passwd = st.secrets["passwd"]
+    creds = {"user": user, "passwd": passwd}
+    all_comps = sb.competitions(creds=creds)
+    dataframes = []
 
-    dfs = []
+    def calculate_age(birth_date):
+        today = datetime.today()
+        return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
-    for _, comp_row in comps.iterrows():
+    for _, row in all_comps.iterrows():
         try:
-            comp_id, season_id = comp_row["competition_id"], comp_row["season_id"]
+            comp_id, season_id = row["competition_id"], row["season_id"]
             df = sb.player_season_stats(comp_id, season_id, creds=creds)
 
-            # --- Basic cleaning & age ---
-            df["birth_date"] = pd.to_datetime(df["birth_date"])
-            today            = datetime.today()
-            df["Age"]        = df["birth_date"].apply(
-                lambda x: today.year - x.year - ((today.month, today.day) < (x.month, x.day))
-            )
+            df['birth_date'] = pd.to_datetime(df['birth_date'])
+            df['Age'] = df['birth_date'].apply(calculate_age)
 
-            # --- Keep only metrics we have ---
-            df = df[[c for c in statbomb_metrics_needed if c in df.columns]]
+            available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
+            df = df[available_cols]
 
-            # --- Rename metrics for UI ---
-            df.rename(columns=metrics_mapping, inplace=True, errors="ignore")
+            df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
+            df = df.apply(pd.to_numeric, errors='ignore')
 
-            # --- Raw position before any mapping ---
-            df["Raw_Position"] = df["Position"]
+            df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
 
-            # --- Base position mapping ---
-            df["Base_Position"] = df["Raw_Position"].map(position_mapping)
-            df.dropna(subset=["Base_Position"], inplace=True)
+            all_rows = []
+            for _, row in df.iterrows():
+                raw_pos = row['Position']
+                if raw_pos in position_profile_mapping:
+                    profiles = position_profile_mapping[raw_pos]
+                    for profile in profiles:
+                        new_row = row.copy()
+                        new_row['Position'] = profile
+                        all_rows.append(new_row)
 
-            # --- Custom profile mapping ---
-            df["Position Profile"] = df.apply(assign_position_profile, axis=1)
-
-            # --- Minutes filter ---
-            df["Minutes"] = pd.to_numeric(df["Minutes"], errors="coerce").fillna(0)
-            df = df[df["Minutes"] >= 600]
-
-            if not df.empty:
-                dfs.append(df)
+            if all_rows:
+                clean_df = pd.DataFrame(all_rows)
+                clean_df = clean_df[clean_df['Minutes'] >= 600]
+                clean_df['Minutes'] = clean_df['Minutes'].astype(int)
+                dataframes.append(clean_df)
 
         except Exception as e:
-            print(f"[StatsBomb fetch error] {comp_row['competition_name']} {comp_row['season_name']}: {e}")
+            print(f"Error: {e}")
 
-    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
+    return pd.concat(dataframes, ignore_index=True)
