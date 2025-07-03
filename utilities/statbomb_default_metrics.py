@@ -1,15 +1,14 @@
 
-
 metrics_per_position = {
     "Full Back": [
         "Dribbles Stopped %",
-        "DA OBV",
+        "Carries",
         "OP XG ASSISTED",
         "Successful Dribbles",
         "Successful Crosses",
         "Ball Recoveries",
-        "Deep Progressions",
-        "PADJ Tackles",
+        "OP Passes Into Box",
+        "PR. Pass %",
         "PADJ Interceptions",
         "Aerial Win %"
     ],
@@ -22,13 +21,14 @@ metrics_per_position = {
         "Defensive Regains",
         "DA OBV",
         "Ball Recoveries",
-        "Passing %",
+        "Pass Forward %",
         "PR. Pass %"
     ],
+    
     "Number 6": [
         "PADJ Tackles",
         "PADJ Interceptions",
-        "Passing %",
+        "Pass Forward %",
         "Ball Recoveries",
         "Aerial Win %",
         "Dribbles Stopped %",
@@ -40,26 +40,26 @@ metrics_per_position = {
     "Number 8": [
         "PINTIN",
         "Shots",
-        "Deep Progressions",
-        "xG Buildup",
+        "Aerial Win %",
+        "xG Assisted",
         "OP Key Passes",
         "Dribbles",
-        "Pass OBV",
-        "Ball Recoveries",
+        "Carries",
+        "OP Passes Into Box",
         "OBV D&C",
         "PR. Pass %"
     ],
     "Number 10": [
         "Shots",
         "xG",
-        "OBV",
+        "Scoring Contribution",
         "OP Key Passes",
         "Successful Dribbles",
         "PINTIN",
         "xG Assisted",
         "Carries",
         "Shooting %",
-        "xG Buildup",
+        "PR. Pass %",
     ],
     "Winger": [
         "xG",
@@ -81,9 +81,9 @@ metrics_per_position = {
         "xG/Shot",
         "Shot Touch %",
         "Touches in Box",
-        "xG Assisted",
+        "Carries",
         "Shot OBV",
-        "OBV",
+        "Fouls Won",
     ],
     "Goal Keeper":[
         "GK AGGRESSIVE DIST",
@@ -106,7 +106,6 @@ profiles_zcore = {
             "Profile Name": "No Nonsense Centre Back",
             "Using Metrics":[
             "Blocks/Shots",
-            "Dribbles Stopped %",
             "PADJ Tackles",
             "PADJ Interceptions",
             "PADJ Clearances",
