@@ -6,20 +6,17 @@ import streamlit as st
 
 # --- Position Mapping ---
 position_mapping = {
-    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back",
-    "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
-    "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
-    "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", "Right Defensive Midfielder": "Number 6",
-    "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
-    "Left Centre Midfield": "Number 6", "Left Centre Midfielder": "Number 6",
-    "Right Centre Midfield": "Number 6", "Right Centre Midfielder": "Number 6", "Centre Midfield": "Number 6",
-    "Number 8": "Number 8", "Left Attacking Midfielder": "Number 8", "Right Attacking Midfielder": "Number 8",
-    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8",
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
-    "Left Wing": "Winger", "Right Wing": "Winger",
-    "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", "Right Centre Forward": "Centre Forward",
-    "Goalkeeper": "Goal Keeper"
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", 
+    "Right Wing Back": "Full Back", "Centre Back": "Centre Back", "Right Centre Back": "Centre Back", 
+    "Left Centre Back": "Centre Back", "Number 8": "Number 8", 
+    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8", 
+    "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8", 
+    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8", 
+    "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", 
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
+    "Right Wing": "Winger", "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", 
+    "Right Centre Forward": "Centre Forward", "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goal Keeper"
 }
 # --- Metrics Needed ---
 statbomb_metrics_needed = [
