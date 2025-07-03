@@ -14,8 +14,7 @@ position_mapping = {
     "Left Centre Midfield": "Number 6", "Left Centre Midfielder": "Number 6",
     "Right Centre Midfield": "Number 6", "Right Centre Midfielder": "Number 6", "Centre Midfield": "Number 6",
     "Number 8": "Number 8", "Left Attacking Midfielder": "Number 8", "Right Attacking Midfielder": "Number 8",
-    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8",
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
+    "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
     "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
     "Left Wing": "Winger", "Right Wing": "Winger",
     "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", "Right Centre Forward": "Centre Forward",
@@ -35,16 +34,16 @@ statbomb_metrics_needed = [
     "player_season_obv_defensive_action_90", "player_season_obv_dribble_carry_90",
     "player_season_obv_pass_90", "player_season_obv_shot_90", "player_season_op_f3_passes_90",
     "player_season_op_key_passes_90", "player_season_op_passes_into_and_touches_inside_box_90",
-    "player_season_op_passes_into_box_90", "player_season_padj_clearances_90", "player_season_scoring_contribution_90",
+    "player_season_op_passes_into_box_90", "player_season_padj_clearances_90",
+    "player_season_scoring_contribution_90",  # important for Number 10 fix
     "player_season_padj_interceptions_90", "player_season_padj_pressures_90", "player_season_padj_tackles_90",
     "player_season_passing_ratio", "player_season_shot_on_target_ratio", "player_season_shot_touch_ratio",
     "player_season_touches_inside_box_90", "player_season_xgbuildup_90", "player_season_op_xa_90",
     "player_season_pressured_passing_ratio", 'player_season_da_aggressive_distance', 'player_season_clcaa',
-    'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90",
-    'player_season_xs_ratio', 'player_season_fouls_won_90', 'player_season_positive_outcome_score',
-    'player_season_obv_gk_90', "player_season_Aggressive_actions_90", 
-    "player_season_forward_pass_ratio",           # existing
-    "player_season_forward_pass_proportion"       # ADD THIS LINE
+    'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio',
+    "player_season_Counter_Pressures_90", 'player_season_xs_ratio', 'player_season_fouls_won_90',
+    'player_season_positive_outcome_score', 'player_season_obv_gk_90', "player_season_Aggressive_actions_90",
+    "player_season_forward_pass_ratio", "player_season_forward_pass_proportion"  # both options
 ]
 
 # --- Metric Rename Mapping ---
@@ -62,7 +61,8 @@ metrics_mapping = {
     "player_season_obv_90": "OBV", "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
     'player_season_fouls_won_90': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
     "player_season_op_f3_passes_90": "OP F3 Passes", "player_season_op_key_passes_90": "OP Key Passes",
-    "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", "player_season_scoring_contribution_90": "Scoring Contribution",
+    "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", 
+    "player_season_scoring_contribution_90": "Scoring Contribution",  # fixed name
     "player_season_op_passes_into_box_90": "OP Passes Into Box", "player_season_padj_clearances_90": "PADJ Clearances",
     "player_season_padj_interceptions_90": "PADJ Interceptions", "player_season_padj_pressures_90": "PADJ Pressures",
     "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %",
@@ -73,8 +73,8 @@ metrics_mapping = {
     'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA',
     'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %',
     'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV',
-    'player_season_forward_pass_ratio': 'Pass Forward %',         # existing
-    'player_season_forward_pass_proportion': 'Pass Forward %'      # ADD THIS LINE
+    'player_season_forward_pass_ratio': 'Pass Forward %',
+    'player_season_forward_pass_proportion': 'Pass Forward %'
 }
 
 # --- Main Statsbomb Load Function ---
@@ -109,6 +109,17 @@ def get_statsbomb_player_season_stats():
             df['Position'] = df['Position'].map(position_mapping)
             df = df.dropna(subset=['Position'])
             df['Position'] = df['Position'].astype(str).str.strip()
+
+            # --- New Position Splitting Logic ---
+            df['MappedPosition'] = df['Position']
+
+            df.loc[df['Position'] == 'Centre Forward', 'MappedPosition'] = np.where(
+                df['Shot Touch %'] >= 0.15, 'Centre Forward A', 'Centre Forward B'
+            )
+            df.loc[df['Position'] == 'Centre Back', 'MappedPosition'] = np.where(
+                df['Carries'] >= 1.5, 'Outside Centre Back', 'Centre Back'
+            )
+
             df = df[df['Minutes'] >= 600]
             df['Minutes'] = df['Minutes'].astype(int)
 
@@ -117,11 +128,4 @@ def get_statsbomb_player_season_stats():
         except Exception as e:
             print(f"Error: {e}")
 
-    combined_df = pd.concat(dataframes, ignore_index=True)
-
-    # Ensure missing columns exist with default 0 to avoid 'not in index' errors
-    for col in ['Pass Forward %', 'Scoring Contribution']:
-        if col not in combined_df.columns:
-            combined_df[col] = 0
-
-    return combined_df
+    return pd.concat(dataframes, ignore_index=True)
