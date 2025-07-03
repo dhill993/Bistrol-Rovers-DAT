@@ -24,18 +24,7 @@ metrics_per_position = {
         "Pass Forward %",
         "PR. Pass %"
     ],
-    "Outside Centre Back": [
-        "Aerial Win %",
-        "Dribbles Stopped %",
-        "PADJ Tackles",
-        "PADJ Interceptions",
-        "PR. Pass %",
-        "Carries",
-        "Successful Crosses",
-        "Dribbles",
-        "OP Passes Into Box",
-        "OP F3 Passes"
-    ],
+    
     "Number 6": [
         "PADJ Tackles",
         "PADJ Interceptions",
@@ -84,7 +73,7 @@ metrics_per_position = {
         "xG Assisted",
         "OBV D&C",
     ],
-    "Centre Forward A": [
+    "Centre Forward": [
         "NP Goals",
         "Shots",
         "Shooting %",
@@ -95,18 +84,6 @@ metrics_per_position = {
         "Carries",
         "Shot OBV",
         "Fouls Won",
-    ],
-       "Centre Forward B": [
-        "NP Goals",
-        "Shots",
-        "Shooting %",
-        "xG",
-        "xG/Shot",
-        "Shot Touch %",
-        "Fouls Won",
-        "Pressures",
-        "Counterpressures",
-        "Aggressive Actions",
     ],
     "Goal Keeper":[
         "GK AGGRESSIVE DIST",
@@ -129,7 +106,6 @@ profiles_zcore = {
             "Profile Name": "No Nonsense Centre Back",
             "Using Metrics":[
             "Blocks/Shots",
-            "Dribbles Stopped %",
             "PADJ Tackles",
             "PADJ Interceptions",
             "PADJ Clearances",
