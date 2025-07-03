@@ -42,7 +42,7 @@ statbomb_metrics_needed = [
     "player_season_pressured_passing_ratio", 'player_season_da_aggressive_distance', 'player_season_clcaa',
     'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90",
     'player_season_xs_ratio', 'player_season_fouls_won_90', 'player_season_positive_outcome_score',
-    'player_season_obv_gk_90', "player_season_Aggressive_actions_90"
+    'player_season_obv_gk_90', "player_season_Aggressive_actions_90", "player_season_forward_pass_proportion"
 ]
 
 # --- Metric Rename Mapping ---
@@ -70,7 +70,7 @@ metrics_mapping = {
     'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST', 'player_season_clcaa': 'CLAIMS %',
     'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA',
     'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %',
-    'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV'
+    'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV', 'player_season_forward_pass_proportion': 'Pass Forward %'
 }
 
 # --- Main Statsbomb Load Function ---
