@@ -63,7 +63,7 @@ metrics_per_position = {
     "Number 10": [
         "Shots",
         "xG",
-        "Scoring Contributon",
+        "Scoring Contribution",
         "OP Key Passes",
         "Successful Dribbles",
         "PINTIN",
