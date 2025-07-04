@@ -1,14 +1,10 @@
-from data.retrieve_statbomb_data import get_statsbomb_player_season_stats  
-statsbomb_data = get_statsbomb_player_season_stats()  
-print(statsbomb_data.columns.tolist())     # should include 'League'  
-print(statsbomb_data.head())               # preview rows  """  
-retrieve_statbomb_data.py  
-Pull StatsBomb season-level player data, map raw positions to custom  
-position groups, and expose helper functions for the Streamlit app.  
-  
-– Includes 600-minute filter.  
-– Adds a “League” column (copy of competition_name).  
-– Safe to import even if Streamlit isn’t installed.  
+# retrieve_statbomb_data.py  
+# Pull StatsBomb season-level player data, map raw positions to custom  
+# position groups, and expose helper functions for the Streamlit app.  
+#
+# - Includes 600-minute filter  
+# - Adds a “League” column (copy of competition_name)  
+# - Safe to import even if Streamlit isn’t installed   
 
 from datetime import datetime  
 import numpy as np  
