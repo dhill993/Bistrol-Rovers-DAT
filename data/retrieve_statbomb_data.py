@@ -4,7 +4,7 @@ import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
-# Define the necessary mappings and metrics
+# Define the necessary mappings and metrics (assuming these are provided as per your input)
 statbomb_metrics_needed = [
     'player_name', 'team_name', 'season_name', 'competition_name', 'Age',
     'player_season_minutes', 'primary_position', "player_season_aerial_ratio",
@@ -24,8 +24,9 @@ statbomb_metrics_needed = [
     "player_season_pressured_passing_ratio", 'player_season_da_aggressive_distance', 'player_season_clcaa',
     'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90",
     'player_season_xs_ratio', 'player_season_fouls_won_90', 'player_season_positive_outcome_score',
-    'player_season_obv_gk_90', "player_season_Aggressive_actions_90", "player_season_forward_pass_ratio",
-    "player_season_forward_pass_proportion"
+    'player_season_obv_gk_90', "player_season_Aggressive_actions_90", 
+    "player_season_forward_pass_ratio",           # existing
+    "player_season_forward_pass_proportion"       # ADD THIS LINE
 ]
 
 # --- Metric Rename Mapping ---
@@ -43,7 +44,7 @@ metrics_mapping = {
     "player_season_obv_90": "OBV", "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
     'player_season_fouls_won_90': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
     "player_season_op_f3_passes_90": "OP F3 Passes", "player_season_op_key_passes_90": "OP Key Passes",
-    "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN",
+    "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", "player_season_scoring_contribution_90": "Scoring Contribution",
     "player_season_op_passes_into_box_90": "OP Passes Into Box", "player_season_padj_clearances_90": "PADJ Clearances",
     "player_season_padj_interceptions_90": "PADJ Interceptions", "player_season_padj_pressures_90": "PADJ Pressures",
     "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %",
@@ -51,10 +52,11 @@ metrics_mapping = {
     "player_season_touches_inside_box_90": "Touches in Box", "player_season_xgbuildup_90": "xG Buildup",
     "player_season_op_xa_90": "OP XG ASSISTED", "player_season_pressured_passing_ratio": "PR. Pass %",
     'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST', 'player_season_clcaa': 'CLAIMS %',
-    'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA', "player_season_scoring_contribution_90": "Scoring Contribution",
-    'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %', "player_season_forward_pass_ratio": "Pass Forward %",
+    'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA',
+    'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %',
     'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV',
-    "player_season_forward_pass_proportion": "Forward Pass Proportion"
+    'player_season_forward_pass_ratio': 'Pass Forward %',         # existing
+    'player_season_forward_pass_proportion': 'Pass Forward %'      # ADD THIS LINE
 }
 
 position_mapping = {
@@ -71,7 +73,7 @@ position_mapping = {
     "Right Centre Forward": "Centre Forward", "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goal Keeper"
 }
 
-@st.cache_data(ttl=14400, show_spinner=False)
+@st.cache_data(ttl=14400,show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
     passwd = st.secrets["passwd"]
@@ -90,30 +92,28 @@ def get_statsbomb_player_season_stats():
         competition_id, season_id = row["competition_id"], row["season_id"]
         try:
             player_season = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
+
             player_season['birth_date'] = pd.to_datetime(player_season['birth_date'])
+            
             player_season['Age'] = player_season['birth_date'].apply(calculate_age)
-
-            missing_cols = set(statbomb_metrics_needed) - set(player_season.columns)
-            if missing_cols:
-                st.warning(f"Missing columns for comp {competition_id}, season {season_id}: {missing_cols}")
-                continue
-
+            
+            # Filter columns based on statbomb_metrics_needed
             player_season = player_season[statbomb_metrics_needed]
+            
+            # Replace NaN-like values with 0 and ensure numeric columns
             player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
             player_season = player_season.apply(pd.to_numeric, errors='ignore')
+            
+            # Rename columns based on metrics_mapping
             player_season = player_season.rename(columns=metrics_mapping)
             player_season['Position'] = player_season['Position'].map(position_mapping)
             player_season = player_season.dropna(subset=['Position'])
-            player_season = player_season[player_season['Minutes'] >= 600]
+            player_season = player_season[player_season['Minutes']>=600]
             player_season['Minutes'] = player_season['Minutes'].astype(int)
 
             dataframes.append(player_season)
         except Exception as e:
-            st.warning(f"Failed to process comp {competition_id}, season {season_id}: {e}")
-
-    if not dataframes:
-        st.error("No player season data could be retrieved. Please check your credentials, network, or data availability.")
-        return pd.DataFrame()
-
+            print(e)
+    # Concatenate all dataframes and return the final dataframe
     final_dataframe = pd.concat(dataframes, ignore_index=True)
     return final_dataframe
