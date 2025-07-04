@@ -1,4 +1,7 @@
-"""  
+from data.retrieve_statbomb_data import get_statsbomb_player_season_stats  
+statsbomb_data = get_statsbomb_player_season_stats()  
+print(statsbomb_data.columns.tolist())     # should include 'League'  
+print(statsbomb_data.head())               # preview rows  """  
 retrieve_statbomb_data.py  
 Pull StatsBomb season-level player data, map raw positions to custom  
 position groups, and expose helper functions for the Streamlit app.  
