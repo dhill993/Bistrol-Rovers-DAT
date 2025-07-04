@@ -23,8 +23,8 @@ statbomb_metrics_needed = [
     "player_season_touches_inside_box_90", "player_season_xgbuildup_90", "player_season_op_xa_90", "player_season_pressured_passing_ratio",
     'player_season_da_aggressive_distance', 'player_season_clcaa', 'player_season_gsaa_ratio', 'player_season_gsaa_90', 
     'player_season_save_ratio', 'player_season_xs_ratio', 'player_season_positive_outcome_score', 'player_season_obv_gk_90',
-    'player_season_pass_forward_ratio', 'player_season_pintin_ratio', 'player_season_scoring_contribution',
-    'player_season_fouls_won_90', 'player_season_counterpressures', 'player_season_aggressive_actions'
+    'player_season_pass_forward_ratio', 'player_season_pintin_ratio', 'player_season_scoring_contribution_90',
+    'player_season_fouls_won_90', 'player_season_counterpressures_90', 'player_season_aggressive_actions_90'
 ]
 
 metrics_mapping = {
@@ -49,8 +49,8 @@ metrics_mapping = {
     'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA', 'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %',
     'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV',
     'player_season_pass_forward_ratio': 'Pass Forward %', 'player_season_pintin_ratio': 'PINTIN',
-    'player_season_scoring_contribution': 'Scoring Contribution', 'player_season_fouls_won_90': 'Fouls Won',
-    'player_season_counterpressures': 'Counterpressures', 'player_season_aggressive_actions': 'Aggressive Actions'
+    'player_season_scoring_contribution_90': 'Scoring Contribution', 'player_season_fouls_won_90': 'Fouls Won',
+    'player_season_counterpressures_90': 'Counterpressures', 'player_season_aggressive_actions_90': 'Aggressive Actions'
 }
 
 position_mapping = {
