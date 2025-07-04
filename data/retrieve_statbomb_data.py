@@ -4,8 +4,60 @@ import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
-# Import the position mapping from your default metrics file
-from data.statbomb_default_metrics import position_mapping
+# Import metrics and position mapping
+from data.statbomb_default_metrics import metrics_per_position
+
+# --- Raw Position to Profile Mapping ---
+# This maps raw StatsBomb positions to your desired profiles.
+# For ambiguous cases (e.g., "Left Centre Back", "Right Centre Back", "Centre Back"),
+# we map "Centre Back" to "Centre Back" and "Left Centre Back"/"Right Centre Back" to "Outside Centre Back".
+position_profile_mapping = {
+    # Full Back
+    "Left Back": "Full Back",
+    "Right Back": "Full Back",
+    "Left Wing Back": "Full Back",
+    "Right Wing Back": "Full Back",
+    # Centre Back and Outside Centre Back
+    "Centre Back": "Centre Back",
+    "Left Centre Back": "Outside Centre Back",
+    "Right Centre Back": "Outside Centre Back",
+    # Number 6
+    "Left Defensive Midfielder": "Number 6",
+    "Right Defensive Midfielder": "Number 6",
+    "Defensive Midfielder": "Number 6",
+    "Left Centre Midfield": "Number 6",
+    "Right Centre Midfield": "Number 6",
+    "Centre Midfield": "Number 6",
+    # Number 8
+    "Left Defensive Midfielder": "Number 8",
+    "Right Defensive Midfielder": "Number 8",
+    "Defensive Midfielder": "Number 8",
+    "Left Centre Midfield": "Number 8",
+    "Right Centre Midfield": "Number 8",
+    "Centre Midfield": "Number 8",
+    # Number 10
+    "Left Attacking Midfield": "Number 10",
+    "Right Attacking Midfield": "Number 10",
+    "Attacking Midfield": "Number 10",
+    "Right Midfielder": "Number 10",
+    "Left Midfielder": "Number 10",
+    "Left Wing": "Number 10",
+    "Right Wing": "Number 10",
+    "Secondary Striker": "Number 10",
+    # Winger
+    "Left Attacking Midfield": "Winger",
+    "Right Attacking Midfield": "Winger",
+    "Right Midfielder": "Winger",
+    "Left Midfielder": "Winger",
+    "Left Wing": "Winger",
+    "Right Wing": "Winger",
+    # Centre Forward A and Centre Forward B (split: "Centre Forward" is now A, "Right/Left Centre Forward" is B)
+    "Centre Forward": "Centre Forward A",
+    "Left Centre Forward": "Centre Forward B",
+    "Right Centre Forward": "Centre Forward B",
+    # Goalkeeper
+    "Goalkeeper": "Goal Keeper"
+}
 
 # --- Metrics Needed ---
 statbomb_metrics_needed = [
@@ -34,7 +86,7 @@ statbomb_metrics_needed = [
 # --- Metric Rename Mapping ---
 metrics_mapping = {
     'player_name': "Player Name", 'team_name': 'Team', 'season_name': "Season", 'competition_name': 'League',
-    'player_season_minutes': 'Minutes', 'primary_position': 'Position',
+    'player_season_minutes': 'Minutes', 'primary_position': 'Raw Position',
     "player_season_aerial_ratio": "Aerial Win %",
     "player_season_ball_recoveries_90": "Ball Recoveries",
     "player_season_blocks_per_shot": "Blocks/Shots",
@@ -92,7 +144,6 @@ metrics_mapping = {
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
     passwd = st.secrets["passwd"]
-
     creds = {"user": user, "passwd": passwd}
     all_comps = sb.competitions(creds=creds)
     dataframes = []
@@ -112,8 +163,8 @@ def get_statsbomb_player_season_stats():
             player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
             player_season = player_season.apply(pd.to_numeric, errors='ignore')
             player_season = player_season.rename(columns=metrics_mapping)
-            # Use imported mapping for Statsbomb raw positions to your main profiles
-            player_season['Position'] = player_season['Position'].map(position_mapping)
+            # Map Statsbomb raw position to profile position
+            player_season['Position'] = player_season['Raw Position'].map(position_profile_mapping)
             player_season = player_season.dropna(subset=['Position'])
             player_season = player_season[player_season['Minutes'] >= 600]
             player_season['Minutes'] = player_season['Minutes'].astype(int)
