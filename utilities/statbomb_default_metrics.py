@@ -95,7 +95,7 @@ metrics_per_position = {
         "POSITIVE OUTCOME",
         "GOALKEEPER OBV"
    ],
-    "Outside Centre Back": 
+    "Outside Centre Back": [
         "Aerial Win %",
         "Dribbles Stopped %",
         "PADJ Tackles",
