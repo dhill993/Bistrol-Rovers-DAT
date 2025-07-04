@@ -97,7 +97,6 @@ metrics_per_position = {
     ]
 }
 
-
 profiles_zcore = {
     "Centre Back": [
         {
