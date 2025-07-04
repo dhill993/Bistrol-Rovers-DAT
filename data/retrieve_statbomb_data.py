@@ -1,133 +1,113 @@
-"""  
-retrieve_statbomb_data.py  ⟡  Season-level StatsBomb player data  
-– Safe to import with or without Streamlit installed  
-– Updated metric list           (<<<  YOUR NEW METRICS HERE  )  
-– Updated position profiles     (<<<  YOUR NEW PROFILES HERE )  
-– Adds a 'League' column  
-"""  
-  
-# ------------------------------------------------------------------  
-# Streamlit (optional)  
-# ------------------------------------------------------------------  
-try:  
-    import streamlit as st  
-except ModuleNotFoundError:          # running outside Streamlit  
-    class _Stub:  
-        def __getattr__(self, _):  
-            def _dec(*a, **k):  
-                def _wrap(f): return f  
-                return _wrap  
-            return _dec  
-        def write(*a, **k):     ...  
-        def dataframe(*a, **k): ...  
-        def button(*a, **k):    return False  
-        def spinner(*a, **k):  
-            from contextlib import contextmanager  
-            @contextmanager  
-            def cm(): yield  
-            return cm()  
-        def title(*a, **k):     ...  
-        def error(*a, **k):     ...  
-        def success(*a, **k):   ...  
-    st = _Stub()  
-  
-# ------------------------------------------------------------------  
-# Standard imports  
-# ------------------------------------------------------------------  
-import pandas as pd  
-from statsbombpy import sb  
-  
-# ------------------------------------------------------------------  
-# UPDATED POSITION PROFILES  
-# ------------------------------------------------------------------  
-position_mapping = {  
-    "Centre Back"        : "Centre Back",  
-    "Left Back"          : "Full Back",  
-    "Right Back"         : "Full Back",  
-    "Defensive Midfield" : "6",  
-    "Central Midfield"   : "8",  
-    "Attacking Midfield" : "10",  
-    "Left Wing"          : "Winger",  
-    "Right Wing"         : "Winger",  
-    "Centre Forward"     : "Striker",  
-    "Second Striker"     : "Striker",  
-    # add/remove as required  
-}  
-  
-# ------------------------------------------------------------------  
-# UPDATED METRIC LIST  (trim StatsBomb output to these)  
-# ------------------------------------------------------------------  
-statbomb_metrics_needed = [  
-    "player_name", "team_name", "season_name", "competition_name", "Age",  
-    "minutes", "primary_position",  
-    "aerial_ratio", "ball_recoveries_90", "blocks_per_shot",  
-    "carries_90", "crossing_ratio", "deep_progressions_90",  
-    "defensive_action_regains_90", "defensive_actions_90",  
-    "dribble_faced_ratio", "dribble_ratio", "dribbles_90",  
-    "np_shots_90", "np_xg_90", "np_xg_per_shot", "npg_90",  
-    "npxgxa_90", "obv_90", "obv_pass_90", "obv_shot_90",  
-    "op_f3_passes_90", "op_key_passes_90",  
-    "op_passes_into_and_touches_inside_box_90", "op_passes_into_box_90",  
-    "padj_clearances_90", "padj_interceptions_90", "padj_pressures_90",  
-    "padj_tackles_90", "passing_ratio", "shot_on_target_ratio",  
-    "shot_touch_ratio", "touches_inside_box_90", "xgbuildup_90",  
-    "op_xa_90", "pressured_passing_ratio", "da_aggressive_distance",  
-    "clcaa", "gsaa_ratio", "gsaa_90", "save_ratio", "xs_ratio",  
-    "positive_outcome_score", "obv_gk_90Carries", "Successful Crosses",  
-    "OP Passes Into Box", "OP F3 Passes", "Scoring Contribution",  
-    "PR. Pass %", "Fouls Won", "Pressures", "Counterpressures",  
-    "Aggressive Actions",  
-]  
-  
-# ------------------------------------------------------------------  
-# Cached competitions table  
-# ------------------------------------------------------------------  
-@st.cache_data(show_spinner=False)  
-def _comps():  
-    df = sb.competitions()  
-    df["season_label"] = df["season_name"].astype(str) + " – " + df["competition_name"]  
-    return df[["competition_id", "season_id", "competition_name", "season_label"]]  
-  
-# ------------------------------------------------------------------  
-# MAIN FUNCTION  
-# ------------------------------------------------------------------  
-def retrieve_player_season_stats():  
-    frames = []  
-    for _, row in _comps().iterrows():  
-        try:  
-            df = sb.player_season_stats(row.competition_id, row.season_id)  
-        except Exception:  
-            continue                                  # skip if unavailable  
-  
-        # keep only needed cols, rename for clarity  
-        df = df.rename(columns=lambda c: c.replace("player_season_", ""))  
-        df = df[statbomb_metrics_needed].copy()  
-        df = df.rename(columns={"minutes": "Minutes", "primary_position": "Position"})  
-  
-        # map positions & drop unmapped  
-        df["Position"] = df["Position"].map(position_mapping)  
-        df = df.dropna(subset=["Position"])  
-  
-        # minutes ≥ 600  
-        df = df[df["Minutes"] >= 600]  
-        df["Minutes"] = df["Minutes"].astype(int)  
-  
-        # add helper cols  
-        df["League"]      = row.competition_name  
-        df["season_comp"] = row.season_label  
-  
-        frames.append(df)  
-  
-    if not frames:  
-        return pd.DataFrame()  
-  
-    combined = pd.concat(frames, ignore_index=True)  
-    return combined.drop_duplicates(subset=["player_name", "team_name", "season_comp"])  
-  
-# legacy wrapper  
-def get_statsbomb_player_season_stats():  
-    return retrieve_player_season_stats()  
-  
-# quick smoke-test when run directly  
-if __name__ == "__main__":  
-    print(retrieve_player_season_stats().head())  
+import pandas as pd
+from datetime import datetime
+import numpy as np
+from statsbombpy import sb
+import streamlit as st
+
+# Define the necessary mappings and metrics (assuming these are provided as per your input)
+statbomb_metrics_needed = [
+    'player_name', 'team_name', 'season_name', 'competition_name', 'Age', 
+    'player_season_minutes', 'primary_position', "player_season_aerial_ratio",
+    "player_season_ball_recoveries_90", "player_season_blocks_per_shot", "player_season_carries_90",
+    "player_season_crossing_ratio", "player_season_deep_progressions_90", 
+    "player_season_defensive_action_regains_90", "player_season_defensive_actions_90", 
+    "player_season_dribble_faced_ratio", "player_season_dribble_ratio", "player_season_dribbles_90", 
+    "player_season_np_shots_90", "player_season_np_xg_90", "player_season_np_xg_per_shot", 
+    "player_season_npg_90", "player_season_npxgxa_90", "player_season_obv_90", 
+    "player_season_obv_defensive_action_90", "player_season_obv_dribble_carry_90", 
+    "player_season_obv_pass_90", "player_season_obv_shot_90", "player_season_op_f3_passes_90", 
+    "player_season_op_key_passes_90", "player_season_op_passes_into_and_touches_inside_box_90", 
+    "player_season_op_passes_into_box_90", "player_season_padj_clearances_90", 
+    "player_season_padj_interceptions_90", "player_season_padj_pressures_90", "player_season_padj_tackles_90", 
+    "player_season_passing_ratio", "player_season_shot_on_target_ratio", "player_season_shot_touch_ratio", 
+    "player_season_touches_inside_box_90", "player_season_xgbuildup_90", "player_season_op_xa_90", "player_season_pressured_passing_ratio",
+    'player_season_da_aggressive_distance', 'player_season_clcaa', 'player_season_gsaa_ratio', 'player_season_gsaa_90', 
+    'player_season_save_ratio', 'player_season_xs_ratio', 'player_season_positive_outcome_score', 'player_season_obv_gk_90',
+    'player_season_pass_forward_ratio', 'player_season_pintin_ratio', 'player_season_scoring_contribution',
+    'player_season_fouls_won_90', 'player_season_counterpressures', 'player_season_aggressive_actions'
+]
+
+metrics_mapping = {
+    'player_name': "Player Name", 'team_name': 'Team', 'season_name': "Season", 'competition_name': 'League', 
+    'player_season_minutes': 'Minutes', 'primary_position': 'Position', "player_season_aerial_ratio": "Aerial Win %",
+    "player_season_ball_recoveries_90": "Ball Recoveries", "player_season_blocks_per_shot": "Blocks/Shots", 
+    "player_season_carries_90": "Carries", "player_season_crossing_ratio": "Successful Crosses", 
+    "player_season_deep_progressions_90": "Deep Progressions", "player_season_defensive_action_regains_90": "Defensive Regains", 
+    "player_season_defensive_actions_90": "Defensive Actions", "player_season_dribble_faced_ratio": "Dribbles Stopped %",
+    "player_season_dribble_ratio": "Successful Dribbles", "player_season_dribbles_90": "Dribbles", 
+    "player_season_np_shots_90": "Shots", "player_season_np_xg_90": "xG", "player_season_np_xg_per_shot": "xG/Shot", 
+    "player_season_npg_90": "NP Goals", "player_season_npxgxa_90": "xG Assisted", "player_season_obv_90": "OBV", 
+    "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C", 
+    "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV", "player_season_op_f3_passes_90": "OP F3 Passes",
+    "player_season_op_key_passes_90": "OP Key Passes", "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", 
+    "player_season_op_passes_into_box_90": "OP Passes into Box", "player_season_padj_clearances_90": "PADJ Clearances", 
+    "player_season_padj_interceptions_90": "PADJ Interceptions", "player_season_padj_pressures_90": "PADJ Pressures", 
+    "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %", 
+    "player_season_shot_on_target_ratio": "Shooting %", "player_season_shot_touch_ratio": "Shot Touch %", 
+    "player_season_touches_inside_box_90": "Touches in Box", "player_season_xgbuildup_90": "xG Buildup", "player_season_op_xa_90": "OP XG ASSISTED",
+    "player_season_pressured_passing_ratio": "PR. Pass %", 'player_season_da_aggressive_distance': 'GK AGGRESSIVE DIST', 'player_season_clcaa': 'CLAIMS %',
+    'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA', 'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %',
+    'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV',
+    'player_season_pass_forward_ratio': 'Pass Forward %', 'player_season_pintin_ratio': 'PINTIN',
+    'player_season_scoring_contribution': 'Scoring Contribution', 'player_season_fouls_won_90': 'Fouls Won',
+    'player_season_counterpressures': 'Counterpressures', 'player_season_aggressive_actions': 'Aggressive Actions'
+}
+
+position_mapping = {
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", 
+    "Right Wing Back": "Full Back", "Centre Back": "Centre Back", "Right Centre Back": "Centre Back", 
+    "Left Centre Back": "Centre Back", "Number 8": "Number 8", 
+    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8", 
+    "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8", 
+    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8", 
+    "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", 
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
+    "Right Wing": "Winger", "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", 
+    "Right Centre Forward": "Centre Forward", "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goal Keeper"
+}
+
+@st.cache_data(ttl=14400,show_spinner=False)
+def get_statsbomb_player_season_stats():
+    user = st.secrets["user"]
+    passwd = st.secrets["passwd"]
+
+    creds = {"user": user, "passwd": passwd}
+    all_comps = sb.competitions(creds=creds)
+    
+    dataframes = []
+
+    def calculate_age(birth_date):
+        today = datetime.today()
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        return age
+
+    for i, row in all_comps.iterrows():
+        competition_id, season_id = row["competition_id"], row["season_id"]
+        try:
+            player_season = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
+
+            player_season['birth_date'] = pd.to_datetime(player_season['birth_date'])
+            
+            player_season['Age'] = player_season['birth_date'].apply(calculate_age)
+            
+            # Filter columns based on statbomb_metrics_needed
+            player_season = player_season[statbomb_metrics_needed]
+            
+            # Replace NaN-like values with 0 and ensure numeric columns
+            player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
+            player_season = player_season.apply(pd.to_numeric, errors='ignore')
+            
+            # Rename columns based on metrics_mapping
+            player_season = player_season.rename(columns=metrics_mapping)
+            player_season['Position'] = player_season['Position'].map(position_mapping)
+            player_season = player_season.dropna(subset=['Position'])
+            player_season = player_season[player_season['Minutes']>=600]
+            player_season['Minutes'] = player_season['Minutes'].astype(int)
+
+            dataframes.append(player_season)
+        except Exception as e:
+            print(e)
+    # Concatenate all dataframes and return the final dataframe
+    final_dataframe = pd.concat(dataframes, ignore_index=True)
+    return final_dataframe
