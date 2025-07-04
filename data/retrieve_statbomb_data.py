@@ -9,8 +9,7 @@ position groups, and expose helper functions for the Streamlit app.
 – Includes 600-minute filter.  
 – Adds a “League” column (copy of competition_name).  
 – Safe to import even if Streamlit isn’t installed.  
-"""  
-  
+
 from datetime import datetime  
 import numpy as np  
 import pandas as pd  
