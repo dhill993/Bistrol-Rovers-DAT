@@ -4,26 +4,9 @@ import numpy as np
 from statsbombpy import sb
 import streamlit as st
 
-# --- Position Mapping ---
-position_mapping = {
-    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back",
-    "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
-    "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
-    "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", "Right Defensive Midfielder": "Number 6",
-    "Defensive Midfielder": "Number 6", "Centre Defensive Midfielder": "Number 6",
-    "Left Centre Midfield": "Number 6", "Left Centre Midfielder": "Number 6",
-    "Right Centre Midfield": "Number 6", "Right Centre Midfielder": "Number 6", "Centre Midfield": "Number 6",
-    "Number 8": "Number 8", "Left Attacking Midfielder": "Number 8", "Right Attacking Midfielder": "Number 8",
-    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8",
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
-    "Left Wing": "Winger", "Right Wing": "Winger",
-    "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", "Right Centre Forward": "Centre Forward",
-    "Goalkeeper": "Goal Keeper"
-}
-
-# --- Metrics Needed ---
+# Define the necessary mappings and metrics (assuming these are provided as per your input)
 statbomb_metrics_needed = [
+# --- Metrics Needed ---
     'player_name', 'team_name', 'season_name', 'competition_name', 'Age',
     'player_season_minutes', 'primary_position', "player_season_aerial_ratio",
     "player_season_ball_recoveries_90", "player_season_blocks_per_shot", "player_season_carries_90",
@@ -77,51 +60,61 @@ metrics_mapping = {
     'player_season_forward_pass_proportion': 'Pass Forward %'      # ADD THIS LINE
 }
 
-# --- Main Statsbomb Load Function ---
-@st.cache_data(ttl=14400, show_spinner=False)
+position_mapping = {
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", 
+    "Right Wing Back": "Full Back", "Centre Back": "Centre Back", "Right Centre Back": "Centre Back", 
+    "Left Centre Back": "Centre Back", "Number 8": "Number 8", 
+    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8", 
+    "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8", 
+    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8", 
+    "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", 
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
+    "Right Wing": "Winger", "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", 
+    "Right Centre Forward": "Centre Forward", "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goal Keeper"
+}
+
+@st.cache_data(ttl=14400,show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
     passwd = st.secrets["passwd"]
+
     creds = {"user": user, "passwd": passwd}
     all_comps = sb.competitions(creds=creds)
+    
     dataframes = []
 
     def calculate_age(birth_date):
         today = datetime.today()
-        return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        return age
 
-    for _, row in all_comps.iterrows():
+    for i, row in all_comps.iterrows():
+        competition_id, season_id = row["competition_id"], row["season_id"]
         try:
-            comp_id, season_id = row["competition_id"], row["season_id"]
-            df = sb.player_season_stats(comp_id, season_id, creds=creds)
+            player_season = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
 
-            df['birth_date'] = pd.to_datetime(df['birth_date'])
-            df['Age'] = df['birth_date'].apply(calculate_age)
+            player_season['birth_date'] = pd.to_datetime(player_season['birth_date'])
+            
+            player_season['Age'] = player_season['birth_date'].apply(calculate_age)
+            
+            # Filter columns based on statbomb_metrics_needed
+            player_season = player_season[statbomb_metrics_needed]
+            
+            # Replace NaN-like values with 0 and ensure numeric columns
+            player_season = player_season.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
+            player_season = player_season.apply(pd.to_numeric, errors='ignore')
+            
+            # Rename columns based on metrics_mapping
+            player_season = player_season.rename(columns=metrics_mapping)
+            player_season['Position'] = player_season['Position'].map(position_mapping)
+            player_season = player_season.dropna(subset=['Position'])
+            player_season = player_season[player_season['Minutes']>=600]
+            player_season['Minutes'] = player_season['Minutes'].astype(int)
 
-            available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
-            df = df[available_cols]
-
-            df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
-            df = df.apply(pd.to_numeric, errors='ignore')
-
-            df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
-
-            df['Position'] = df['Position'].map(position_mapping)
-            df = df.dropna(subset=['Position'])
-            df['Position'] = df['Position'].astype(str).str.strip()
-            df = df[df['Minutes'] >= 600]
-            df['Minutes'] = df['Minutes'].astype(int)
-
-            dataframes.append(df)
-
+            dataframes.append(player_season)
         except Exception as e:
-            print(f"Error: {e}")
-
-    combined_df = pd.concat(dataframes, ignore_index=True)
-
-    # Ensure missing columns exist with default 0 to avoid 'not in index' errors
-    for col in ['Pass Forward %', 'Scoring Contribution']:
-        if col not in combined_df.columns:
-            combined_df[col] = 0
-
-    return combined_df
+            print(e)
+    # Concatenate all dataframes and return the final dataframe
+    final_dataframe = pd.concat(dataframes, ignore_index=True)
+    return final_dataframe
