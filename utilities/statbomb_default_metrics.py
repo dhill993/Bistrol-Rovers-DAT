@@ -133,8 +133,7 @@ metrics_per_position = {
         "XSV %",  
         "POSITIVE OUTCOME",  
         "GOALKEEPER OBV",  
-    ],  
-}  
+    ],   
 # Append alias profiles_zcore equal metrics_per_position in statbomb_default_metrics.py
 fname='statbomb_default_metrics.py'
 with open(fname,'a',encoding='utf-8') as f:
@@ -144,3 +143,4 @@ with open(fname,'a',encoding='utf-8') as f:
     f.write('profiles_zcore = metrics_per_position\
 ')
 print('Added profiles_zcore alias')
+}  
