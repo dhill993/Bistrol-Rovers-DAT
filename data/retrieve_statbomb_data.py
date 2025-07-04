@@ -23,8 +23,7 @@ statbomb_metrics_needed = [
     'player_season_da_aggressive_distance', 'player_season_clcaa', 'player_season_gsaa_ratio', 'player_season_gsaa_90', 
     'player_season_save_ratio', 'player_season_xs_ratio', 'player_season_positive_outcome_score', 'player_season_obv_gk_90',
     "player_season_pass_forward_ratio_90",
-    "player_season_scoring_contribution_90", 
-    "player_season_op_passes_into_box_90",   
+    "player_season_scoring_contribution_90",  
     "player_season_fouls_won_90"
 ]
 
@@ -51,7 +50,6 @@ metrics_mapping = {
     'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV',
     "player_season_pass_forward_ratio_90": "Pass Forward %",
     "player_season_scoring_contribution_90": "Scoring Contribution",
-    "player_season_op_passes_into_box_90": "OP Passes Into Box",
     "player_season_fouls_won_90": "Fouls Won",
 }
 
