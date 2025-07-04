@@ -22,9 +22,9 @@ statbomb_metrics_needed = [
     "player_season_passing_ratio", "player_season_shot_on_target_ratio", "player_season_shot_touch_ratio",
     "player_season_touches_inside_box_90", "player_season_xgbuildup_90", "player_season_op_xa_90",
     "player_season_pressured_passing_ratio", 'player_season_da_aggressive_distance', 'player_season_clcaa',
-    'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90",player_season_scoring_contribution_90,
+    'player_season_gsaa_ratio', 'player_season_gsaa_90', 'player_season_save_ratio', "player_season_Counter_Pressures_90","player_season_scoring_contribution_90",
     'player_season_xs_ratio', 'player_season_fouls_won_90', 'player_season_positive_outcome_score',
-    'player_season_obv_gk_90', "player_season_Aggressive_actions_90",player_season_op_passes_into_box_90, "player_season_forward_pass_ratio", 
+    'player_season_obv_gk_90', "player_season_Aggressive_actions_90","player_season_op_passes_into_box_90", "player_season_forward_pass_ratio", 
     "player_season_forward_pass_ratio",           # existing
     "player_season_forward_pass_proportion"       # ADD THIS LINE
 ]
@@ -44,7 +44,7 @@ metrics_mapping = {
     "player_season_obv_90": "OBV", "player_season_obv_defensive_action_90": "DA OBV", "player_season_obv_dribble_carry_90": "OBV D&C",
     'player_season_fouls_won_90': "Fouls Won", "player_season_obv_pass_90": "Pass OBV", "player_season_obv_shot_90": "Shot OBV",
     "player_season_op_f3_passes_90": "OP F3 Passes", "player_season_op_key_passes_90": "OP Key Passes",
-    "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN", "player_season_scoring_contribution_90": "Scoring Contribution",
+    "player_season_op_passes_into_and_touches_inside_box_90": "PINTIN",
     "player_season_op_passes_into_box_90": "OP Passes Into Box", "player_season_padj_clearances_90": "PADJ Clearances",
     "player_season_padj_interceptions_90": "PADJ Interceptions", "player_season_padj_pressures_90": "PADJ Pressures",
     "player_season_padj_tackles_90": "PADJ Tackles", "player_season_passing_ratio": "Passing %",
@@ -55,8 +55,6 @@ metrics_mapping = {
     'player_season_gsaa_ratio': 'SHOT STOPPING %', 'player_season_gsaa_90': 'GSAA',"player_season_scoring_contribution_90": "Scoring Contribution",
     'player_season_save_ratio': 'SAVE %', 'player_season_xs_ratio': 'XSV %', "player_season_forward_pass_ratio": "Pass Forward %",
     'player_season_positive_outcome_score': 'POSITIVE OUTCOME', 'player_season_obv_gk_90': 'GOALKEEPER OBV',
-    'player_season_forward_pass_ratio': 'Pass Forward %',         # existing
-    'player_season_forward_pass_proportion': 'Pass Forward %'      # ADD THIS LINE
 }
 
 position_mapping = {
