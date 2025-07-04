@@ -69,8 +69,7 @@ position_mapping = {
     "Attacking Midfield": "Number 8", "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", 
     "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
     "Right Wing": "Winger", "Centre Forward": "Centre Forward", "Left Centre Forward": "Centre Forward", 
-    "Right Centre Forward": "Centre Forward", "Left Attacking Midfielder": "Number 10", "Goalkeeper": "GoalkeeperZ
-
+    "Right Centre Forward": "Centre Forward", "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goalkeeper"
 }
 
 # --- Main Statsbomb Load Function ---
