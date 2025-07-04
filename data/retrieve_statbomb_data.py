@@ -166,3 +166,6 @@ def main():
   
 if __name__ == "__main__":  
     main()  
+def get_statsbomb_player_season_stats():  
+    """Alias for backward-compatibility"""  
+    return retrieve_player_season_stats()  
