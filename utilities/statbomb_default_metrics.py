@@ -1,59 +1,3 @@
-# Mapping StatsBomb raw positions to logical profile positions
-
-position_mapping = {
-    # Full Back
-    "Left Back": "Full Back",
-    "Right Back": "Full Back",
-    "Left Wing Back": "Full Back",
-    "Right Wing Back": "Full Back",
-    # Centre Back
-    "Left Centre Back": "Centre Back",
-    "Right Centre Back": "Centre Back",
-    "Centre Back": "Centre Back",
-    # Outside Centre Back
-    "Left Centre Back": "Outside Centre Back",
-    "Right Centre Back": "Outside Centre Back",
-    "Centre Back": "Outside Centre Back",
-    # Number 6
-    "Left Defensive Midfielder": "Number 6",
-    "Right Defensive Midfielder": "Number 6",
-    "Defensive Midfielder": "Number 6",
-    "Left Centre Midfield": "Number 6",
-    "Right Centre Midfield": "Number 6",
-    "Centre Midfield": "Number 6",
-    # Number 8
-    "Left Defensive Midfielder": "Number 8",
-    "Right Defensive Midfielder": "Number 8",
-    "Defensive Midfielder": "Number 8",
-    "Left Centre Midfield": "Number 8",
-    "Right Centre Midfield": "Number 8",
-    "Centre Midfield": "Number 8",
-    # Number 10
-    "Left Attacking Midfield": "Number 10",
-    "Right Attacking Midfield": "Number 10",
-    "Attacking Midfield": "Number 10",
-    "Right Midfielder": "Number 10",
-    "Left Midfielder": "Number 10",
-    "Left Wing": "Number 10",
-    "Right Wing": "Number 10",
-    "Secondary Striker": "Number 10",
-    # Winger
-    "Left Attacking Midfield": "Winger",
-    "Right Attacking Midfield": "Winger",
-    "Right Midfielder": "Winger",
-    "Left Midfielder": "Winger",
-    "Left Wing": "Winger",
-    "Right Wing": "Winger",
-    # Centre Forward A
-    "Centre Forward": "Centre Forward A",
-    "Left Centre Forward": "Centre Forward A",
-    "Right Centre Forward": "Centre Forward A",
-    # Centre Forward B
-    "Centre Forward": "Centre Forward B",
-    "Left Centre Forward": "Centre Forward B",
-    "Right Centre Forward": "Centre Forward B",
-}
-
 metrics_per_position = {
     "Full Back": [
         "Dribbles Stopped %",
@@ -176,5 +120,3 @@ metrics_per_position = {
         "GOALKEEPER OBV"
     ]
 }
-
-# You may keep your profiles_zcore here as before, unchanged unless you want to update for new positions.
