@@ -135,3 +135,12 @@ metrics_per_position = {
         "GOALKEEPER OBV",  
     ],  
 }  
+# Append alias profiles_zcore equal metrics_per_position in statbomb_default_metrics.py
+fname='statbomb_default_metrics.py'
+with open(fname,'a',encoding='utf-8') as f:
+    f.write('\
+# Alias for backward compatibility with older modules\
+')
+    f.write('profiles_zcore = metrics_per_position\
+')
+print('Added profiles_zcore alias')
