@@ -119,7 +119,8 @@ metrics_per_position = {
         "POSITIVE OUTCOME",
         "GOALKEEPER OBV"
     ]
+}
+
 profiles_zcore = {
     key: value for key, value in metrics_per_position.items()
 }
-
