@@ -7,20 +7,16 @@ import streamlit as st
 # Import metrics and position mapping
 from data.statbomb_default_metrics import metrics_per_position
 
-# --- Raw Position to Profile Mapping ---
-# This maps raw StatsBomb positions to your desired profiles.
-# For ambiguous cases (e.g., "Left Centre Back", "Right Centre Back", "Centre Back"),
-# we map "Centre Back" to "Centre Back" and "Left Centre Back"/"Right Centre Back" to "Outside Centre Back".
 position_profile_mapping = {
     # Full Back
     "Left Back": "Full Back",
     "Right Back": "Full Back",
     "Left Wing Back": "Full Back",
     "Right Wing Back": "Full Back",
-    # Centre Back and Outside Centre Back
+    # Centre Back (no Outside Centre Back)
     "Centre Back": "Centre Back",
-    "Left Centre Back": "Outside Centre Back",
-    "Right Centre Back": "Outside Centre Back",
+    "Left Centre Back": "Centre Back",       # map to Centre Back, not Outside CB
+    "Right Centre Back": "Centre Back",      # map to Centre Back, not Outside CB
     # Number 6
     "Left Defensive Midfielder": "Number 6",
     "Right Defensive Midfielder": "Number 6",
@@ -51,13 +47,14 @@ position_profile_mapping = {
     "Left Midfielder": "Winger",
     "Left Wing": "Winger",
     "Right Wing": "Winger",
-    # Centre Forward A and Centre Forward B (split: "Centre Forward" is now A, "Right/Left Centre Forward" is B)
-    "Centre Forward": "Centre Forward A",
-    "Left Centre Forward": "Centre Forward B",
-    "Right Centre Forward": "Centre Forward B",
+    # Centre Forward (no split A/B)
+    "Centre Forward": "Centre Forward",
+    "Left Centre Forward": "Centre Forward",   # map both Left and Right to Centre Forward
+    "Right Centre Forward": "Centre Forward",
     # Goalkeeper
     "Goalkeeper": "Goal Keeper"
 }
+
 
 statbomb_metrics_needed = [
     'player_name', 'team_name', 'season_name', 'competition_name', 'Age',
