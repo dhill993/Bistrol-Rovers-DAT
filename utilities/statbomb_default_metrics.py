@@ -94,6 +94,30 @@ metrics_per_position = {
         "XSV %",
         "POSITIVE OUTCOME",
         "GOALKEEPER OBV"
+   ],
+    "Outside Centre Back": 
+        "Aerial Win %",
+        "Dribbles Stopped %",
+        "PADJ Tackles",
+        "PADJ Interceptions",
+        "PR. Pass %",
+        "Carries",
+        "Successful Crosses",
+        "Dribbles",
+        "OP Passes Into Box",
+        "OP F3 Passes"
+    ],
+    "Runner": [
+        "NP Goals",
+        "Shots",
+        "Shooting %",
+        "xG",
+        "xG/Shot",
+        "Shot Touch %",
+        "Fouls Won",
+        "Pressures",
+        "Counterpressures",
+        "Aggressive Actions"
     ]
 }
 
