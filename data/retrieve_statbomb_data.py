@@ -6,7 +6,8 @@ import streamlit as st
 
 # List of required columns from StatsBomb player season stats
 statbomb_metrics_needed = [
-    'player_name', 'team_name', 'season_name', 'competition_name', 'birth_date',  # ensure competition_name & birth_date present
+    'player_name', 'team_name', 'season_name', 'competition_name', 'birth_date', 'Age',  # <-- add Age here
+    'player_season_minutes', 'primary_position',
     'player_season_minutes', 'primary_position',
     "player_season_aerial_ratio",
     "player_season_ball_recoveries_90",
