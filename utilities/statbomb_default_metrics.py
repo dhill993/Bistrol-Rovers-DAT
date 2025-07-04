@@ -84,7 +84,7 @@ metrics_per_position = {
         "xG Assisted",
         "OBV D&C",
     ],
-    "Centre Forward A": [
+    "Centre Forward": [
         "NP Goals",
         "Shots",
         "Shooting %",
@@ -95,18 +95,6 @@ metrics_per_position = {
         "Carries",
         "Shot OBV",
         "Fouls Won",
-    ],
-       "Centre Forward B": [
-        "NP Goals",
-        "Shots",
-        "Shooting %",
-        "xG",
-        "xG/Shot",
-        "Shot Touch %",
-        "Fouls Won",
-        "Pressures",
-        "Counterpressures",
-        "Aggressive Actions",
     ],
     "Goal Keeper":[
         "GK AGGRESSIVE DIST",
