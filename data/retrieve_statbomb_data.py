@@ -26,7 +26,7 @@ statbomb_metrics_needed = [
     "player_season_save_ratio","player_season_xs_ratio","player_season_positive_outcome_score",
     "player_season_obv_gk_90","player_season_forward_pass_ratio",
     "player_season_forward_pass_proportion","player_season_scoring_contribution_90",
-    "player_season_fouls_won_90", "player_season_pressures_90","player_season_counterpressures_90',"player_season_aggressive_actions_90"
+    "player_season_fouls_won_90", "player_season_pressures_90","player_season_counterpressures_90","player_season_aggressive_actions_90"
 ]
 
 # --- Metric Rename Mapping ---
@@ -54,7 +54,7 @@ metrics_mapping = {
     "player_season_save_ratio": "SAVE %","player_season_xs_ratio": "XSV %","player_season_positive_outcome_score": "POSITIVE OUTCOME",
     "player_season_obv_gk_90": "GOALKEEPER OBV","player_season_forward_pass_ratio": "Pass Forward %",
     "player_season_forward_pass_proportion": "Pass Forward %","player_season_scoring_contribution_90": "Scoring Contribution",
-    "player_season_fouls_won_90": "Fouls Won", "player_season_pressures_90": "pressures", "player_season_counterpressures_90': "counterpressures", "player_season_aggressive_actions_90": "aggressive actions"
+    "player_season_fouls_won_90": "Fouls Won", "player_season_pressures_90": "pressures", ""player_season_counterpressures_90": "counterpressures", "player_season_aggressive_actions_90": "aggressive actions"
 }
 
 # --- Position Mapping ---
