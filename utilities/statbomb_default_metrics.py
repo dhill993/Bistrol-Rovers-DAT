@@ -115,8 +115,8 @@ metrics_per_position = {
         "xG/Shot",
         "Shot Touch %",
         "Fouls Won",
-        "Pressures",
-        "Counterpressures",
+        "pressures",
+        "counterpressures",
         "aggressive actions"
     ]
 }
