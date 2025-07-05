@@ -117,7 +117,7 @@ metrics_per_position = {
         "Fouls Won",
         "Pressures",
         "Counterpressures",
-        "Aggressive Actions"
+        "aggressive actions"
     ]
 }
 
