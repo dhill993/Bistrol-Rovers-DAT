@@ -17,8 +17,3 @@ icon = "🗂️"
 path = "data/upload_data.py"
 name = "Upload Data"
 icon = "📋"
-
-[[pages]]
-path = "pages/Player Profile.py"
-name = "Player Profile"
-icon = "🧍"
