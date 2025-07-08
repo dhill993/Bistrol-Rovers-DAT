@@ -62,9 +62,7 @@ def show_profile_page(complete_data, season_list, league_list):
 
     st.subheader("🏆 Weighted Scores")
     st.markdown(f"**League Weighted Rank:** `{score:.1f}`")
-st.markdown(f"""
-**vs League One Benchmark:** `{score_vs_l1:.1f}`
-""")
+st.markdown(f"**vs League One Benchmark:** `{score_vs_l1:.1f}`")
 
     # 🔁 Load data and run the page
 from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
