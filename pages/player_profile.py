@@ -2,6 +2,7 @@ import streamlit as st
 from utilities.utils import get_player_metrics_percentile_ranks, get_metrics_by_position
 from visualizations.weighted_rank import get_weighted_rank
 from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
+import pandas as pd
 
 def show_profile_page(complete_data, season_list, league_list):
     st.title("🎯 Player Profile Summary")
@@ -71,12 +72,28 @@ def load_data():
     return get_statsbomb_player_season_stats()
 
 df = load_data()
-if 'Season' not in df.columns or df.empty:
-    st.error("❌ Season column not found or data failed to load.")
+
+# Debugging output to help identify issues with df
+st.write("Data type:", type(df))
+if isinstance(df, pd.DataFrame):
+    st.write("Columns:", df.columns.tolist())
+    st.write("First 5 rows:", df.head())
+else:
+    st.error("❌ Loaded data is not a pandas DataFrame.")
+    st.stop()
+
+# Check required columns and data
+required_columns = ['Season', 'League']
+missing_cols = [col for col in required_columns if col not in df.columns]
+if missing_cols:
+    st.error(f"❌ Missing required columns: {missing_cols}")
+    st.stop()
+
+if df.empty:
+    st.error("❌ DataFrame is empty.")
     st.stop()
 
 season_list = sorted(df['Season'].dropna().unique())
-
 league_list = sorted(df['League'].dropna().unique())
 
 show_profile_page(df, season_list, league_list)
