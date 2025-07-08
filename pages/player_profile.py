@@ -1,3 +1,16 @@
+import sys
+import os
+
+# Add the parent directory to sys.path to allow importing from 'utilities'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from utilities.utils import get_metrics_by_position, get_weighted_rank, get_player_metrics_percentile_ranks
+
+# Your existing code continues here...
+# For example:
+# import streamlit as st
+# ... rest of your player profile logic
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Circle
 import numpy as np
