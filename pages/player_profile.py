@@ -1,101 +1,100 @@
-import streamlit as st
-from utilities.utils import get_player_metrics_percentile_ranks, get_metrics_by_position
-from visualizations.weighted_rank import get_weighted_rank
-from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle, Circle
+import numpy as np
+from utilities.utils import get_metrics_by_position, get_weighted_rank, get_player_metrics_percentile_ranks
+from PIL import Image
+import requests
+from io import BytesIO
 
-st.set_page_config(page_title="Player Profile Summary", layout="centered")
+def create_profile_summary_card(data, player_name, league_name, season, position, api="statbomb"):
+    # Get weighted rank data including overall scores
+    weighted_data = get_weighted_rank(data, player_name, league_name, season, position, api)
+    if weighted_data.empty:
+        print(f"No weighted rank data for {player_name}")
+        return None
 
-# --- Load and cache data ---
-@st.cache_data(ttl=14400, show_spinner=True)
-def load_data():
-    df = get_statsbomb_player_season_stats()
-    return df
+    # Get positional percentile ranks for metrics
+    position_metrics = get_metrics_by_position(position, api)
+    player_percentiles = get_player_metrics_percentile_ranks(data, player_name, position, position_metrics)
+    if player_percentiles is None or player_percentiles.empty:
+        print(f"No percentile rank data for {player_name}")
+        return None
 
-df = load_data()
+    # Extract main info
+    player_info = weighted_data.iloc[0]
+    percentile_values = player_percentiles[position_metrics].iloc[0].values
+    metrics_labels = position_metrics
 
-# --- Basic sanity checks ---
-if df.empty:
-    st.error("❌ Data failed to load or is empty.")
-    st.stop()
+    # Basic figure setup
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_facecolor("#121212")
+    plt.axis('off')
 
-required_cols = ['Season', 'League', 'Player Name', 'Position', 'Age', 'Minutes', 'Team']
-missing_cols = [c for c in required_cols if c not in df.columns]
-if missing_cols:
-    st.error(f"❌ Missing expected columns in data: {missing_cols}")
-    st.stop()
+    # Background box
+    ax.add_patch(Rectangle((0, 0), 1, 1, color="#222222", zorder=0))
 
-# --- Prepare lists for dropdowns ---
-season_list = sorted(df['Season'].dropna().unique())
-league_list = sorted(df['League'].dropna().unique())
+    # Title and player info
+    ax.text(0.05, 0.9, player_info['Player Name'], fontsize=22, fontweight='bold', color='white')
+    ax.text(0.05, 0.85, f"Club: {player_info['Team']}", fontsize=12, color='lightgray')
+    ax.text(0.05, 0.82, f"Position: {position}", fontsize=12, color='lightgray')
+    ax.text(0.05, 0.78, f"Age: {int(player_info['Age'])}  |  Minutes: {int(player_info['Minutes'])}", fontsize=12, color='lightgray')
 
-def show_profile_page(complete_data, season_list, league_list):
-    st.title("🎯 Player Profile Summary")
+    # Show overall score and weighted score as bars
+    overall_score = player_info['Overall Score']
+    weighted_score = player_info['Score weighted aganist League One']
 
-    # Dropdowns for filtering
-    league = st.selectbox("Select League", league_list)
-    season = st.selectbox("Select Season", season_list)
+    max_score = 100  # assuming percentile scale max 100
+    bar_width = 0.8
 
-    # Filter dataframe by league and season
-    df_filtered = complete_data[
-        (complete_data['League'] == league) & 
-        (complete_data['Season'] == season)
-    ]
+    # Bar background
+    ax.barh(0.6, max_score, color="#333333", height=0.06)
+    # Overall score bar
+    ax.barh(0.6, overall_score, color="#1A78CF", height=0.06)
+    ax.text(overall_score + 2, 0.6, f"Overall Score: {overall_score:.1f}", va='center', color='white', fontsize=11)
 
-    if df_filtered.empty:
-        st.warning(f"No data found for {league} in season {season}.")
-        return
+    # Weighted score bar
+    ax.barh(0.5, max_score, color="#333333", height=0.06)
+    ax.barh(0.5, weighted_score, color="#58AC4E", height=0.06)
+    ax.text(weighted_score + 2, 0.5, f"Weighted Score: {weighted_score:.1f}", va='center', color='white', fontsize=11)
 
-    # Player selection dropdown
-    players = df_filtered['Player Name'].unique()
-    player = st.selectbox("Select Player", sorted(players))
+    # Draw percentile metric bars
+    start_y = 0.3
+    bar_height = 0.04
+    gap = 0.05
 
-    # Get player info row
-    player_row = df_filtered[df_filtered['Player Name'] == player].iloc[0]
-    position = player_row['Position']
-    age = int(player_row['Age'])
-    minutes = int(player_row['Minutes'])
-    club = player_row['Team']
+    colors = []
+    for v in percentile_values:
+        if v >= 70:
+            colors.append("#58AC4E")  # green
+        elif v >= 50:
+            colors.append("#1A78CF")  # blue
+        else:
+            colors.append("#aa42af")  # purple
 
-    # Get position-specific metrics (your utility function)
-    metrics = get_metrics_by_position(position, api='statbomb')
+    for i, (metric, val) in enumerate(zip(metrics_labels, percentile_values)):
+        y = start_y - i * gap
+        ax.text(0.05, y + bar_height/2, metric, color='white', fontsize=9, va='center')
+        ax.barh(y, val, color=colors[i], height=bar_height)
+        ax.barh(y, 100, color="#333333", height=bar_height, alpha=0.3)  # background bar for scale
+        ax.text(val + 2, y + bar_height/2, f"{val:.0f}%", color='white', fontsize=9, va='center')
 
-    # Get percentile ranks for player metrics (your utility function)
-    player_df = get_player_metrics_percentile_ranks(df_filtered, player, position, metrics)
-    if player_df is None or player_df.empty:
-        st.error("Player percentile rank data not found.")
-        return
+    # Legend for percentile colors
+    legend_labels = [">= 70%", "50-69%", "< 50%"]
+    legend_colors = ["#58AC4E", "#1A78CF", "#aa42af"]
+    legend_x = 0.6
+    legend_y = 0.9
+    for c, label in zip(legend_colors, legend_labels):
+        ax.add_patch(Rectangle((legend_x, legend_y), 0.04, 0.04, color=c))
+        ax.text(legend_x + 0.05, legend_y + 0.02, label, fontsize=10, color='white', va='center')
+        legend_y -= 0.06
 
-    # Player header info
-    st.markdown(f"""
-    ### **{player}**
-    - **Club:** {club}
-    - **Position:** {position}
-    - **Age:** {age}
-    - **Minutes Played:** {minutes}
-    """)
+    # Optional: Load player image or club badge (requires URL or local path)
+    # Example placeholder (you can replace with actual image fetch logic)
+    # img_url = "https://path.to/player_image.jpg"
+    # response = requests.get(img_url)
+    # img = Image.open(BytesIO(response.content))
+    # ax.imshow(img, extent=[0.7, 0.95, 0.65, 0.9], aspect='auto')
 
-    st.divider()
-    st.subheader("📊 Percentile Metrics")
+    plt.tight_layout()
+    return fig
 
-    # Display each metric with a progress bar
-    for metric in metrics:
-        val = player_df[metric].values[0]
-        st.markdown(f"**{metric}** — {int(val)}%")
-        st.progress(int(val))
-
-    st.divider()
-
-    # Weighted rank scores section
-    weighted_df = get_weighted_rank(df_filtered, player, league, season, position)
-    if weighted_df.empty:
-        st.warning("Weighted rank data not available.")
-    else:
-        score = weighted_df['Overall Score'].values[0]
-        score_vs_l1 = weighted_df['Score weighted aganist League One'].values[0]
-
-        st.subheader("🏆 Weighted Scores")
-        st.markdown(f"**League Weighted Rank:** `{score:.1f}`")
-        st.markdown(f"**vs League One Benchmark:** `{score_vs_l1:.1f}`")
-
-# Run the profile page
-show_profile_page(df, season_list, league_list)
