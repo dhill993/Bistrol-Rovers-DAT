@@ -1,6 +1,7 @@
 import streamlit as st
 from utilities.utils import get_player_metrics_percentile_ranks, get_metrics_by_position
 from visualizations.weighted_rank import get_weighted_rank
+from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
 
 def show_profile_page(complete_data, season_list, league_list):
     st.title("🎯 Player Profile Summary")
@@ -49,7 +50,6 @@ def show_profile_page(complete_data, season_list, league_list):
 
     for metric in metrics:
         value = player_df[metric].values[0]
-        color = "green" if value >= 75 else "orange" if value >= 50 else "red"
         st.markdown(f"**{metric}** — {int(value)}%")
         st.progress(int(value))
 
@@ -62,11 +62,10 @@ def show_profile_page(complete_data, season_list, league_list):
 
     st.subheader("🏆 Weighted Scores")
     st.markdown(f"**League Weighted Rank:** `{score:.1f}`")
-st.markdown(f"**vs League One Benchmark:** `{score_vs_l1:.1f}`")
+    st.markdown(f"**vs League One Benchmark:** `{score_vs_l1:.1f}`")
 
-    # 🔁 Load data and run the page
-from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
 
+# 🔁 Load data and run the page
 @st.cache_data(ttl=14400)
 def load_data():
     return get_statsbomb_player_season_stats()
