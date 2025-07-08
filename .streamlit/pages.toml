@@ -17,3 +17,8 @@ icon = "🗂️"
 path = "data/upload_data.py"
 name = "Upload Data"
 icon = "📋"
+
+[[pages]]
+path = "pages/player_profile.py"
+name = "Player Profile Summary"
+icon = "🧍"
