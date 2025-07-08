@@ -63,3 +63,16 @@ def show_profile_page(complete_data, season_list, league_list):
     st.subheader("🏆 Weighted Scores")
     st.markdown(f"**League Weighted Rank:** `{score:.1f}`")
     st.markdown(f"**vs League One Bench**
+
+    # 🔁 Load data and run the page
+from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
+
+@st.cache_data(ttl=14400)
+def load_data():
+    return get_statsbomb_player_season_stats()
+
+df = load_data()
+season_list = sorted(df['Season'].unique())
+league_list = sorted(df['League'].unique())
+
+show_profile_page(df, season_list, league_list)
