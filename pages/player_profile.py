@@ -1,113 +1,117 @@
 import sys
 import os
+import streamlit as st
+import pandas as pd
 
-# Add the parent directory to sys.path to allow importing from 'utilities'
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Ensure root folder is in sys.path to import utilities
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
 
-from utilities.utils import get_metrics_by_position, get_weighted_rank, get_player_metrics_percentile_ranks
+from utilities.utils import (
+    get_metrics_by_position,
+    get_player_metrics_percentile_ranks,
+    get_weighted_score
+)
 
-# Your existing code continues here...
-# For example:
-# import streamlit as st
-# ... rest of your player profile logic
+# Mock data loading functions (replace with your actual data source)
+@st.cache_data
+def load_player_data():
+    # Load your player dataset here (with columns like 'Player Name', 'Position', 'League', 'Club', etc.)
+    return pd.read_csv('data/player_data.csv')
 
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, Circle
-import numpy as np
-from utilities.utils import get_metrics_by_position, get_weighted_rank, get_player_metrics_percentile_ranks
-from PIL import Image
-import requests
-from io import BytesIO
+@st.cache_data
+def load_club_logos():
+    # Load mapping club name -> logo URL or filepath
+    return {
+        "Bristol Rovers": "https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Bristol_Rovers_FC_crest.svg/1200px-Bristol_Rovers_FC_crest.svg.png",
+        # Add more clubs/logos here
+    }
 
-def create_profile_summary_card(data, player_name, league_name, season, position, api="statbomb"):
-    # Get weighted rank data including overall scores
-    weighted_data = get_weighted_rank(data, player_name, league_name, season, position, api)
-    if weighted_data.empty:
-        print(f"No weighted rank data for {player_name}")
-        return None
+@st.cache_data
+def load_player_photos():
+    # Load mapping player name -> photo URL or filepath
+    return {
+        "Jack Diamond": "https://example.com/photos/jack_diamond.jpg",
+        # Add more players/photos here
+    }
 
-    # Get positional percentile ranks for metrics
-    position_metrics = get_metrics_by_position(position, api)
-    player_percentiles = get_player_metrics_percentile_ranks(data, player_name, position, position_metrics)
-    if player_percentiles is None or player_percentiles.empty:
-        print(f"No percentile rank data for {player_name}")
-        return None
+def main():
+    st.title("Player Profile Summary")
 
-    # Extract main info
-    player_info = weighted_data.iloc[0]
-    percentile_values = player_percentiles[position_metrics].iloc[0].values
-    metrics_labels = position_metrics
+    df = load_player_data()
+    club_logos = load_club_logos()
+    player_photos = load_player_photos()
 
-    # Basic figure setup
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.set_facecolor("#121212")
-    plt.axis('off')
+    # Sidebar filters
+    league = st.sidebar.selectbox("Select League", options=['All'] + sorted(df['League'].unique().tolist()))
+    position = st.sidebar.selectbox("Select Position", options=sorted(df['Position'].unique().tolist()))
+    
+    # Get player list based on league and position
+    if league == 'All':
+        filtered_df = df[df['Position'] == position]
+    else:
+        filtered_df = df[(df['League'] == league) & (df['Position'] == position)]
+    players = sorted(filtered_df['Player Name'].unique().tolist())
 
-    # Background box
-    ax.add_patch(Rectangle((0, 0), 1, 1, color="#222222", zorder=0))
+    player = st.sidebar.selectbox("Select Player", options=players)
 
-    # Title and player info
-    ax.text(0.05, 0.9, player_info['Player Name'], fontsize=22, fontweight='bold', color='white')
-    ax.text(0.05, 0.85, f"Club: {player_info['Team']}", fontsize=12, color='lightgray')
-    ax.text(0.05, 0.82, f"Position: {position}", fontsize=12, color='lightgray')
-    ax.text(0.05, 0.78, f"Age: {int(player_info['Age'])}  |  Minutes: {int(player_info['Minutes'])}", fontsize=12, color='lightgray')
+    # Fetch metrics to show for this position (from utils)
+    all_metrics = get_metrics_by_position(position, api='statbomb')
 
-    # Show overall score and weighted score as bars
-    overall_score = player_info['Overall Score']
-    weighted_score = player_info['Score weighted aganist League One']
+    # Get player percentile metrics DataFrame
+    player_metrics_df = get_player_metrics_percentile_ranks(df, player, position, all_metrics)
 
-    max_score = 100  # assuming percentile scale max 100
-    bar_width = 0.8
+    if player_metrics_df is None or player_metrics_df.empty:
+        st.warning("Player data not found or incomplete.")
+        return
 
-    # Bar background
-    ax.barh(0.6, max_score, color="#333333", height=0.06)
-    # Overall score bar
-    ax.barh(0.6, overall_score, color="#1A78CF", height=0.06)
-    ax.text(overall_score + 2, 0.6, f"Overall Score: {overall_score:.1f}", va='center', color='white', fontsize=11)
+    # Get weighted score for league
+    weighted_score = get_weighted_score(league) if league in df['League'].unique() else 1.0
 
-    # Weighted score bar
-    ax.barh(0.5, max_score, color="#333333", height=0.06)
-    ax.barh(0.5, weighted_score, color="#58AC4E", height=0.06)
-    ax.text(weighted_score + 2, 0.5, f"Weighted Score: {weighted_score:.1f}", va='center', color='white', fontsize=11)
-
-    # Draw percentile metric bars
-    start_y = 0.3
-    bar_height = 0.04
-    gap = 0.05
-
-    colors = []
-    for v in percentile_values:
-        if v >= 70:
-            colors.append("#58AC4E")  # green
-        elif v >= 50:
-            colors.append("#1A78CF")  # blue
+    # Player basic info
+    player_row = filtered_df[filtered_df['Player Name'] == player].iloc[0]
+    club = player_row['Club'] if 'Club' in player_row else 'Unknown Club'
+    
+    # Show player photo and club badge side by side
+    cols = st.columns([1, 1])
+    with cols[0]:
+        if player in player_photos:
+            st.image(player_photos[player], width=150, caption=player)
         else:
-            colors.append("#aa42af")  # purple
+            st.write("No player photo available")
+    with cols[1]:
+        if club in club_logos:
+            st.image(club_logos[club], width=150, caption=club)
+        else:
+            st.write("No club logo available")
 
-    for i, (metric, val) in enumerate(zip(metrics_labels, percentile_values)):
-        y = start_y - i * gap
-        ax.text(0.05, y + bar_height/2, metric, color='white', fontsize=9, va='center')
-        ax.barh(y, val, color=colors[i], height=bar_height)
-        ax.barh(y, 100, color="#333333", height=bar_height, alpha=0.3)  # background bar for scale
-        ax.text(val + 2, y + bar_height/2, f"{val:.0f}%", color='white', fontsize=9, va='center')
+    st.markdown(f"### {player} - {position} - {league}")
 
-    # Legend for percentile colors
-    legend_labels = [">= 70%", "50-69%", "< 50%"]
-    legend_colors = ["#58AC4E", "#1A78CF", "#aa42af"]
-    legend_x = 0.6
-    legend_y = 0.9
-    for c, label in zip(legend_colors, legend_labels):
-        ax.add_patch(Rectangle((legend_x, legend_y), 0.04, 0.04, color=c))
-        ax.text(legend_x + 0.05, legend_y + 0.02, label, fontsize=10, color='white', va='center')
-        legend_y -= 0.06
+    # Show weighted score
+    st.markdown(f"**Weighted League Score:** {weighted_score:.2f}")
 
-    # Optional: Load player image or club badge (requires URL or local path)
-    # Example placeholder (you can replace with actual image fetch logic)
-    # img_url = "https://path.to/player_image.jpg"
-    # response = requests.get(img_url)
-    # img = Image.open(BytesIO(response.content))
-    # ax.imshow(img, extent=[0.7, 0.95, 0.65, 0.9], aspect='auto')
+    # Prepare stats display (percentiles scaled 0-100)
+    stats = player_metrics_df[all_metrics].iloc[0].round(1)
 
-    plt.tight_layout()
-    return fig
+    # Format stats table
+    stats_df = pd.DataFrame({
+        "Metric": all_metrics,
+        "Percentile": stats.values
+    })
 
+    # You could add coloring or formatting here
+    st.table(stats_df.style.background_gradient(cmap='Blues'))
+
+    # Summary text example
+    st.markdown("#### Summary Insights")
+    strengths = stats_df[stats_df['Percentile'] > 80]['Metric'].tolist()
+    weaknesses = stats_df[stats_df['Percentile'] < 40]['Metric'].tolist()
+
+    if strengths:
+        st.markdown(f"**Strengths:** {', '.join(strengths)}")
+    if weaknesses:
+        st.markdown(f"**Areas to improve:** {', '.join(weaknesses)}")
+
+if __name__ == "__main__":
+    main()
