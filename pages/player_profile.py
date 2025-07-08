@@ -71,7 +71,12 @@ def load_data():
     return get_statsbomb_player_season_stats()
 
 df = load_data()
-season_list = sorted(df['Season'].unique())
-league_list = sorted(df['League'].unique())
+if 'Season' not in df.columns or df.empty:
+    st.error("❌ Season column not found or data failed to load.")
+    st.stop()
+
+season_list = sorted(df['Season'].dropna().unique())
+
+league_list = sorted(df['League'].dropna().unique())
 
 show_profile_page(df, season_list, league_list)
