@@ -3,7 +3,7 @@ import os
 import streamlit as st
 import pandas as pd
 
-# Ensure root folder is in sys.path to import utilities
+# Adjust sys.path for utilities import
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
@@ -14,40 +14,32 @@ from utilities.utils import (
     get_weighted_score
 )
 
-# Mock data loading functions (replace with your actual data source)
+# Replace this with your actual data loading method or dataframe
 @st.cache_data
 def load_player_data():
-    # Load your player dataset here (with columns like 'Player Name', 'Position', 'League', 'Club', etc.)
-    return pd.read_csv('data/player_data.csv')
-
-@st.cache_data
-def load_club_logos():
-    # Load mapping club name -> logo URL or filepath
-    return {
-        "Bristol Rovers": "https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Bristol_Rovers_FC_crest.svg/1200px-Bristol_Rovers_FC_crest.svg.png",
-        # Add more clubs/logos here
+    # Example dummy data for testing - replace with your actual DataFrame loading
+    data = {
+        'Player Name': ['Jack Diamond', 'John Smith'],
+        'Position': ['Midfielder', 'Midfielder'],
+        'League': ['League One', 'League One'],
+        'Club': ['Bristol Rovers', 'Bristol Rovers'],
+        # Add all metrics columns your utils expect here:
+        'Metric1': [50, 60],
+        'Metric2': [70, 80]
     }
-
-@st.cache_data
-def load_player_photos():
-    # Load mapping player name -> photo URL or filepath
-    return {
-        "Jack Diamond": "https://example.com/photos/jack_diamond.jpg",
-        # Add more players/photos here
-    }
+    df = pd.DataFrame(data)
+    return df
 
 def main():
     st.title("Player Profile Summary")
 
     df = load_player_data()
-    club_logos = load_club_logos()
-    player_photos = load_player_photos()
 
     # Sidebar filters
     league = st.sidebar.selectbox("Select League", options=['All'] + sorted(df['League'].unique().tolist()))
     position = st.sidebar.selectbox("Select Position", options=sorted(df['Position'].unique().tolist()))
-    
-    # Get player list based on league and position
+
+    # Filter players by league and position
     if league == 'All':
         filtered_df = df[df['Position'] == position]
     else:
@@ -56,58 +48,38 @@ def main():
 
     player = st.sidebar.selectbox("Select Player", options=players)
 
-    # Fetch metrics to show for this position (from utils)
+    # Get metrics for position from utils
     all_metrics = get_metrics_by_position(position, api='statbomb')
 
-    # Get player percentile metrics DataFrame
+    # Player percentile metrics
     player_metrics_df = get_player_metrics_percentile_ranks(df, player, position, all_metrics)
 
     if player_metrics_df is None or player_metrics_df.empty:
         st.warning("Player data not found or incomplete.")
         return
 
-    # Get weighted score for league
+    # Weighted score for league
     weighted_score = get_weighted_score(league) if league in df['League'].unique() else 1.0
 
-    # Player basic info
     player_row = filtered_df[filtered_df['Player Name'] == player].iloc[0]
     club = player_row['Club'] if 'Club' in player_row else 'Unknown Club'
-    
-    # Show player photo and club badge side by side
-    cols = st.columns([1, 1])
-    with cols[0]:
-        if player in player_photos:
-            st.image(player_photos[player], width=150, caption=player)
-        else:
-            st.write("No player photo available")
-    with cols[1]:
-        if club in club_logos:
-            st.image(club_logos[club], width=150, caption=club)
-        else:
-            st.write("No club logo available")
 
+    # Show player info
     st.markdown(f"### {player} - {position} - {league}")
-
-    # Show weighted score
+    st.markdown(f"**Club:** {club}")
     st.markdown(f"**Weighted League Score:** {weighted_score:.2f}")
 
-    # Prepare stats display (percentiles scaled 0-100)
+    # Display metrics as table
     stats = player_metrics_df[all_metrics].iloc[0].round(1)
+    stats_df = pd.DataFrame({"Metric": all_metrics, "Percentile": stats.values})
 
-    # Format stats table
-    stats_df = pd.DataFrame({
-        "Metric": all_metrics,
-        "Percentile": stats.values
-    })
+    st.table(stats_df)
 
-    # You could add coloring or formatting here
-    st.table(stats_df.style.background_gradient(cmap='Blues'))
-
-    # Summary text example
-    st.markdown("#### Summary Insights")
+    # Simple summary
     strengths = stats_df[stats_df['Percentile'] > 80]['Metric'].tolist()
     weaknesses = stats_df[stats_df['Percentile'] < 40]['Metric'].tolist()
 
+    st.markdown("#### Summary Insights")
     if strengths:
         st.markdown(f"**Strengths:** {', '.join(strengths)}")
     if weaknesses:
