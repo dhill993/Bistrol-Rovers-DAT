@@ -54,6 +54,11 @@ def main():
     if 'Season' not in df.columns:
         st.error("No 'Season' column found in data! Please check your data retrieval.")
         return
+df = get_player_season_data()
+st.write("DataFrame columns:", df.columns.tolist())
+if 'Season' not in df.columns:
+    st.error("Error: 'Season' column not found in data!")
+    st.stop()  # Stop execution here to avoid errors below
 
     seasons = sorted(df['Season'].unique())
     leagues = sorted(df['League'].unique())
