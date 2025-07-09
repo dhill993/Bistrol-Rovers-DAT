@@ -2,123 +2,121 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import seaborn as sns
 import os
 
-from matplotlib import rcParams
-from data.retrieve_wyscout_data import get_wyscout_player_season_stats
+# App config
+st.set_page_config(page_title="Player Profile View", layout="wide", initial_sidebar_state="expanded")
 
-st.set_page_config(layout="wide")
+# Custom dark background
+st.markdown("""
+    <style>
+    body {
+        background-color: #121212;
+        color: white;
+    }
+    .main {
+        background-color: #121212;
+    }
+    div[data-testid="stMetricValue"] {
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-st.title("Player Profile View (Jack Diamond Style)")
+# --- Load Wyscout data ---
+@st.cache_data
+def load_data():
+    folder = "./data/wyscout_data"
+    dfs = []
+    for file in os.listdir(folder):
+        if file.endswith(".xlsx"):
+            df = pd.read_excel(os.path.join(folder, file))
+            league = file.split("_")[0]
+            df["League"] = league
+            dfs.append(df)
+    return pd.concat(dfs, ignore_index=True)
 
-# Load data
-if "wyscout_data" not in st.session_state:
-    try:
-        wyscout_data = get_wyscout_player_season_stats()
-        st.session_state["wyscout_data"] = wyscout_data
-    except Exception as e:
-        st.error("No Wyscout data loaded. Please upload data on the upload page.")
-        st.stop()
+df = load_data()
 
-df = st.session_state["wyscout_data"]
+# --- Position mapping ---
+position_mapping = {
+    "RWB": "Full Back", "RB": "Full Back", "LWB": "Full Back", "LB": "Full Back",
+    "LCB": "Centre Back", "RCB": "Centre Back", "CB": "Centre Back",
+    "RCMF": "Number 6", "LCMF": "Number 6", "DMF": "Number 6", "LDMF": "Number 6", "RDFM": "Number 6",
+    "AMF": "Attacking Midfielder", "CMF": "Number 6",
+    "LW": "Winger", "RW": "Winger", "LWF": "Winger", "RWF": "Winger",
+    "CF": "Centre Forward", "ST": "Centre Forward", "GK": "Goal Keeper"
+}
+df["Mapped Position"] = df["Position"].map(position_mapping)
+df.dropna(subset=["Mapped Position"], inplace=True)
 
-# Position-metric mapping
-position_metric_map = {
-    "Centre Forward": ["GOALS PER 90", "xG PER 90", "SHOTS PER 90", "ASSISTS PER 90", "TOUCHES IN BOX PER 90", "OFFENSIVE DUELS WON %"],
-    "Winger": ["GOALS PER 90", "xA PER 90", "CROSSES PER 90", "SUCCESSFUL DRIBBLES %", "TOUCHES IN BOX PER 90", "PROGRESSIVE RUNS PER 90"],
-    "Number 6": ["DEFENSIVE DUELS WON %", "INTERCEPTIONS PER 90", "xA PER 90", "PASS TO FINAL THIRD PER 90", "SMART PASSES PER 90", "PASS ACCURACY %"],
-    "Centre Back": ["DEFENSIVE DUELS WON %", "AERIAL DUELS WON %", "INTERCEPTIONS PER 90", "PADJ SLIDING TACKLES", "PASS ACCURACY %", "LONG PASSES PER 90"],
-    "Full Back": ["CROSSES PER 90", "ACCURATE CROSSES %", "INTERCEPTIONS PER 90", "SMART PASSES PER 90", "DEFENSIVE DUELS WON %", "PROGRESSIVE RUNS PER 90"],
-    "Goal Keeper": ["SAVE RATE (%)", "CLEAN SHEETS", "PREVENTED GOALS PER 90", "EXITS PER 90"]
+# --- Sidebar filters ---
+player = st.sidebar.selectbox("Select Player", sorted(df["Player"].unique()))
+player_row = df[df["Player"] == player].iloc[0]
+position_group = player_row["Mapped Position"]
+
+st.sidebar.markdown(f"**Position Group:** {position_group}")
+filtered_df = df[df["Mapped Position"] == position_group]
+
+# --- Define key metrics per position group ---
+position_metrics = {
+    "Centre Forward": ["Goals per 90", "xG per 90", "Shots per 90", "Touches in box per 90", "Offensive duels won %"],
+    "Winger": ["Dribbles per 90", "Progressive runs per 90", "Crosses per 90", "Touches in box per 90", "Assists per 90"],
+    "Number 6": ["Interceptions per 90", "Duels per 90", "Passes per 90", "Progressive passes per 90", "xA per 90"],
+    "Full Back": ["Crosses per 90", "Dribbles per 90", "Defensive duels per 90", "Interceptions per 90", "Progressive runs per 90"],
+    "Centre Back": ["Aerial duels won %", "Defensive duels won %", "Interceptions per 90", "Passes per 90", "Duels per 90"],
+    "Goal Keeper": ["Save rate (%)", "Clean sheets", "Prevented goals per 90"]
 }
 
-# Sidebar
-player_list = df["Player Name"].unique()
-selected_player = st.sidebar.selectbox("Select Player", player_list)
+metrics = [m for m in position_metrics.get(position_group, []) if m in df.columns]
 
-player_df = df[df["Player Name"] == selected_player]
-if player_df.empty:
-    st.warning("Player data not found.")
-    st.stop()
+# --- Calculate percentiles ---
+percentile_df = filtered_df[metrics].rank(pct=True) * 100
+player_percentiles = percentile_df.loc[df[df["Player"] == player].index].iloc[0]
 
-player_row = player_df.iloc[0]
-player_position = player_row["Position"]
-metrics = position_metric_map.get(player_position, [])
+# --- Color function ---
+def color_picker(pct):
+    if pct >= 70:
+        return "#28a745"  # green
+    elif pct >= 50:
+        return "#ffc107"  # amber
+    else:
+        return "#dc3545"  # red
 
-if not metrics:
-    st.warning(f"No metrics configured for position: {player_position}")
-    st.stop()
-
-# Same-position peer group
-same_position_df = df[df["Position"] == player_position]
-
-# Calculate percentiles
-percentiles = {}
-for metric in metrics:
-    try:
-        series = same_position_df[metric].astype(float)
-        player_value = player_row[metric]
-        percentile = np.round((series < player_value).mean() * 100)
-        percentiles[metric] = percentile
-    except:
-        percentiles[metric] = None
-
-# Plotting function (styled)
-def plot_styled_horizontal_bars(percentiles_dict, player_name, player_position):
-    sns.set(style="white")
-    rcParams['font.family'] = 'DejaVu Sans'
-    
-    fig, ax = plt.subplots(figsize=(10, len(percentiles_dict) * 0.6))
-    fig.patch.set_facecolor('#f2f2f2')
-    ax.set_facecolor('#f2f2f2')
-
-    metrics = list(percentiles_dict.keys())
-    values = [percentiles_dict[m] if percentiles_dict[m] is not None else 0 for m in metrics]
-
-    colors = []
-    for v in values:
-        if v >= 70:
-            colors.append("#4CAF50")  # Green
-        elif v >= 50:
-            colors.append("#FFC107")  # Amber
-        else:
-            colors.append("#F44336")  # Red
+# --- Plot function ---
+def draw_percentile_bars(player_name, metrics, percentiles):
+    fig, ax = plt.subplots(figsize=(10, 6), facecolor="#121212")
+    ax.set_facecolor("#121212")
+    ax.tick_params(axis='y', colors='white')
+    ax.tick_params(axis='x', colors='white')
 
     y_pos = np.arange(len(metrics))
-    bars = ax.barh(y_pos, values, color=colors, height=0.5, edgecolor='none')
-
-    # Value labels
-    for i, bar in enumerate(bars):
-        val = values[i]
-        label = f"{val}%"
-        if val > 15:
-            ax.text(val - 5, bar.get_y() + bar.get_height()/2, label, va='center', ha='right', color='white', fontsize=10, fontweight='bold')
-        else:
-            ax.text(val + 2, bar.get_y() + bar.get_height()/2, label, va='center', ha='left', color='black', fontsize=10, fontweight='bold')
-
-    # Styling
+    bars = ax.barh(y_pos, percentiles, color=[color_picker(p) for p in percentiles], height=0.6, edgecolor="white")
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(metrics, fontsize=11)
-    ax.invert_yaxis()
+    ax.set_yticklabels(metrics, fontsize=12, color="white")
     ax.set_xlim(0, 100)
-    ax.set_xticks([])
-    ax.spines[['top', 'right', 'bottom', 'left']].set_visible(False)
-    ax.set_title(f"{player_name} ({player_position}) – Percentile Profile", fontsize=14, weight='bold', pad=15)
+    ax.set_xlabel("Percentile", fontsize=12, color="white")
+    ax.set_title(f"{player_name} - {position_group}", fontsize=16, color="white", loc='left')
+
+    for i, bar in enumerate(bars):
+        ax.text(bar.get_width() + 2, bar.get_y() + bar.get_height()/2,
+                f"{percentiles[i]:.0f}%", va='center', ha='left', color='white', fontsize=12)
 
     plt.tight_layout()
     return fig
 
-# Player summary
-st.markdown(f"### {selected_player} — *{player_position}*")
-col1, col2, col3 = st.columns(3)
+# --- Header / Profile Info ---
+col1, col2 = st.columns([1, 3])
 with col1:
-    st.metric("Minutes", int(player_row["Minutes"]))
-with col2:
-    st.metric("Matches", int(player_row["Matches played"]))
-with col3:
-    st.metric("Age", int(player_row["Age"]))
+    st.markdown(f"### **{player_row['Player']}**")
+    st.markdown(f"**Team**: {player_row.get('Team within selected timeframe', 'N/A')}")
+    st.markdown(f"**League**: {player_row.get('League', '')}")
+    st.markdown(f"**Position**: {position_group}")
+    st.markdown(f"**Age**: {player_row.get('Age', 'N/A')}")
+    st.markdown(f"**Minutes Played**: {int(player_row.get('Minutes played', 0))}")
 
-# Show visual chart
-fig = plot_styled_horizontal_bars(percentiles, selected_player, player_position)
-st.pyplot(fig)
+with col2:
+    fig = draw_percentile_bars(player, metrics, player_percentiles[metrics].values)
+    st.pyplot(fig)
