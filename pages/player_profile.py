@@ -7,20 +7,24 @@ from visualizations.weighted_rank import get_weighted_rank
 def load_data():
     return get_statsbomb_player_season_stats()
 
-# Load and show basic selector
 df = load_data()
 
+# 🔍 Show available columns
+st.write("🔍 Columns in loaded DataFrame:", df.columns.tolist())
+
+# Guard against empty data
 if df.empty:
-    st.error("No data loaded.")
+    st.error("❌ No data found.")
+    st.stop()
+
+# Guard against missing columns
+required_columns = ["Season", "League", "Player Name", "Position", "Minutes", "Age", "Team"]
+missing = [col for col in required_columns if col not in df.columns]
+if missing:
+    st.error(f"❌ Missing columns: {missing}")
     st.stop()
 
 st.title("🧍 Player Profile Summary")
-
-# Defensive handling — don’t assume 'Season' exists
-if "Season" not in df.columns or "League" not in df.columns or "Player Name" not in df.columns:
-    st.error("Required columns ('Season', 'League', 'Player Name') not found in data.")
-    st.write("Columns found:", df.columns.tolist())
-    st.stop()
 
 season_list = sorted(df["Season"].dropna().unique())
 league_list = sorted(df["League"].dropna().unique())
@@ -33,32 +37,30 @@ filtered_df = df[
     (df["League"] == selected_league)
 ]
 
-player_list = sorted(filtered_df["Player Name"].unique())
+player_list = sorted(filtered_df["Player Name"].dropna().unique())
 selected_player = st.selectbox("Select Player", player_list)
 
-# Pull base player row
+# Pull player row
 player_row = filtered_df[filtered_df["Player Name"] == selected_player].iloc[0]
 position = player_row["Position"]
 club = player_row["Team"]
 minutes = int(player_row["Minutes"])
 age = int(player_row["Age"])
 
-# Get metrics and percentiles
+# Metrics + Percentiles
 metrics = get_metrics_by_position(position, api='statbomb')
 player_df = get_player_metrics_percentile_ranks(filtered_df, selected_player, position, metrics)
 
 if player_df is None or player_df.empty:
-    st.error("Could not find metrics for this player.")
+    st.error("Could not find metric values for this player.")
     st.stop()
 
-# Weighted rank
+# Weighted score
 rank_df = get_weighted_rank(filtered_df, selected_player, selected_league, selected_season, position)
 score = rank_df["Overall Score"].values[0]
 score_vs_l1 = rank_df["Score weighted aganist League One"].values[0]
 
-# -----------------------
-# Layout and Visual View
-# -----------------------
+# 🧾 Profile Card
 st.markdown(f"""
 <div style="background-color:#1a1a1a;padding:1.5rem;border-radius:12px;margin-bottom:1rem;">
     <h2 style="color:#F2F2F2;">{selected_player}</h2>
@@ -73,6 +75,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# 📊 Percentile Metrics
 st.subheader("📊 Percentile Metrics")
 for metric in metrics:
     value = player_df[metric].values[0]
