@@ -1,8 +1,6 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data")))
-import sys
-import os
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -56,13 +54,22 @@ def main():
         teams = sorted(df['Team'].unique())
         team = st.selectbox("Select Team", teams)
 
-        league = st.selectbox("Select League", sorted(df['League'].unique()))
+        leagues = sorted(df['League'].unique())
+        league = st.selectbox("Select League", leagues)
 
         filtered = df[(df['Team'] == team) & (df['League'] == league)]
+        if filtered.empty:
+            st.warning("No players found for this Team and League combination.")
+            return
+
         player = st.selectbox("Select Player", sorted(filtered['Player Name'].unique()))
 
-    # Get full player row
-    player_row = df[df['Player Name'] == player].iloc[0]
+    player_rows = df[df['Player Name'] == player]
+    if player_rows.empty:
+        st.warning(f"No data found for player: {player}")
+        return
+
+    player_row = player_rows.iloc[0]
     position = player_row['Position']
     age = int(player_row['Age']) if 'Age' in player_row else 'N/A'
     minutes = int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'
