@@ -1,67 +1,64 @@
-df = load_data()
-
-# Debug: See what columns are present
-st.write("Available columns:", df.columns.tolist())
-
-# Guard for missing columns
-if df.empty or "Season" not in df.columns or "League" not in df.columns:
-    st.error("❌ Could not find required columns: 'Season' and/or 'League'.")
-    st.stop()
-
 import streamlit as st
-from utilities.utils import get_player_metrics_percentile_ranks, get_metrics_by_position
-from visualizations.weighted_rank import get_weighted_rank
 from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
+from utilities.utils import get_metrics_by_position, get_player_metrics_percentile_ranks
+from visualizations.weighted_rank import get_weighted_rank
 
-# Load the full dataset
 @st.cache_data(ttl=14400)
 def load_data():
     return get_statsbomb_player_season_stats()
 
+# Load and show basic selector
 df = load_data()
 
-# Guard against missing data
-if df.empty or "Season" not in df.columns or "League" not in df.columns:
-    st.error("❌ Could not load season or league data.")
+if df.empty:
+    st.error("No data loaded.")
     st.stop()
 
-# Dropdowns
 st.title("🧍 Player Profile Summary")
+
+# Defensive handling — don’t assume 'Season' exists
+if "Season" not in df.columns or "League" not in df.columns or "Player Name" not in df.columns:
+    st.error("Required columns ('Season', 'League', 'Player Name') not found in data.")
+    st.write("Columns found:", df.columns.tolist())
+    st.stop()
+
 season_list = sorted(df["Season"].dropna().unique())
 league_list = sorted(df["League"].dropna().unique())
 
-selected_league = st.selectbox("Select League", league_list)
 selected_season = st.selectbox("Select Season", season_list)
+selected_league = st.selectbox("Select League", league_list)
 
-df_filtered = df[
-    (df["League"] == selected_league) &
-    (df["Season"] == selected_season)
+filtered_df = df[
+    (df["Season"] == selected_season) &
+    (df["League"] == selected_league)
 ]
 
-players = df_filtered["Player Name"].dropna().unique()
-selected_player = st.selectbox("Select Player", sorted(players))
+player_list = sorted(filtered_df["Player Name"].unique())
+selected_player = st.selectbox("Select Player", player_list)
 
-# Get the selected player's row
-player_row = df_filtered[df_filtered["Player Name"] == selected_player].iloc[0]
+# Pull base player row
+player_row = filtered_df[filtered_df["Player Name"] == selected_player].iloc[0]
 position = player_row["Position"]
-age = int(player_row["Age"])
-minutes = int(player_row["Minutes"])
 club = player_row["Team"]
+minutes = int(player_row["Minutes"])
+age = int(player_row["Age"])
 
-# Metrics
-metrics = get_metrics_by_position(position, api="statbomb")
-player_df = get_player_metrics_percentile_ranks(df_filtered, selected_player, position, metrics)
+# Get metrics and percentiles
+metrics = get_metrics_by_position(position, api='statbomb')
+player_df = get_player_metrics_percentile_ranks(filtered_df, selected_player, position, metrics)
 
 if player_df is None or player_df.empty:
-    st.error("Player data not found.")
+    st.error("Could not find metrics for this player.")
     st.stop()
 
-# Weighted scores
-weighted_df = get_weighted_rank(df_filtered, selected_player, selected_league, selected_season, position)
-score = weighted_df["Overall Score"].values[0]
-score_vs_l1 = weighted_df["Score weighted aganist League One"].values[0]
+# Weighted rank
+rank_df = get_weighted_rank(filtered_df, selected_player, selected_league, selected_season, position)
+score = rank_df["Overall Score"].values[0]
+score_vs_l1 = rank_df["Score weighted aganist League One"].values[0]
 
-# 🧾 Profile block
+# -----------------------
+# Layout and Visual View
+# -----------------------
 st.markdown(f"""
 <div style="background-color:#1a1a1a;padding:1.5rem;border-radius:12px;margin-bottom:1rem;">
     <h2 style="color:#F2F2F2;">{selected_player}</h2>
@@ -76,10 +73,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 📊 Percentile Bars
 st.subheader("📊 Percentile Metrics")
-
 for metric in metrics:
-    val = player_df[metric].values[0]
-    st.markdown(f"**{metric}** — {int(val)}%")
-    st.progress(int(val))
+    value = player_df[metric].values[0]
+    st.markdown(f"**{metric}** — {int(value)}%")
+    st.progress(int(value))
