@@ -52,40 +52,36 @@ def main():
 
     df = get_player_season_data()
 
-    # Debug: show columns if needed
-    # st.write("Columns in data:", df.columns.tolist())
-
     # Sidebar filters
     with st.sidebar:
         # Season select (sorted descending so recent first)
         seasons = sorted(df['Season'].unique(), reverse=True)
         season = st.selectbox("Select Season", seasons)
 
-        # League select
-        leagues = sorted(df['League'].unique())
+        # Filter by season first to narrow leagues
+        df_season = df[df['Season'] == season]
+        leagues = sorted(df_season['League'].unique())
         league = st.selectbox("Select League", leagues)
 
-        # Filter df by selected season and league before getting teams and positions
-        df_filtered_league = df[(df['Season'] == season) & (df['League'] == league)]
-
-        # Teams filtered by league and season
-        teams = sorted(df_filtered_league['Team'].unique())
+        # Filter by season and league to narrow teams
+        df_league = df_season[df_season['League'] == league]
+        teams = sorted(df_league['Team'].unique())
         team = st.selectbox("Select Team", teams)
 
-        # Positions filtered by league, season, team
-        df_filtered_team = df_filtered_league[df_filtered_league['Team'] == team]
-        positions = sorted(df_filtered_team['Position'].unique())
+        # Filter by season, league, team for positions
+        df_team = df_league[df_league['Team'] == team]
+        positions = sorted(df_team['Position'].unique())
         position = st.selectbox("Select Player Position", positions)
 
-        # Players filtered by league, season, team, position
-        players = sorted(df_filtered_team[df_filtered_team['Position'] == position]['Player Name'].unique())
+        # Players filtered by season, league, team, position
+        players = sorted(df_team[df_team['Position'] == position]['Player Name'].unique())
         player = st.selectbox("Select Player", players)
 
-    # Get selected player data row
+    # Filter the full DataFrame for selected player row
     player_row = df[
-        (df['Player Name'] == player) & 
-        (df['Team'] == team) & 
-        (df['League'] == league) & 
+        (df['Player Name'] == player) &
+        (df['Team'] == team) &
+        (df['League'] == league) &
         (df['Season'] == season)
     ]
 
@@ -95,6 +91,7 @@ def main():
 
     player_row = player_row.iloc[0]
 
+    # Display player info
     st.markdown(f"### {player}")
     st.markdown(f"**Team:** {team}  ")
     st.markdown(f"**League:** {league}  ")
@@ -102,11 +99,11 @@ def main():
     st.markdown(f"**Position:** {position}  ")
     st.markdown(f"**Age:** {int(player_row['Age']) if 'Age' in player_row else 'N/A'}  |  **Minutes:** {int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'}")
 
-    # Get relevant metrics for this position
+    # Get metrics for position
     metrics = get_metrics_by_position(position, api="statbomb")
 
-    # Calculate percentile ranks for the player
-    player_percentiles = get_player_metrics_percentile_ranks(df_filtered_team, player, position, metrics)
+    # Calculate percentile ranks
+    player_percentiles = get_player_metrics_percentile_ranks(df_team, player, position, metrics)
 
     if player_percentiles is None or player_percentiles.empty:
         st.warning("Player metric data not found or incomplete.")
@@ -114,11 +111,11 @@ def main():
 
     percentiles = player_percentiles[metrics].iloc[0].round(1)
 
-    # Plot bar chart
+    # Plot percentile bar chart
     fig = plot_horizontal_bars(percentiles)
     st.plotly_chart(fig, use_container_width=True)
 
-    # Show overall and weighted score
+    # Calculate scores
     overall_score = percentiles.mean()
     weighted_score = overall_score * get_weighted_score(league)
 
