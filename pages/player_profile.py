@@ -12,9 +12,9 @@ if root_dir not in sys.path:
 from utilities.utils import (
     get_metrics_by_position,
     get_player_metrics_percentile_ranks,
-    get_weighted_score,
-    load_player_data  # adjust if your loader function has a different name or location
+    get_weighted_score
 )
+from retrieve_statbomb_data import get_player_season_data
 
 def color_from_value(val):
     if val >= 70:
