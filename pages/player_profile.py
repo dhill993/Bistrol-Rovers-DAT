@@ -50,33 +50,63 @@ def main():
 
     df = get_player_season_data()
 
+    # Sidebar filters
     with st.sidebar:
-        teams = sorted(df['Team'].unique())
-        team = st.selectbox("Select Team", teams)
+        # Select season first
+        seasons = sorted(df['Season'].unique())
+        season = st.selectbox("Select Season", seasons)
 
-        leagues = sorted(df['League'].unique())
+        # Filter df by season for other selections
+        df_season = df[df['Season'] == season]
+
+        # Select league next
+        leagues = sorted(df_season['League'].unique())
         league = st.selectbox("Select League", leagues)
 
-        filtered = df[(df['Team'] == team) & (df['League'] == league)]
-        if filtered.empty:
-            st.warning("No players found for this Team and League combination.")
+        # Filter df by league & season for teams
+        df_league = df_season[df_season['League'] == league]
+
+        # Teams only in selected league & season
+        teams = sorted(df_league['Team'].unique())
+        team = st.selectbox("Select Team", teams)
+
+        # Player positions in filtered df
+        positions = sorted(df_league['Position'].dropna().unique())
+        position = st.selectbox("Select Player Position", positions)
+
+        # Filter players by team, league, season, and position
+        filtered_players = df_league[
+            (df_league['Team'] == team) & 
+            (df_league['Position'] == position)
+        ]
+
+        if filtered_players.empty:
+            st.warning("No players found for selected filters.")
             return
 
-        player = st.selectbox("Select Player", sorted(filtered['Player Name'].unique()))
+        player = st.selectbox("Select Player", sorted(filtered_players['Player Name'].unique()))
 
-    player_rows = df[df['Player Name'] == player]
+    player_rows = df[
+        (df['Player Name'] == player) & 
+        (df['Season'] == season) & 
+        (df['League'] == league) & 
+        (df['Team'] == team) & 
+        (df['Position'] == position)
+    ]
+
     if player_rows.empty:
         st.warning(f"No data found for player: {player}")
         return
 
     player_row = player_rows.iloc[0]
-    position = player_row['Position']
+
     age = int(player_row['Age']) if 'Age' in player_row else 'N/A'
     minutes = int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'
 
     st.markdown(f"### {player}")
     st.markdown(f"**Team:** {team}  ")
     st.markdown(f"**League:** {league}  ")
+    st.markdown(f"**Season:** {season}  ")
     st.markdown(f"**Position:** {position}  ")
     st.markdown(f"**Age:** {age}  |  **Minutes:** {minutes}")
 
