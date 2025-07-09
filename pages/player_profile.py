@@ -1,122 +1,284 @@
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import seaborn as sns
 import os
+from datetime import datetime
+from statsbombpy import sb
+from utilities.utils import get_player_metrics_percentile_ranks, get_weighted_score
+from utilities.wyscout_default_metrics import metrics_per_position
 
-# App config
-st.set_page_config(page_title="Player Profile View", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
 
-# Custom dark background
+# Bristol Rovers styling
 st.markdown("""
-    <style>
-    body {
-        background-color: #121212;
-        color: white;
+<style>
+    .main { background-color: #1e3a8a; color: white; }
+    .stSelectbox > div > div { background-color: #3b82f6; color: white; border: 1px solid #60a5fa; }
+    .stFileUploader > div { background-color: #3b82f6; border: 1px solid #60a5fa; }
+    .metric-card {
+        background-color: #16a34a; padding: 20px; border-radius: 10px;
+        text-align: center; color: white; margin: 5px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #22c55e;
     }
-    .main {
-        background-color: #121212;
-    }
-    div[data-testid="stMetricValue"] {
-        color: white;
-    }
-    </style>
+    .metric-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+    .metric-value { font-size: 36px; font-weight: bold; }
+    .filter-container { background-color: #1e40af; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    .chart-container { background-color: #1e40af; padding: 15px; border-radius: 8px; }
+    .league-section { background-color: #1e40af; padding: 20px; border-radius: 8px; margin: 15px 0; }
+</style>
 """, unsafe_allow_html=True)
 
-# --- Load Wyscout data ---
 @st.cache_data
-def load_data():
-    folder = "./data/wyscout_data"
-    dfs = []
-    for file in os.listdir(folder):
-        if file.endswith(".xlsx"):
-            df = pd.read_excel(os.path.join(folder, file))
-            league = file.split("_")[0]
-            df["League"] = league
-            dfs.append(df)
-    return pd.concat(dfs, ignore_index=True)
+def get_statsbomb_data():
+    """Fetch StatsBomb data using API credentials"""
+    try:
+        user = st.secrets["user"]
+        passwd = st.secrets["passwd"]
+        creds = {"user": user, "passwd": passwd}
+        
+        all_comps = sb.competitions(creds=creds)
+        dataframes = []
+        
+        def calculate_age(birth_date):
+            today = datetime.today()
+            return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        
+        for _, row in all_comps.iterrows():
+            try:
+                comp_id, season_id = row["competition_id"], row["season_id"]
+                df = sb.player_season_stats(comp_id, season_id, creds=creds)
+                
+                df['birth_date'] = pd.to_datetime(df['birth_date'])
+                df['Age'] = df['birth_date'].apply(calculate_age)
+                df['League'] = row['competition_name']
+                df['Season'] = row['season_name']
+                
+                dataframes.append(df)
+            except Exception as e:
+                continue
+                
+        return pd.concat(dataframes, ignore_index=True) if dataframes else pd.DataFrame()
+    except Exception as e:
+        st.error(f"StatsBomb API error: {e}")
+        return pd.DataFrame()
 
-df = load_data()
+@st.cache_data
+def process_wyscout_files(uploaded_files):
+    """Process uploaded Wyscout Excel files"""
+    if not uploaded_files:
+        return pd.DataFrame()
+    
+    dataframes = []
+    for file in uploaded_files:
+        try:
+            df = pd.read_excel(file)
+            # Standardize column names
+            df.columns = df.columns.str.strip()
+            dataframes.append(df)
+        except Exception as e:
+            st.error(f"Error processing {file.name}: {e}")
+    
+    return pd.concat(dataframes, ignore_index=True) if dataframes else pd.DataFrame()
 
-# --- Position mapping ---
-position_mapping = {
-    "RWB": "Full Back", "RB": "Full Back", "LWB": "Full Back", "LB": "Full Back",
-    "LCB": "Centre Back", "RCB": "Centre Back", "CB": "Centre Back",
-    "RCMF": "Number 6", "LCMF": "Number 6", "DMF": "Number 6", "LDMF": "Number 6", "RDFM": "Number 6",
-    "AMF": "Attacking Midfielder", "CMF": "Number 6",
-    "LW": "Winger", "RW": "Winger", "LWF": "Winger", "RWF": "Winger",
-    "CF": "Centre Forward", "ST": "Centre Forward", "GK": "Goal Keeper"
-}
-df["Mapped Position"] = df["Position"].map(position_mapping)
-df.dropna(subset=["Mapped Position"], inplace=True)
+# Data source selection
+st.title("🎯 Player Performance Dashboard")
 
-# --- Sidebar filters ---
-player = st.sidebar.selectbox("Select Player", sorted(df["Player"].unique()))
-player_row = df[df["Player"] == player].iloc[0]
-position_group = player_row["Mapped Position"]
+data_source = st.radio("Select Data Source:", ["StatsBomb API", "Wyscout Upload"], horizontal=True)
 
-st.sidebar.markdown(f"**Position Group:** {position_group}")
-filtered_df = df[df["Mapped Position"] == position_group]
+df = pd.DataFrame()
 
-# --- Define key metrics per position group ---
-position_metrics = {
-    "Centre Forward": ["Goals per 90", "xG per 90", "Shots per 90", "Touches in box per 90", "Offensive duels won %"],
-    "Winger": ["Dribbles per 90", "Progressive runs per 90", "Crosses per 90", "Touches in box per 90", "Assists per 90"],
-    "Number 6": ["Interceptions per 90", "Duels per 90", "Passes per 90", "Progressive passes per 90", "xA per 90"],
-    "Full Back": ["Crosses per 90", "Dribbles per 90", "Defensive duels per 90", "Interceptions per 90", "Progressive runs per 90"],
-    "Centre Back": ["Aerial duels won %", "Defensive duels won %", "Interceptions per 90", "Passes per 90", "Duels per 90"],
-    "Goal Keeper": ["Save rate (%)", "Clean sheets", "Prevented goals per 90"]
-}
+if data_source == "StatsBomb API":
+    with st.spinner("Fetching StatsBomb data..."):
+        df = get_statsbomb_data()
+        
+elif data_source == "Wyscout Upload":
+    uploaded_files = st.file_uploader(
+        "Upload Wyscout Excel files", 
+        type=['xlsx', 'xls'], 
+        accept_multiple_files=True
+    )
+    
+    if uploaded_files:
+        with st.spinner("Processing Wyscout files..."):
+            df = process_wyscout_files(uploaded_files)
 
-metrics = [m for m in position_metrics.get(position_group, []) if m in df.columns]
+if df.empty:
+    st.warning("No data available. Please select a data source and ensure proper configuration.")
+    st.stop()
 
-# --- Calculate percentiles ---
-percentile_df = filtered_df[metrics].rank(pct=True) * 100
-player_percentiles = percentile_df.loc[df[df["Player"] == player].index].iloc[0]
+# League drill-down section
+st.markdown("<div class='league-section'>", unsafe_allow_html=True)
+st.subheader("🏆 League Analysis")
 
-# --- Color function ---
-def color_picker(pct):
-    if pct >= 70:
-        return "#28a745"  # green
-    elif pct >= 50:
-        return "#ffc107"  # amber
-    else:
-        return "#dc3545"  # red
+col1, col2, col3 = st.columns(3)
 
-# --- Plot function ---
-def draw_percentile_bars(player_name, metrics, percentiles):
-    fig, ax = plt.subplots(figsize=(10, 6), facecolor="#121212")
-    ax.set_facecolor("#121212")
-    ax.tick_params(axis='y', colors='white')
-    ax.tick_params(axis='x', colors='white')
-
-    y_pos = np.arange(len(metrics))
-    bars = ax.barh(y_pos, percentiles, color=[color_picker(p) for p in percentiles], height=0.6, edgecolor="white")
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels(metrics, fontsize=12, color="white")
-    ax.set_xlim(0, 100)
-    ax.set_xlabel("Percentile", fontsize=12, color="white")
-    ax.set_title(f"{player_name} - {position_group}", fontsize=16, color="white", loc='left')
-
-    for i, bar in enumerate(bars):
-        ax.text(bar.get_width() + 2, bar.get_y() + bar.get_height()/2,
-                f"{percentiles[i]:.0f}%", va='center', ha='left', color='white', fontsize=12)
-
-    plt.tight_layout()
-    return fig
-
-# --- Header / Profile Info ---
-col1, col2 = st.columns([1, 3])
 with col1:
-    st.markdown(f"### **{player_row['Player']}**")
-    st.markdown(f"**Team**: {player_row.get('Team within selected timeframe', 'N/A')}")
-    st.markdown(f"**League**: {player_row.get('League', '')}")
-    st.markdown(f"**Position**: {position_group}")
-    st.markdown(f"**Age**: {player_row.get('Age', 'N/A')}")
-    st.markdown(f"**Minutes Played**: {int(player_row.get('Minutes played', 0))}")
+    available_leagues = df['League'].dropna().unique() if 'League' in df.columns else ['All Leagues']
+    selected_league = st.selectbox("Select League", ['All Leagues'] + list(available_leagues))
 
 with col2:
-    fig = draw_percentile_bars(player, metrics, player_percentiles[metrics].values)
-    st.pyplot(fig)
+    if selected_league != 'All Leagues':
+        league_df = df[df['League'] == selected_league] if 'League' in df.columns else df
+    else:
+        league_df = df
+    
+    available_seasons = league_df['Season'].dropna().unique() if 'Season' in league_df.columns else ['All Seasons']
+    selected_season = st.selectbox("Select Season", ['All Seasons'] + list(available_seasons))
+
+with col3:
+    if selected_season != 'All Seasons':
+        filtered_df = league_df[league_df['Season'] == selected_season] if 'Season' in league_df.columns else league_df
+    else:
+        filtered_df = league_df
+    
+    st.metric("Players in Selection", len(filtered_df))
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Main filters
+with st.container():
+    st.markdown("<div class='filter-container'>", unsafe_allow_html=True)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    
+    with col1:
+        player_col = 'player_name' if 'player_name' in filtered_df.columns else 'Player'
+        if player_col in filtered_df.columns:
+            selected_player = st.selectbox("Player", filtered_df[player_col].dropna().sort_values().unique())
+            player_data = filtered_df[filtered_df[player_col] == selected_player].iloc[0]
+        else:
+            st.error("Player column not found")
+            st.stop()
+    
+    with col2:
+        team_col = 'team_name' if 'team_name' in filtered_df.columns else 'Team'
+        available_clubs = filtered_df[team_col].dropna().unique() if team_col in filtered_df.columns else ['N/A']
+        selected_club = st.selectbox("Club", available_clubs)
+    
+    with col3:
+        pos_col = 'primary_position_name' if 'primary_position_name' in filtered_df.columns else 'Position'
+        available_positions = filtered_df[pos_col].dropna().unique() if pos_col in filtered_df.columns else ['N/A']
+        selected_position = st.selectbox("Position", available_positions)
+    
+    with col4:
+        st.text_input("League", value=selected_league, disabled=True)
+    
+    with col5:
+        age_val = str(player_data.get('Age', 'N/A'))
+        st.text_input("Age", value=age_val, disabled=True)
+    
+    with col6:
+        minutes_col = 'minutes_played_overall' if 'minutes_played_overall' in filtered_df.columns else 'Minutes played'
+        minutes_played = int(player_data.get(minutes_col, 0)) if pd.notna(player_data.get(minutes_col, 0)) else 0
+        st.text_input("Minutes", value=str(minutes_played), disabled=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# Filter data based on selections
+display_df = filtered_df[
+    (filtered_df[player_col] == selected_player) &
+    (filtered_df[team_col] == selected_club) &
+    (filtered_df[pos_col] == selected_position)
+]
+
+if display_df.empty:
+    display_df = filtered_df[filtered_df[player_col] == selected_player]
+
+if not display_df.empty:
+    player_data = display_df.iloc[0]
+
+# Performance chart
+with st.container():
+    st.markdown("<div class='chart-container'>", unsafe_allow_html=True)
+    
+    # Define metrics based on data source
+    if data_source == "StatsBomb API":
+        metrics = [
+            'player_season_goals', 'player_season_assists', 'player_season_xg',
+            'player_season_xa', 'player_season_shots', 'player_season_key_passes',
+            'player_season_dribbles_completed', 'player_season_passing_ratio'
+        ]
+    else:
+        metrics = [
+            'Goals per 90', 'Assists per 90', 'xG per 90', 'Key passes per 90',
+            'Shots per 90', 'Successful dribbles per 90', 'Pass accuracy %'
+        ]
+    
+    available_metrics = [m for m in metrics if m in filtered_df.columns]
+    
+    if available_metrics:
+        values = []
+        labels = []
+        
+        for metric in available_metrics:
+            if pd.notna(player_data.get(metric)):
+                percentile = filtered_df[metric].rank(pct=True).loc[player_data.name] * 100
+                values.append(percentile)
+                labels.append(metric.replace('player_season_', '').replace('_', ' ').title())
+        
+        if values:
+            colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
+            
+            fig = go.Figure(go.Bar(
+                y=labels, x=values, orientation='h',
+                marker_color=colors,
+                text=[f'{v:.0f}%' for v in values],
+                textposition='middle right',
+                textfont=dict(color='white', size=12, family='Arial Black')
+            ))
+            
+            fig.update_layout(
+                title=dict(text=f"Performance Metrics - {selected_player}", 
+                          font=dict(color='white', size=16), x=0.5),
+                plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
+                font=dict(color='white'), height=500,
+                xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
+                          title="Percentile Ranking", tickfont=dict(color='white')),
+                yaxis=dict(tickfont=dict(color='white'), categoryorder='array', 
+                          categoryarray=labels[::-1]),
+                showlegend=False
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# KPI cards
+col1, col2, col3 = st.columns(3)
+
+# Calculate overall rank
+if 'values' in locals() and values:
+    overall_rank = np.mean(values)
+else:
+    overall_rank = 0
+
+# Calculate L1 weighted rank
+try:
+    league_weight = get_weighted_score(selected_league)
+    l1_weighted_rank = overall_rank * league_weight
+except:
+    l1_weighted_rank = overall_rank * 0.95
+
+with col1:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">Overall Rank</div>
+        <div class="metric-value">{overall_rank:.0f}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">L1 Weighted Rank</div>
+        <div class="metric-value">{l1_weighted_rank:.0f}%</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-title">Minutes Played</div>
+        <div class="metric-value">{minutes_played:,}</div>
+    </div>
+    """, unsafe_allow_html=True)
