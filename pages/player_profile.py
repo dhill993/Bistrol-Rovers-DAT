@@ -18,11 +18,11 @@ from data.retrieve_statbomb_data import get_player_season_data
 
 def color_from_value(val):
     if val >= 70:
-        return "#58AC4E"
+        return "#58AC4E"  # green
     elif val >= 50:
-        return "#1A78CF"
+        return "#1A78CF"  # blue
     else:
-        return "#aa42af"
+        return "#aa42af"  # purple
 
 def plot_horizontal_bars(metrics: pd.Series):
     colors = [color_from_value(v) for v in metrics.values]
@@ -49,39 +49,45 @@ def main():
 
     df = get_player_season_data()
 
-    # Ensure 'Season' column exists
+    # Defensive renaming if 'Season' missing but 'season_name' present
     if 'Season' not in df.columns and 'season_name' in df.columns:
         df.rename(columns={'season_name': 'Season'}, inplace=True)
 
-    if 'Season' not in df.columns:
-        st.error("Missing 'Season' column. Check data source.")
-        st.write("Available columns:", df.columns.tolist())
-        return
+    # Defensive checks for essential columns
+    essential_cols = ['League', 'Team', 'Player Name', 'Position', 'Age', 'Minutes', 'Season']
+    for col in essential_cols:
+        if col not in df.columns:
+            st.error(f"Missing required column: {col}")
+            st.stop()
 
     # Sidebar filters
     with st.sidebar:
         seasons = sorted(df['Season'].dropna().unique(), reverse=True)
         season = st.selectbox("Select Season", seasons)
-        
+
         df_season = df[df['Season'] == season]
+
         leagues = sorted(df_season['League'].dropna().unique())
         league = st.selectbox("Select League", leagues)
 
         df_league = df_season[df_season['League'] == league]
+
         teams = sorted(df_league['Team'].dropna().unique())
         team = st.selectbox("Select Team", teams)
 
         df_team = df_league[df_league['Team'] == team]
+
         positions = sorted(df_team['Position'].dropna().unique())
         position = st.selectbox("Select Player Position", positions)
 
         players = sorted(df_team[df_team['Position'] == position]['Player Name'].dropna().unique())
         player = st.selectbox("Select Player", players)
 
+    # Filter for selected player row
     player_row = df[
-        (df['Player Name'] == player) & 
-        (df['Team'] == team) & 
-        (df['League'] == league) & 
+        (df['Player Name'] == player) &
+        (df['Team'] == team) &
+        (df['League'] == league) &
         (df['Season'] == season)
     ]
 
@@ -96,8 +102,11 @@ def main():
     st.markdown(f"**League:** {league}  ")
     st.markdown(f"**Season:** {season}  ")
     st.markdown(f"**Position:** {position}  ")
-    st.markdown(f"**Age:** {int(player_row['Age']) if 'Age' in player_row else 'N/A'}  |  **Minutes:** {int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'}")
+    age = int(player_row['Age']) if pd.notna(player_row['Age']) else 'N/A'
+    minutes = int(player_row['Minutes']) if pd.notna(player_row['Minutes']) else 'N/A'
+    st.markdown(f"**Age:** {age}  |  **Minutes:** {minutes}")
 
+    # Get metrics for position
     metrics = get_metrics_by_position(position, api="statbomb")
     player_percentiles = get_player_metrics_percentile_ranks(df_team, player, position, metrics)
 
@@ -106,6 +115,7 @@ def main():
         return
 
     percentiles = player_percentiles[metrics].iloc[0].round(1)
+
     fig = plot_horizontal_bars(percentiles)
     st.plotly_chart(fig, use_container_width=True)
 
