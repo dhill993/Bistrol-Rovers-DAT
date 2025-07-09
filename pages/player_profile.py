@@ -49,27 +49,29 @@ def main():
 
     df = get_player_season_data()
 
+    # Ensure 'Season' column exists
+    if 'Season' not in df.columns and 'season_name' in df.columns:
+        df.rename(columns={'season_name': 'Season'}, inplace=True)
+
     if 'Season' not in df.columns:
         st.error("Missing 'Season' column. Check data source.")
         st.write("Available columns:", df.columns.tolist())
         return
 
+    # Sidebar filters
     with st.sidebar:
         seasons = sorted(df['Season'].dropna().unique(), reverse=True)
         season = st.selectbox("Select Season", seasons)
-
+        
         df_season = df[df['Season'] == season]
-
         leagues = sorted(df_season['League'].dropna().unique())
         league = st.selectbox("Select League", leagues)
 
         df_league = df_season[df_season['League'] == league]
-
         teams = sorted(df_league['Team'].dropna().unique())
         team = st.selectbox("Select Team", teams)
 
         df_team = df_league[df_league['Team'] == team]
-
         positions = sorted(df_team['Position'].dropna().unique())
         position = st.selectbox("Select Player Position", positions)
 
