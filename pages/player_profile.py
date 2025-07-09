@@ -2,6 +2,7 @@ import sys
 import os
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 
 # Adjust sys.path for utilities import
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -11,79 +12,84 @@ if root_dir not in sys.path:
 from utilities.utils import (
     get_metrics_by_position,
     get_player_metrics_percentile_ranks,
-    get_weighted_score
+    get_weighted_score,
+    load_player_data  # adjust if your loader function has a different name or location
 )
 
-# Replace this with your actual data loading method or dataframe
-@st.cache_data
-def load_player_data():
-    # Example dummy data for testing - replace with your actual DataFrame loading
-    data = {
-        'Player Name': ['Jack Diamond', 'John Smith'],
-        'Position': ['Midfielder', 'Midfielder'],
-        'League': ['League One', 'League One'],
-        'Club': ['Bristol Rovers', 'Bristol Rovers'],
-        # Add all metrics columns your utils expect here:
-        'Metric1': [50, 60],
-        'Metric2': [70, 80]
-    }
-    df = pd.DataFrame(data)
-    return df
+def color_from_value(val):
+    if val >= 70:
+        return "#58AC4E"  # Green
+    elif val >= 50:
+        return "#1A78CF"  # Blue
+    else:
+        return "#aa42af"  # Purple
+
+
+def plot_horizontal_bars(metrics: pd.Series):
+    colors = [color_from_value(v) for v in metrics.values]
+    fig = go.Figure(go.Bar(
+        x=metrics.values,
+        y=metrics.index,
+        orientation='h',
+        marker=dict(color=colors),
+        text=[f"{v:.0f}%" for v in metrics.values],
+        textposition='auto',
+    ))
+    fig.update_layout(
+        xaxis=dict(range=[0, 100], title='Percentile'),
+        yaxis=dict(autorange='reversed'),
+        height=600,
+        margin=dict(l=100, r=40, t=30, b=40),
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
+    return fig
+
 
 def main():
-    st.title("Player Profile Summary")
+    st.title("Player Profile View")
 
     df = load_player_data()
 
-    # Sidebar filters
-    league = st.sidebar.selectbox("Select League", options=['All'] + sorted(df['League'].unique().tolist()))
-    position = st.sidebar.selectbox("Select Position", options=sorted(df['Position'].unique().tolist()))
+    with st.sidebar:
+        clubs = sorted(df['Club'].unique())
+        club = st.selectbox("Select Club", clubs)
 
-    # Filter players by league and position
-    if league == 'All':
-        filtered_df = df[df['Position'] == position]
-    else:
-        filtered_df = df[(df['League'] == league) & (df['Position'] == position)]
-    players = sorted(filtered_df['Player Name'].unique().tolist())
+        league = st.selectbox("Select League", sorted(df['League'].unique()))
 
-    player = st.sidebar.selectbox("Select Player", options=players)
+        filtered = df[(df['Club'] == club) & (df['League'] == league)]
+        player = st.selectbox("Select Player", sorted(filtered['Player Name'].unique()))
 
-    # Get metrics for position from utils
-    all_metrics = get_metrics_by_position(position, api='statbomb')
+    # Get full player row
+    player_row = df[df['Player Name'] == player].iloc[0]
+    position = player_row['Position']
+    age = int(player_row['Age']) if 'Age' in player_row else 'N/A'
+    minutes = int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'
 
-    # Player percentile metrics
-    player_metrics_df = get_player_metrics_percentile_ranks(df, player, position, all_metrics)
+    st.markdown(f"### {player}")
+    st.markdown(f"**Club:** {club}  ")
+    st.markdown(f"**League:** {league}  ")
+    st.markdown(f"**Position:** {position}  ")
+    st.markdown(f"**Age:** {age}  |  **Minutes:** {minutes}")
 
-    if player_metrics_df is None or player_metrics_df.empty:
-        st.warning("Player data not found or incomplete.")
+    metrics = get_metrics_by_position(position, api="statbomb")
+    player_percentiles = get_player_metrics_percentile_ranks(df, player, position, metrics)
+
+    if player_percentiles is None or player_percentiles.empty:
+        st.warning("Player metric data not found or incomplete.")
         return
 
-    # Weighted score for league
-    weighted_score = get_weighted_score(league) if league in df['League'].unique() else 1.0
+    percentiles = player_percentiles[metrics].iloc[0].round(1)
+    fig = plot_horizontal_bars(percentiles)
+    st.plotly_chart(fig, use_container_width=True)
 
-    player_row = filtered_df[filtered_df['Player Name'] == player].iloc[0]
-    club = player_row['Club'] if 'Club' in player_row else 'Unknown Club'
+    overall_score = percentiles.mean()
+    weighted_score = overall_score * get_weighted_score(league)
 
-    # Show player info
-    st.markdown(f"### {player} - {position} - {league}")
-    st.markdown(f"**Club:** {club}")
-    st.markdown(f"**Weighted League Score:** {weighted_score:.2f}")
+    col1, col2 = st.columns(2)
+    col1.metric("Overall Percentile Score", f"{overall_score:.0f}%")
+    col2.metric(f"{league} Weighted Score", f"{weighted_score:.0f}%")
 
-    # Display metrics as table
-    stats = player_metrics_df[all_metrics].iloc[0].round(1)
-    stats_df = pd.DataFrame({"Metric": all_metrics, "Percentile": stats.values})
 
-    st.table(stats_df)
-
-    # Simple summary
-    strengths = stats_df[stats_df['Percentile'] > 80]['Metric'].tolist()
-    weaknesses = stats_df[stats_df['Percentile'] < 40]['Metric'].tolist()
-
-    st.markdown("#### Summary Insights")
-    if strengths:
-        st.markdown(f"**Strengths:** {', '.join(strengths)}")
-    if weaknesses:
-        st.markdown(f"**Areas to improve:** {', '.join(weaknesses)}")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
