@@ -5,13 +5,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
+from matplotlib import rcParams
 from data.retrieve_wyscout_data import get_wyscout_player_season_stats
 
 st.set_page_config(layout="wide")
 
 st.title("Player Profile View (Jack Diamond Style)")
 
-# Load the Wyscout data
+# Load data
 if "wyscout_data" not in st.session_state:
     try:
         wyscout_data = get_wyscout_player_season_stats()
@@ -22,7 +23,7 @@ if "wyscout_data" not in st.session_state:
 
 df = st.session_state["wyscout_data"]
 
-# Position-specific metrics
+# Position-metric mapping
 position_metric_map = {
     "Centre Forward": ["GOALS PER 90", "xG PER 90", "SHOTS PER 90", "ASSISTS PER 90", "TOUCHES IN BOX PER 90", "OFFENSIVE DUELS WON %"],
     "Winger": ["GOALS PER 90", "xA PER 90", "CROSSES PER 90", "SUCCESSFUL DRIBBLES %", "TOUCHES IN BOX PER 90", "PROGRESSIVE RUNS PER 90"],
@@ -32,12 +33,11 @@ position_metric_map = {
     "Goal Keeper": ["SAVE RATE (%)", "CLEAN SHEETS", "PREVENTED GOALS PER 90", "EXITS PER 90"]
 }
 
-# Sidebar selections
+# Sidebar
 player_list = df["Player Name"].unique()
 selected_player = st.sidebar.selectbox("Select Player", player_list)
 
 player_df = df[df["Player Name"] == selected_player]
-
 if player_df.empty:
     st.warning("Player data not found.")
     st.stop()
@@ -50,10 +50,10 @@ if not metrics:
     st.warning(f"No metrics configured for position: {player_position}")
     st.stop()
 
-# Filter data for same-position players
+# Same-position peer group
 same_position_df = df[df["Position"] == player_position]
 
-# Compute percentiles
+# Calculate percentiles
 percentiles = {}
 for metric in metrics:
     try:
@@ -64,39 +64,52 @@ for metric in metrics:
     except:
         percentiles[metric] = None
 
-# Plotting function
-def plot_horizontal_percentile_bars(percentiles_dict):
-    fig, ax = plt.subplots(figsize=(10, len(percentiles_dict)*0.6))
+# Plotting function (styled)
+def plot_styled_horizontal_bars(percentiles_dict, player_name, player_position):
+    sns.set(style="white")
+    rcParams['font.family'] = 'DejaVu Sans'
+    
+    fig, ax = plt.subplots(figsize=(10, len(percentiles_dict) * 0.6))
+    fig.patch.set_facecolor('#f2f2f2')
+    ax.set_facecolor('#f2f2f2')
+
     metrics = list(percentiles_dict.keys())
     values = [percentiles_dict[m] if percentiles_dict[m] is not None else 0 for m in metrics]
 
     colors = []
-    for val in values:
-        if val >= 70:
-            colors.append('#4CAF50')  # green
-        elif val >= 50:
-            colors.append('#FFC107')  # amber
+    for v in values:
+        if v >= 70:
+            colors.append("#4CAF50")  # Green
+        elif v >= 50:
+            colors.append("#FFC107")  # Amber
         else:
-            colors.append('#F44336')  # red
+            colors.append("#F44336")  # Red
 
     y_pos = np.arange(len(metrics))
-    ax.barh(y_pos, values, color=colors)
+    bars = ax.barh(y_pos, values, color=colors, height=0.5, edgecolor='none')
+
+    # Value labels
+    for i, bar in enumerate(bars):
+        val = values[i]
+        label = f"{val}%"
+        if val > 15:
+            ax.text(val - 5, bar.get_y() + bar.get_height()/2, label, va='center', ha='right', color='white', fontsize=10, fontweight='bold')
+        else:
+            ax.text(val + 2, bar.get_y() + bar.get_height()/2, label, va='center', ha='left', color='black', fontsize=10, fontweight='bold')
+
+    # Styling
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(metrics)
+    ax.set_yticklabels(metrics, fontsize=11)
     ax.invert_yaxis()
     ax.set_xlim(0, 100)
-    ax.set_xlabel('Percentile')
-    ax.set_title(f"{selected_player} ({player_position}) Percentile Comparison")
+    ax.set_xticks([])
+    ax.spines[['top', 'right', 'bottom', 'left']].set_visible(False)
+    ax.set_title(f"{player_name} ({player_position}) – Percentile Profile", fontsize=14, weight='bold', pad=15)
 
-    # Label values on the bars
-    for i, v in enumerate(values):
-        ax.text(v + 1, i, f"{v}%", va='center', fontweight='bold')
-
-    sns.despine()
     plt.tight_layout()
     return fig
 
-# Show player metadata
+# Player summary
 st.markdown(f"### {selected_player} — *{player_position}*")
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -106,6 +119,6 @@ with col2:
 with col3:
     st.metric("Age", int(player_row["Age"]))
 
-# Display the chart
-fig = plot_horizontal_percentile_bars(percentiles)
+# Show visual chart
+fig = plot_styled_horizontal_bars(percentiles, selected_player, player_position)
 st.pyplot(fig)
