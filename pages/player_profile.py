@@ -52,6 +52,13 @@ def main():
 
     df = get_player_season_data()
 
+    # Debug: show columns loaded to confirm
+    st.write("Columns in loaded data:", df.columns.tolist())
+
+    # Fix for Season column if missing but 'season_name' present
+    if 'Season' not in df.columns and 'season_name' in df.columns:
+        df.rename(columns={'season_name': 'Season'}, inplace=True)
+
     # Sidebar filters
     with st.sidebar:
         # Season select (sorted descending so recent first)
