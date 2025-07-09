@@ -52,43 +52,43 @@ def main():
 
     df = get_player_season_data()
 
-    # Ensure 'Season' column exists by renaming if necessary
-    if 'Season' not in df.columns:
-        if 'season_name' in df.columns:
-            df.rename(columns={'season_name': 'Season'}, inplace=True)
-        else:
-            st.error("ERROR: Neither 'Season' nor 'season_name' column found in data.")
-            st.stop()
-
-    # Debug: show columns in data
-    st.write("Columns in loaded data:", df.columns.tolist())
+    # Check for required columns
+    required_cols = ['Season', 'League', 'Team', 'Player Name', 'Position', 'Minutes']
+    for col in required_cols:
+        if col not in df.columns:
+            st.error(f"Missing required column: {col}")
+            return
 
     # Sidebar filters
     with st.sidebar:
-        # Season select (sorted descending so recent first)
-        seasons = sorted(df['Season'].unique(), reverse=True)
+        # Season select
+        seasons = sorted(df['Season'].dropna().unique(), reverse=True)
         season = st.selectbox("Select Season", seasons)
 
-        # Filter by season first to narrow leagues
         df_season = df[df['Season'] == season]
-        leagues = sorted(df_season['League'].unique())
+
+        # League select
+        leagues = sorted(df_season['League'].dropna().unique())
         league = st.selectbox("Select League", leagues)
 
-        # Filter by season and league to narrow teams
         df_league = df_season[df_season['League'] == league]
-        teams = sorted(df_league['Team'].unique())
+
+        # Team select
+        teams = sorted(df_league['Team'].dropna().unique())
         team = st.selectbox("Select Team", teams)
 
-        # Filter by season, league, team for positions
         df_team = df_league[df_league['Team'] == team]
-        positions = sorted(df_team['Position'].unique())
+
+        # Position select
+        positions = sorted(df_team['Position'].dropna().unique())
         position = st.selectbox("Select Player Position", positions)
 
-        # Players filtered by season, league, team, position
-        players = sorted(df_team[df_team['Position'] == position]['Player Name'].unique())
+        # Player select
+        df_position = df_team[df_team['Position'] == position]
+        players = sorted(df_position['Player Name'].dropna().unique())
         player = st.selectbox("Select Player", players)
 
-    # Filter the full DataFrame for selected player row
+    # Get player row
     player_row = df[
         (df['Player Name'] == player) &
         (df['Team'] == team) &
@@ -102,19 +102,16 @@ def main():
 
     player_row = player_row.iloc[0]
 
-    # Display player info
     st.markdown(f"### {player}")
-    st.markdown(f"**Team:** {team}  ")
-    st.markdown(f"**League:** {league}  ")
-    st.markdown(f"**Season:** {season}  ")
-    st.markdown(f"**Position:** {position}  ")
+    st.markdown(f"**Team:** {team}")
+    st.markdown(f"**League:** {league}")
+    st.markdown(f"**Season:** {season}")
+    st.markdown(f"**Position:** {position}")
     st.markdown(f"**Age:** {int(player_row['Age']) if 'Age' in player_row else 'N/A'}  |  **Minutes:** {int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'}")
 
-    # Get metrics for position
+    # Metrics
     metrics = get_metrics_by_position(position, api="statbomb")
-
-    # Calculate percentile ranks
-    player_percentiles = get_player_metrics_percentile_ranks(df_team, player, position, metrics)
+    player_percentiles = get_player_metrics_percentile_ranks(df_position, player, position, metrics)
 
     if player_percentiles is None or player_percentiles.empty:
         st.warning("Player metric data not found or incomplete.")
@@ -122,11 +119,11 @@ def main():
 
     percentiles = player_percentiles[metrics].iloc[0].round(1)
 
-    # Plot percentile bar chart
+    # Plot
     fig = plot_horizontal_bars(percentiles)
     st.plotly_chart(fig, use_container_width=True)
 
-    # Calculate scores
+    # Scores
     overall_score = percentiles.mean()
     weighted_score = overall_score * get_weighted_score(league)
 
