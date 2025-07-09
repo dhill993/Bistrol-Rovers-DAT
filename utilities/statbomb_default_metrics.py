@@ -237,7 +237,7 @@ profiles_zcore = {
         }
 
     ],
-    "Centre Forward": [
+    "Runner": [
         {
             "Profile Name": "Providing Forward",
             "Using Metrics": [
