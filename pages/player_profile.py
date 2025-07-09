@@ -55,7 +55,7 @@ def main():
     df = get_player_season_data()
 
     with st.sidebar:
-        clubs = sorted(df['Club'].unique())
+        clubs = sorted(df['Team'].unique())
         club = st.selectbox("Select Club", clubs)
 
         league = st.selectbox("Select League", sorted(df['League'].unique()))
