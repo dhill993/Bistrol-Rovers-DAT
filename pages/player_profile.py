@@ -49,62 +49,49 @@ def main():
     st.title("Player Profile View")
 
     df = get_player_season_data()
+    st.write("Columns loaded:", df.columns.tolist())  # Debug - remove in production
 
-    # Sidebar filters
-    with st.sidebar:
-        # Select season first
-        seasons = sorted(df['Season'].unique())
-        season = st.selectbox("Select Season", seasons)
-
-        # Filter df by season for other selections
-        df_season = df[df['Season'] == season]
-
-        # Select league next
-        leagues = sorted(df_season['League'].unique())
-        league = st.selectbox("Select League", leagues)
-
-        # Filter df by league & season for teams
-        df_league = df_season[df_season['League'] == league]
-
-        # Teams only in selected league & season
-        teams = sorted(df_league['Team'].unique())
-        team = st.selectbox("Select Team", teams)
-
-        # Player positions in filtered df
-        positions = sorted(df_league['Position'].dropna().unique())
-        position = st.selectbox("Select Player Position", positions)
-
-        # Filter players by team, league, season, and position
-        filtered_players = df_league[
-            (df_league['Team'] == team) & 
-            (df_league['Position'] == position)
-        ]
-
-        if filtered_players.empty:
-            st.warning("No players found for selected filters.")
-            return
-
-        player = st.selectbox("Select Player", sorted(filtered_players['Player Name'].unique()))
-
-    player_rows = df[
-        (df['Player Name'] == player) & 
-        (df['Season'] == season) & 
-        (df['League'] == league) & 
-        (df['Team'] == team) & 
-        (df['Position'] == position)
-    ]
-
-    if player_rows.empty:
-        st.warning(f"No data found for player: {player}")
+    if 'Season' not in df.columns:
+        st.error("No 'Season' column found in data! Please check your data retrieval.")
         return
 
-    player_row = player_rows.iloc[0]
+    seasons = sorted(df['Season'].unique())
+    leagues = sorted(df['League'].unique())
 
+    with st.sidebar:
+        league = st.selectbox("Select League", leagues)
+
+        # Teams filtered by selected league
+        teams = sorted(df[df['League'] == league]['Team'].unique())
+        club = st.selectbox("Select Club", teams)
+
+        season = st.selectbox("Select Season", seasons)
+
+        positions = sorted(df['Position'].dropna().unique())
+        position = st.selectbox("Select Player Position", positions)
+
+        filtered = df[
+            (df['Team'] == club) &
+            (df['League'] == league) &
+            (df['Season'] == season) &
+            (df['Position'] == position)
+        ]
+
+        players = sorted(filtered['Player Name'].unique())
+        if not players:
+            st.warning("No players found for the selected filters.")
+            return
+
+        player = st.selectbox("Select Player", players)
+
+    player_row = filtered[filtered['Player Name'] == player].iloc[0]
+
+    position = player_row['Position']
     age = int(player_row['Age']) if 'Age' in player_row else 'N/A'
     minutes = int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'
 
     st.markdown(f"### {player}")
-    st.markdown(f"**Team:** {team}  ")
+    st.markdown(f"**Club:** {club}  ")
     st.markdown(f"**League:** {league}  ")
     st.markdown(f"**Season:** {season}  ")
     st.markdown(f"**Position:** {position}  ")
