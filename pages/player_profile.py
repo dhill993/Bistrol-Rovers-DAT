@@ -52,18 +52,20 @@ def main():
 
     df = get_player_season_data()
 
-    # Check for required columns
-    required_cols = ['Season', 'League', 'Team', 'Player Name', 'Position', 'Minutes']
-    for col in required_cols:
-        if col not in df.columns:
-            st.error(f"Missing required column: {col}")
-            return
+    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
+        st.error("No data returned from StatsBomb API. Please check connection or API credentials.")
+        return
+
+    if 'Season' not in df.columns:
+        st.error("'Season' column not found in data. Check column renaming in retrieve_statbomb_data.py.")
+        st.write("Available columns:", df.columns.tolist())
+        return
 
     # Sidebar filters
     with st.sidebar:
-        # Season select
         seasons = sorted(df['Season'].dropna().unique(), reverse=True)
         season = st.selectbox("Select Season", seasons)
+        ...
 
         df_season = df[df['Season'] == season]
 
