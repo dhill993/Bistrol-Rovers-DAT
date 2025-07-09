@@ -52,12 +52,16 @@ def main():
 
     df = get_player_season_data()
 
-    # Debug: show columns loaded to confirm
-    st.write("Columns in loaded data:", df.columns.tolist())
+    # Ensure 'Season' column exists by renaming if necessary
+    if 'Season' not in df.columns:
+        if 'season_name' in df.columns:
+            df.rename(columns={'season_name': 'Season'}, inplace=True)
+        else:
+            st.error("ERROR: Neither 'Season' nor 'season_name' column found in data.")
+            st.stop()
 
-    # Fix for Season column if missing but 'season_name' present
-    if 'Season' not in df.columns and 'season_name' in df.columns:
-        df.rename(columns={'season_name': 'Season'}, inplace=True)
+    # Debug: show columns in data
+    st.write("Columns in loaded data:", df.columns.tolist())
 
     # Sidebar filters
     with st.sidebar:
