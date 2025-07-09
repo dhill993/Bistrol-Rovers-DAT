@@ -1,84 +1,57 @@
 import streamlit as st
-from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
-from utilities.utils import get_metrics_by_position, get_player_metrics_percentile_ranks
-from visualizations.weighted_rank import get_weighted_rank
+import pandas as pd
+from utilities.utils import get_players_by_position
+from visualizations.pizza_chart import create_pizza_chart
+from visualizations.radar_chart import create_radar_chart
 
-@st.cache_data(ttl=14400)
-def load_data():
-    return get_statsbomb_player_season_stats()
+st.set_page_config(
+    page_title='Wyscout Player Profile',
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
 
-df = load_data()
+st.title("Wyscout Player Profile")
 
-st.title("🧍 Player Profile Summary")
+# Upload CSV data
+uploaded_file = st.file_uploader("Upload Wyscout Data CSV", type=['csv'])
+if uploaded_file:
+    wyscout_data = pd.read_csv(uploaded_file)
+    st.success("Data loaded successfully!")
 
-# Basic checks
-if df.empty:
-    st.error("❌ No data found.")
-    st.stop()
+    # Prepare positions - example: unique values from 'Position' column + special cases
+    playing_positions = list(wyscout_data['Position'].unique())
+    playing_positions.extend(['Number 8', 'Number 10'])
 
-required_columns = ["Season", "League", "Player Name", "Position", "Minutes", "Age", "Team"]
-missing = [col for col in required_columns if col not in df.columns]
-if missing:
-    st.error(f"❌ Missing columns: {missing}")
-    st.stop()
+    # Select inputs
+    league = st.selectbox('Select League:', sorted(wyscout_data['Team within selected timeframe'].unique()))
+    season = st.selectbox('Select Season:', sorted(wyscout_data.get('Season', ['All'])))  # If you have Season column
 
-season_list = sorted(df["Season"].dropna().unique())
-league_list = sorted(df["League"].dropna().unique())
+    position = st.selectbox('Select Playing Position:', playing_positions)
 
-selected_season = st.selectbox("Select Season", season_list)
-selected_league = st.selectbox("Select League", league_list)
+    # If special position, adjust for Number 6 as in your original script
+    actual_position = 'Number 6' if position in ['Number 8', 'Number 10'] else position
 
-filtered_df = df[(df["Season"] == selected_season) & (df["League"] == selected_league)]
+    players = get_players_by_position(wyscout_data, league, season, actual_position)
+    player_name = st.selectbox('Select Player:', players)
 
-player_list = sorted(filtered_df["Player Name"].dropna().unique())
-if not player_list:
-    st.warning("No players available for this season and league.")
-    st.stop()
+    st.markdown("---")
 
-selected_player = st.selectbox("Select Player", player_list)
+    # Buttons to generate charts
+    if st.button('Generate Pizza Chart'):
+        try:
+            fig_pizza = create_pizza_chart(wyscout_data, league, season, player_name, position, api='wyscout')
+            if fig_pizza:
+                st.pyplot(fig_pizza)
+        except Exception as e:
+            st.error(f"Error generating pizza chart: {e}")
 
-player_row = filtered_df[filtered_df["Player Name"] == selected_player].iloc[0]
-position = player_row["Position"]
-club = player_row["Team"]
-minutes = int(player_row["Minutes"])
-age = int(player_row["Age"])
+    if st.button('Generate Radar Chart'):
+        try:
+            fig_radar = create_radar_chart(wyscout_data, league, player_name, position, season, api='wyscout')
+            if fig_radar:
+                st.pyplot(fig_radar)
+        except Exception as e:
+            st.error(f"Error generating radar chart: {e}")
 
-# Get metrics for position
-metrics = get_metrics_by_position(position, api='statbomb')
-if not metrics:
-    st.error(f"No metrics found for position '{position}'.")
-    st.stop()
-
-player_metrics_df = get_player_metrics_percentile_ranks(filtered_df, selected_player, position, metrics)
-if player_metrics_df is None or player_metrics_df.empty:
-    st.error("Could not find percentile metrics for this player.")
-    st.stop()
-
-rank_df = get_weighted_rank(filtered_df, selected_player, selected_league, selected_season, position)
-if rank_df.empty or 'Overall Score' not in rank_df.columns or 'Score weighted aganist League One' not in rank_df.columns:
-    st.error("Could not find weighted rank scores.")
-    st.stop()
-
-score = rank_df["Overall Score"].values[0]
-score_vs_l1 = rank_df["Score weighted aganist League One"].values[0]
-
-# Profile card styled with markdown and inline CSS
-st.markdown(f"""
-<div style="background-color:#1a1a1a;padding:1.5rem;border-radius:12px;margin-bottom:1rem;">
-    <h2 style="color:#F2F2F2;">{selected_player}</h2>
-    <p style="color:#aaa;font-size:14px;">
-    <b>Club:</b> {club}<br>
-    <b>Position:</b> {position} | <b>Age:</b> {age} | <b>Minutes:</b> {minutes}
-    </p>
-    <div style="background-color:#2ecc71;padding:0.8rem;border-radius:8px;margin-top:1rem;">
-        <b style="color:white;">League Score:</b> {score:.1f} &nbsp;&nbsp;|&nbsp;&nbsp;
-        <b style="color:white;">vs League One:</b> {score_vs_l1:.1f}
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-st.subheader("📊 Percentile Metrics")
-for metric in metrics:
-    value = player_metrics_df[metric].values[0]
-    st.markdown(f"**{metric}** — {int(value)}%")
-    st.progress(int(value))
+else:
+    st.info("Please upload your Wyscout data CSV file to get started.")
