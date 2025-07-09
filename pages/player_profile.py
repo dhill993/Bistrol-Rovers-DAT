@@ -1,3 +1,13 @@
+df = load_data()
+
+# Debug: See what columns are present
+st.write("Available columns:", df.columns.tolist())
+
+# Guard for missing columns
+if df.empty or "Season" not in df.columns or "League" not in df.columns:
+    st.error("❌ Could not find required columns: 'Season' and/or 'League'.")
+    st.stop()
+
 import streamlit as st
 from utilities.utils import get_player_metrics_percentile_ranks, get_metrics_by_position
 from visualizations.weighted_rank import get_weighted_rank
