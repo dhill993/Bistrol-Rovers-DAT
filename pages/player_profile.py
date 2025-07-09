@@ -49,7 +49,7 @@ def plot_horizontal_bars(metrics: pd.Series):
 def main():
     st.title("Player Profile View")
 
-    df = load_player_data()
+    df = get_player_season_data()
 
     with st.sidebar:
         clubs = sorted(df['Club'].unique())
