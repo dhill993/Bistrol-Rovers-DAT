@@ -1,57 +1,89 @@
 import streamlit as st
 import pandas as pd
-from utilities.utils import get_players_by_position
-from visualizations.pizza_chart import create_pizza_chart
-from visualizations.radar_chart import create_radar_chart
+import matplotlib.pyplot as plt
+from PIL import Image
+import os
+
+from data.retrieve_wyscout_data import get_wyscout_player_season_stats
 
 st.set_page_config(
-    page_title='Wyscout Player Profile',
-    layout='wide',
-    initial_sidebar_state='expanded'
+    page_title="Player Profile",
+    page_icon="🎯",
+    layout="wide",
 )
 
-st.title("Wyscout Player Profile")
+# Load pre-processed wyscout data
+wyscout_data = get_wyscout_player_season_stats()
 
-# Upload CSV data
-uploaded_file = st.file_uploader("Upload Wyscout Data CSV", type=['csv'])
-if uploaded_file:
-    wyscout_data = pd.read_csv(uploaded_file)
-    st.success("Data loaded successfully!")
+# Sidebar selectors
+st.sidebar.title("Player Profile Filter")
+selected_league = st.sidebar.selectbox("Select League", sorted(wyscout_data["League"].dropna().unique()))
+filtered_league_df = wyscout_data[wyscout_data["League"] == selected_league]
 
-    # Prepare positions - example: unique values from 'Position' column + special cases
-    playing_positions = list(wyscout_data['Position'].unique())
-    playing_positions.extend(['Number 8', 'Number 10'])
+selected_season = st.sidebar.selectbox("Select Season", sorted(filtered_league_df["Season"].dropna().unique()))
+filtered_season_df = filtered_league_df[filtered_league_df["Season"] == selected_season]
 
-    # Select inputs
-    league = st.selectbox('Select League:', sorted(wyscout_data['Team within selected timeframe'].unique()))
-    season = st.selectbox('Select Season:', sorted(wyscout_data.get('Season', ['All'])))  # If you have Season column
+selected_player = st.sidebar.selectbox("Select Player", sorted(filtered_season_df["Player Name"].unique()))
+player_df = filtered_season_df[filtered_season_df["Player Name"] == selected_player].reset_index(drop=True)
 
-    position = st.selectbox('Select Playing Position:', playing_positions)
+if player_df.empty:
+    st.warning("No data found for this player.")
+    st.stop()
 
-    # If special position, adjust for Number 6 as in your original script
-    actual_position = 'Number 6' if position in ['Number 8', 'Number 10'] else position
+# Extract player info
+player = player_df.iloc[0]
+basic_info_cols = ["Player Name", "Age", "Position", "Minutes", "Team", "Market value", "Contract expires", "Foot", "Height", "Weight"]
+metrics_cols = [
+    "GOALS", "xG", "ASSISTS", "xA",
+    "DUELS PER 90", "DUELS WON %",
+    "SUCCESSFUL DEFENSIVE ACTIONS PER 90", "DEFENSIVE DUELS PER 90", "DEFENSIVE DUELS WON %",
+    "DRIBBLES PER 90", "SUCCESSFUL DRIBBLES %",
+    "PASSING ACCURACY" if "PASSING ACCURACY" in player_df.columns else "ACCURATE PASSES %",
+    "PROGRESSIVE PASSES PER 90", "TOUCHES IN BOX PER 90"
+]
 
-    players = get_players_by_position(wyscout_data, league, season, actual_position)
-    player_name = st.selectbox('Select Player:', players)
+# Layout: Card style
+st.markdown(f"""
+    <div style='background-color:#f4f4f4;padding:30px;border-radius:15px;box-shadow:0 4px 8px rgba(0,0,0,0.1);'>
+        <h2 style='margin-bottom:5px;'>{player['Player Name']}</h2>
+        <p style='font-size:18px;margin-top:0;color:#666;'>{player['Team']} | {player['Position']} | Age: {player['Age']}</p>
+        <hr style='margin:10px 0;'>
+        <p><strong>Minutes Played:</strong> {int(player['Minutes'])}</p>
+        <p><strong>Foot:</strong> {player['Foot']} &nbsp;&nbsp; <strong>Height:</strong> {player['Height']} cm &nbsp;&nbsp; <strong>Weight:</strong> {player['Weight']} kg</p>
+        <p><strong>Market Value:</strong> {player['Market value']} &nbsp;&nbsp; <strong>Contract:</strong> {player['Contract expires']}</p>
+    </div>
+""", unsafe_allow_html=True)
 
-    st.markdown("---")
+# Spacer
+st.markdown("###")
 
-    # Buttons to generate charts
-    if st.button('Generate Pizza Chart'):
+# Metrics Grid
+st.subheader("Performance Summary")
+cols = st.columns(3)
+for i, col in enumerate(cols * ((len(metrics_cols) + 2)//3)):
+    if i < len(metrics_cols):
+        metric = metrics_cols[i]
         try:
-            fig_pizza = create_pizza_chart(wyscout_data, league, season, player_name, position, api='wyscout')
-            if fig_pizza:
-                st.pyplot(fig_pizza)
-        except Exception as e:
-            st.error(f"Error generating pizza chart: {e}")
+            value = player[metric]
+            if isinstance(value, float):
+                value = f"{value:.2f}"
+            col.metric(label=metric.title(), value=value)
+        except KeyError:
+            col.metric(label=metric.title(), value="N/A")
 
-    if st.button('Generate Radar Chart'):
-        try:
-            fig_radar = create_radar_chart(wyscout_data, league, player_name, position, season, api='wyscout')
-            if fig_radar:
-                st.pyplot(fig_radar)
-        except Exception as e:
-            st.error(f"Error generating radar chart: {e}")
+# Optionally: add photo or club badge (placeholder if no API logic yet)
+img_col1, img_col2 = st.columns([1, 5])
+with img_col1:
+    try:
+        player_img_path = f"./assets/players/{player['Player Name'].replace(' ', '_')}.png"
+        if os.path.exists(player_img_path):
+            st.image(player_img_path, width=120)
+        else:
+            st.image("https://via.placeholder.com/120x150?text=Player", width=120)
+    except:
+        pass
 
-else:
-    st.info("Please upload your Wyscout data CSV file to get started.")
+with img_col2:
+    st.markdown("#### Notes")
+    st.info("You can customize this section with scouting insights or AI-written blurbs based on stats.")
+
