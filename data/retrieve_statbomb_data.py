@@ -165,3 +165,6 @@ def get_statsbomb_player_season_stats():
             combined_df[col] = 0
 
     return combined_df
+
+def get_player_season_data():
+    return get_statsbomb_player_season_stats()
