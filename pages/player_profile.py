@@ -16,15 +16,13 @@ from utilities.utils import (
 )
 from data.retrieve_statbomb_data import get_player_season_data
 
-
 def color_from_value(val):
     if val >= 70:
-        return "#58AC4E"  # Green
+        return "#58AC4E"
     elif val >= 50:
-        return "#1A78CF"  # Blue
+        return "#1A78CF"
     else:
-        return "#aa42af"  # Purple
-
+        return "#aa42af"
 
 def plot_horizontal_bars(metrics: pd.Series):
     colors = [color_from_value(v) for v in metrics.values]
@@ -46,55 +44,42 @@ def plot_horizontal_bars(metrics: pd.Series):
     )
     return fig
 
-
 def main():
     st.title("Player Profile View")
 
     df = get_player_season_data()
 
-    if df is None or not isinstance(df, pd.DataFrame) or df.empty:
-        st.error("No data returned from StatsBomb API. Please check connection or API credentials.")
-        return
-
     if 'Season' not in df.columns:
-        st.error("'Season' column not found in data. Check column renaming in retrieve_statbomb_data.py.")
+        st.error("Missing 'Season' column. Check data source.")
         st.write("Available columns:", df.columns.tolist())
         return
 
-    # Sidebar filters
     with st.sidebar:
         seasons = sorted(df['Season'].dropna().unique(), reverse=True)
         season = st.selectbox("Select Season", seasons)
-        ...
 
         df_season = df[df['Season'] == season]
 
-        # League select
         leagues = sorted(df_season['League'].dropna().unique())
         league = st.selectbox("Select League", leagues)
 
         df_league = df_season[df_season['League'] == league]
 
-        # Team select
         teams = sorted(df_league['Team'].dropna().unique())
         team = st.selectbox("Select Team", teams)
 
         df_team = df_league[df_league['Team'] == team]
 
-        # Position select
         positions = sorted(df_team['Position'].dropna().unique())
         position = st.selectbox("Select Player Position", positions)
 
-        # Player select
-        df_position = df_team[df_team['Position'] == position]
-        players = sorted(df_position['Player Name'].dropna().unique())
+        players = sorted(df_team[df_team['Position'] == position]['Player Name'].dropna().unique())
         player = st.selectbox("Select Player", players)
 
-    # Get player row
     player_row = df[
-        (df['Player Name'] == player) &
-        (df['Team'] == team) &
-        (df['League'] == league) &
+        (df['Player Name'] == player) & 
+        (df['Team'] == team) & 
+        (df['League'] == league) & 
         (df['Season'] == season)
     ]
 
@@ -105,34 +90,29 @@ def main():
     player_row = player_row.iloc[0]
 
     st.markdown(f"### {player}")
-    st.markdown(f"**Team:** {team}")
-    st.markdown(f"**League:** {league}")
-    st.markdown(f"**Season:** {season}")
-    st.markdown(f"**Position:** {position}")
+    st.markdown(f"**Team:** {team}  ")
+    st.markdown(f"**League:** {league}  ")
+    st.markdown(f"**Season:** {season}  ")
+    st.markdown(f"**Position:** {position}  ")
     st.markdown(f"**Age:** {int(player_row['Age']) if 'Age' in player_row else 'N/A'}  |  **Minutes:** {int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'}")
 
-    # Metrics
     metrics = get_metrics_by_position(position, api="statbomb")
-    player_percentiles = get_player_metrics_percentile_ranks(df_position, player, position, metrics)
+    player_percentiles = get_player_metrics_percentile_ranks(df_team, player, position, metrics)
 
     if player_percentiles is None or player_percentiles.empty:
         st.warning("Player metric data not found or incomplete.")
         return
 
     percentiles = player_percentiles[metrics].iloc[0].round(1)
-
-    # Plot
     fig = plot_horizontal_bars(percentiles)
     st.plotly_chart(fig, use_container_width=True)
 
-    # Scores
     overall_score = percentiles.mean()
     weighted_score = overall_score * get_weighted_score(league)
 
     col1, col2 = st.columns(2)
     col1.metric("Overall Percentile Score", f"{overall_score:.0f}%")
     col2.metric(f"{league} Weighted Score", f"{weighted_score:.0f}%")
-
 
 if __name__ == '__main__':
     main()
