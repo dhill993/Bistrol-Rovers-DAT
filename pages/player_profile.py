@@ -27,7 +27,6 @@ def color_from_value(val):
     else:
         return "#aa42af"  # Purple
 
-
 def plot_horizontal_bars(metrics: pd.Series):
     colors = [color_from_value(v) for v in metrics.values]
     fig = go.Figure(go.Bar(
@@ -48,19 +47,18 @@ def plot_horizontal_bars(metrics: pd.Series):
     )
     return fig
 
-
 def main():
     st.title("Player Profile View")
 
     df = get_player_season_data()
 
     with st.sidebar:
-        clubs = sorted(df['Team'].unique())
-        club = st.selectbox("Select Club", clubs)
+        teams = sorted(df['Team'].unique())
+        team = st.selectbox("Select Team", teams)
 
         league = st.selectbox("Select League", sorted(df['League'].unique()))
 
-        filtered = df[(df['Club'] == club) & (df['League'] == league)]
+        filtered = df[(df['Team'] == team) & (df['League'] == league)]
         player = st.selectbox("Select Player", sorted(filtered['Player Name'].unique()))
 
     # Get full player row
@@ -70,7 +68,7 @@ def main():
     minutes = int(player_row['Minutes']) if 'Minutes' in player_row else 'N/A'
 
     st.markdown(f"### {player}")
-    st.markdown(f"**Club:** {club}  ")
+    st.markdown(f"**Team:** {team}  ")
     st.markdown(f"**League:** {league}  ")
     st.markdown(f"**Position:** {position}  ")
     st.markdown(f"**Age:** {age}  |  **Minutes:** {minutes}")
@@ -92,7 +90,6 @@ def main():
     col1, col2 = st.columns(2)
     col1.metric("Overall Percentile Score", f"{overall_score:.0f}%")
     col2.metric(f"{league} Weighted Score", f"{weighted_score:.0f}%")
-
 
 if __name__ == '__main__':
     main()
