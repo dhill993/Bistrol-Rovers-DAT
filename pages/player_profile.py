@@ -155,10 +155,17 @@ with st.container():
         available_clubs = filtered_df[team_col].dropna().unique() if team_col in filtered_df.columns else ['N/A']
         selected_club = st.selectbox("Club", available_clubs)
     
-    with col3:
-        pos_col = 'primary_position_name' if 'primary_position_name' in filtered_df.columns else 'Position'
-        available_positions = filtered_df[pos_col].dropna().unique() if pos_col in filtered_df.columns else ['N/A']
-        selected_position = st.selectbox("Position", available_positions)
+with col3:
+    possible_position_cols = ['primary_position_name', 'Position', 'position', 'Pos', 'Role']
+    pos_col = next((col for col in possible_position_cols if col in filtered_df.columns), None)
+
+    if not pos_col:
+        st.error("No valid position column found in the dataset.")
+        st.stop()
+
+    available_positions = filtered_df[pos_col].dropna().unique()
+    selected_position = st.selectbox("Position", available_positions) if len(available_positions) > 0 else "N/A"
+
     
     with col4:
         st.text_input("League", value=selected_league, disabled=True)
