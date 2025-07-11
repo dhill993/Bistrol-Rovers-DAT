@@ -156,16 +156,9 @@ with st.container():
         selected_club = st.selectbox("Club", available_clubs)
     
 with col3:
-# Attempt to auto-detect a usable position column (case-insensitive)
-lower_columns = {col.lower(): col for col in filtered_df.columns}
-pos_col = lower_columns.get("position", None)
-
-if pos_col is None:
-    st.error("No 'Position' column found in uploaded data.")
-    st.stop()
-
-available_positions = filtered_df[pos_col].dropna().unique()
-selected_position = st.selectbox("Position", sorted(available_positions))
+    pos_col = 'primary_position_name' if 'primary_position_name' in filtered_df.columns else 'Position'
+    available_positions = filtered_df[pos_col].dropna().unique() if pos_col in filtered_df.columns else ['N/A']
+    selected_position = st.selectbox("Position", available_positions)
     
     with col4:
         st.text_input("League", value=selected_league, disabled=True)
