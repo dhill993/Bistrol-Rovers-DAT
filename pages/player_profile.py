@@ -171,7 +171,8 @@ with col3:
     available_positions = filtered_df[position_col].dropna().unique()
     selected_position = st.selectbox("Position", sorted(available_positions))
 
-    display_df = filtered_df[
+# ✅ Filter the dataframe outside of the layout block
+display_df = filtered_df[
     (filtered_df[player_col] == selected_player) &
     (filtered_df[team_col] == selected_club) &
     (filtered_df[position_col] == selected_position)
