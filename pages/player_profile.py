@@ -177,6 +177,13 @@ display_df = filtered_df[
     (filtered_df[team_col] == selected_club) &
     (filtered_df[position_col] == selected_position)
 ]
+
+# Fallback in case the combination gives no data
+if display_df.empty:
+    display_df = filtered_df[filtered_df[player_col] == selected_player]
+
+if not display_df.empty:
+    player_data = display_df.iloc[0]
    
     with col4:
         st.text_input("League", value=selected_league, disabled=True)
