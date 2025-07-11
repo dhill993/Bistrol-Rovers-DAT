@@ -126,7 +126,7 @@ with col2:
     available_seasons = league_df['Season'].dropna().unique() if 'Season' in league_df.columns else ['All Seasons']
     selected_season = st.selectbox("Select Season", ['All Seasons'] + list(available_seasons))
 
-with col3:
+
     if selected_season != 'All Seasons':
         filtered_df = league_df[league_df['Season'] == selected_season] if 'Season' in league_df.columns else league_df
     else:
@@ -156,10 +156,27 @@ with st.container():
         selected_club = st.selectbox("Club", available_clubs)
     
 with col3:
-    pos_col = 'primary_position_name' if 'primary_position_name' in filtered_df.columns else 'Position'
-    available_positions = filtered_df[pos_col].dropna().unique() if pos_col in filtered_df.columns else ['N/A']
-    selected_position = st.selectbox("Position", available_positions)
-    
+    position_col = (
+        "primary_position_name"
+        if "primary_position_name" in filtered_df.columns
+        else "position"
+        if "position" in filtered_df.columns
+        else None
+    )
+
+    if position_col is None:
+        st.error("No valid position column found in the dataset.")
+        st.stop()
+
+    available_positions = filtered_df[position_col].dropna().unique()
+    selected_position = st.selectbox("Position", sorted(available_positions))
+
+    display_df = filtered_df[
+    (filtered_df[player_col] == selected_player) &
+    (filtered_df[team_col] == selected_club) &
+    (filtered_df[position_col] == selected_position)
+]
+   
     with col4:
         st.text_input("League", value=selected_league, disabled=True)
     
