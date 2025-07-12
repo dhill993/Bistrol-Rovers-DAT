@@ -202,9 +202,6 @@ if not df.empty:
                     textfont=dict(color='white', size=12, family='Arial Black')
                 ))
                 
-                fig.update_layout(
-    margin=dict(l=60, r=40, t=40, b=40)
-)
                     title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
                               font=dict(color='white', size=16), x=0.5),
                     plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
