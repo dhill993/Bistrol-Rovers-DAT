@@ -266,7 +266,13 @@ if not df.empty:
             overall_rank = np.mean(values) if values else 0
             minutes_played = int(player_data.get('player_season_minutes', 0))
             team_name = player_data.get('team_name', 'Unknown')
-            age = int(player_data.get('player_season_age', 0))
+            # Try multiple possible age column names
+            age_columns = ['age', 'player_age', 'player_season_age']
+            age = 0
+            for age_col in age_columns:
+                if age_col in player_data.index and pd.notna(player_data.get(age_col)):
+                    age = int(player_data.get(age_col, 0))
+                    break
             
             with col1:
                 st.markdown(f"""
