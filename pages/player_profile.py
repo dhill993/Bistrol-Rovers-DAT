@@ -203,7 +203,6 @@ if not df.empty:
                 ))
                 
                 fig.update_layout(
-    ...
     margin=dict(l=60, r=40, t=40, b=40)
 )
                     title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
