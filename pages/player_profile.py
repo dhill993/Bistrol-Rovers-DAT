@@ -201,7 +201,6 @@ if not df.empty:
                     textposition='outside',
                     textfont=dict(color='white', size=12, family='Arial Black')
                 ))
-                
                     title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
                               font=dict(color='white', size=16), x=0.5),
                     plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
