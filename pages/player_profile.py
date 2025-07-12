@@ -8,8 +8,8 @@ from statsbombpy import sb
 # Position mapping from pizza chart logic
 position_mapping = {
     "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
-    "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back",
-    "Right Wing Back": "Full Back",
+    "Left Back": "Number 3", "Right Back": "Number 3", "Left Wing Back": "Number 3",
+    "Right Wing Back": "Number 3",
     "Defensive Midfielder": "Number 8", "Left Defensive Midfielder": "Number 8",
     "Right Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8",
     "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
@@ -104,7 +104,7 @@ def get_available_metrics(df):
     return [metric for metric in ALL_METRICS if metric in df.columns]
 
 # Main app
-st.title("📊 Player Performance Dashboard")
+st.title("🏆 Player Performance Dashboard")
 
 # Load StatsBomb data
 with st.spinner("Loading StatsBomb data..."):
@@ -185,21 +185,11 @@ if not df.empty:
             values = []
             labels = []
             
-           # Calculate percentiles for selected metrics
-values = []
-labels = []
-
-for metric in selected_metrics:
-    if metric in position_df.columns and pd.notna(player_data.get(metric)):
-        try:
-            raw_percentile = position_df[metric].rank(pct=True).loc[player_data.name]
-            capped_percentile = raw_percentile * 95  # scale to max of 95%
-            percentile = min(capped_percentile, 95)
-            values.append(percentile)
-            labels.append(metric_display_names[metric])
-        except Exception as e:
-            st.warning(f"⚠️ Issue processing metric '{metric}': {e}")
-
+            for metric in selected_metrics:
+                if metric in position_df.columns and pd.notna(player_data.get(metric)):
+                    percentile = position_df[metric].rank(pct=True).loc[player_data.name] * 100
+                    values.append(percentile)
+                    labels.append(metric_display_names[metric])
             
             if values:
                 colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
@@ -213,17 +203,16 @@ for metric in selected_metrics:
                 ))
                 
                 fig.update_layout(
-    title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
-               font=dict(color='white', size=16), x=0.5),
-    plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
-    font=dict(color='white'), height=max(400, len(values) * 30),
-    xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
-               title="Percentile Ranking vs Same Position", tickfont=dict(color='white')),
-    yaxis=dict(tickfont=dict(color='white'), categoryorder='array',
-               categoryarray=labels[::-1]),
-    showlegend=False
-)
-
+                    title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
+                              font=dict(color='white', size=16), x=0.5),
+                    plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
+                    font=dict(color='white'), height=max(400, len(values) * 30),
+                    xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
+                              title="Percentile Ranking vs Same Position", tickfont=dict(color='white')),
+                    yaxis=dict(tickfont=dict(color='white'), categoryorder='array',
+                              categoryarray=labels[::-1]),
+                    showlegend=False
+                )
                 
                 st.plotly_chart(fig, use_container_width=True)
                 
