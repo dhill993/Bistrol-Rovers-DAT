@@ -187,7 +187,7 @@ if not df.empty:
             
             for metric in selected_metrics:
                 if metric in position_df.columns and pd.notna(player_data.get(metric)):
-                    percentile = position_df[metric].rank(pct=True).loc[player_data.name] * 95
+                    percentile = position_df[metric].rank(pct=True).loc[player_data.name] * 100
                     values.append(percentile)
                     labels.append(metric_display_names[metric])
             
@@ -201,11 +201,13 @@ if not df.empty:
                     textposition='outside',
                     textfont=dict(color='white', size=12, family='Arial Black')
                 ))
+                
+                fig.update_layout(
                     title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
                               font=dict(color='white', size=16), x=0.5),
                     plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
                     font=dict(color='white'), height=max(400, len(values) * 30),
-xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
+                    xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
            title="Percentile Ranking vs Same Position", tickfont=dict(color='white'),
            dtick=10)
                     yaxis=dict(tickfont=dict(color='white'), categoryorder='array',
