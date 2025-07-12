@@ -142,17 +142,9 @@ st.title("🏆 Player Performance Dashboard")
 # Load StatsBomb data
 with st.spinner("Loading StatsBomb data..."):
     df = get_statsbomb_data()
-    if not df.empty:
-        st.success(f"Loaded {len(df)} player records")
-        
-        # Show position distribution in sidebar
-        st.sidebar.write("Position Distribution:")
-        position_counts = df['mapped_position'].value_counts()
-        for pos, count in position_counts.items():
-            st.sidebar.write(f"- {pos}: {count}")
 
 if not df.empty:
-    # Filters
+    # Filters - removed sidebar, now in main area
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -182,6 +174,7 @@ if not df.empty:
     # Player selection
     players = ['Select a player'] + sorted(filtered_df['player_name'].unique().tolist())
     selected_player = st.selectbox("Select Player", players)
+
     
     if selected_player != "Select a player":
         player_data = filtered_df[filtered_df['player_name'] == selected_player].iloc[0]
