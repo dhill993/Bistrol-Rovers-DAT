@@ -8,8 +8,8 @@ from statsbombpy import sb
 # Position mapping from pizza chart logic
 position_mapping = {
     "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
-    "Left Back": "Number 3", "Right Back": "Number 3", "Left Wing Back": "Number 3",
-    "Right Wing Back": "Number 3",
+    "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back",
+    "Right Wing Back": "Full Back",
     "Defensive Midfielder": "Number 8", "Left Defensive Midfielder": "Number 8",
     "Right Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8",
     "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
@@ -187,7 +187,9 @@ if not df.empty:
             
             for metric in selected_metrics:
                 if metric in position_df.columns and pd.notna(player_data.get(metric)):
-                    percentile = position_df[metric].rank(pct=True).loc[player_data.name] * 100
+                    raw_percentile = position_df[metric].rank(pct=True).loc[player_data.name]
+capped_percentile = raw_percentile * 95  # scale to max of 95%
+percentile = min(capped_percentile, 95)
                     values.append(percentile)
                     labels.append(metric_display_names[metric])
             
