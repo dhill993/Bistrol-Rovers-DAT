@@ -186,12 +186,13 @@ if not df.empty:
             labels = []
             
             for metric in selected_metrics:
-                if metric in position_df.columns and pd.notna(player_data.get(metric)):
-                    raw_percentile = position_df[metric].rank(pct=True).loc[player_data.name]
-capped_percentile = raw_percentile * 95  # scale to max of 95%
-percentile = min(capped_percentile, 95)
-                    values.append(percentile)
-                    labels.append(metric_display_names[metric])
+    if metric in position_df.columns and pd.notna(player_data.get(metric)):
+        raw_percentile = position_df[metric].rank(pct=True).loc[player_data.name]
+        capped_percentile = raw_percentile * 95  # scale to max of 95%
+        percentile = min(capped_percentile, 95)
+        values.append(percentile)
+        labels.append(metric_display_names[metric])
+
             
             if values:
                 colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
