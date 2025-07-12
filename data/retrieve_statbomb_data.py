@@ -95,6 +95,7 @@ position_mapping = {
     "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", 
     "Right Wing Back": "Full Back", 
     
+    # Map all CB variants to Outside Centre Back profile
     "Centre Back": "Outside Centre Back", "Right Centre Back": "Outside Centre Back", "Left Centre Back": "Outside Centre Back", 
     
     "Number 8": "Number 8", 
@@ -109,10 +110,12 @@ position_mapping = {
     "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
     "Right Wing": "Winger", 
     
+    # Map all CF variants to Runner profile
     "Centre Forward": "Runner", "Left Centre Forward": "Runner", "Right Centre Forward": "Runner", 
     
     "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goalkeeper"
 }
+
 
 # --- Main Statsbomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
@@ -139,13 +142,7 @@ def get_statsbomb_player_season_stats():
             df = df[available_cols]
 
             df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
-
-            # ✅ Fixed to avoid deprecated `errors='ignore'`
-            for col in df.columns:
-                try:
-                    df[col] = pd.to_numeric(df[col])
-                except (ValueError, TypeError):
-                    pass
+            df = df.apply(pd.to_numeric, errors='ignore')
 
             df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
 
@@ -162,6 +159,7 @@ def get_statsbomb_player_season_stats():
 
     combined_df = pd.concat(dataframes, ignore_index=True)
 
+    # Ensure missing columns exist with default 0 to avoid 'not in index' errors
     for col in ['Pass Forward %', 'Scoring Contribution']:
         if col not in combined_df.columns:
             combined_df[col] = 0
