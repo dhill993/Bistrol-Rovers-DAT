@@ -203,17 +203,17 @@ if not df.empty:
                 ))
                 
                 fig.update_layout(
-                    title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
-                              font=dict(color='white', size=16), x=0.5),
-                    plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
-                    font=dict(color='white'), height=max(400, len(values) * 30),
-                    xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
-           title="Percentile Ranking vs Same Position", tickfont=dict(color='white'),
-           dtick=10)
-                    yaxis=dict(tickfont=dict(color='white'), categoryorder='array',
-                              categoryarray=labels[::-1]),
-                    showlegend=False
-                )
+    title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
+               font=dict(color='white', size=16), x=0.5),
+    plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
+    font=dict(color='white'), height=max(400, len(values) * 30),
+    xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
+               title="Percentile Ranking vs Same Position", tickfont=dict(color='white')),
+    yaxis=dict(tickfont=dict(color='white'), categoryorder='array',
+               categoryarray=labels[::-1]),
+    showlegend=False
+)
+
                 
                 st.plotly_chart(fig, use_container_width=True)
                 
