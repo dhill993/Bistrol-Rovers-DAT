@@ -1,284 +1,325 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-import numpy as np
-import os
-from datetime import datetime
-from statsbombpy import sb
-from utilities.utils import get_player_metrics_percentile_ranks, get_weighted_score
-from utilities.wyscout_default_metrics import metrics_per_position
+import statsbombpy as sb
+from mplsoccer import PyPizza
+from matplotlib.patches import Patch,Circle
+import matplotlib.pyplot as plt
+from utilities.utils import get_metrics_by_position
+from utilities.utils import get_player_metrics_percentile_ranks
+from utilities.utils import custom_fontt
 
-st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
+def create_pizza_chart(complete_data,league_name,season, player_name, position, api="statbomb"):
+    position_specific_metric = get_metrics_by_position(position, api)
 
-# Bristol Rovers styling
-st.markdown("""
-<style>
-    .main { background-color: #1e3a8a; color: white; }
-    .stSelectbox > div > div { background-color: #3b82f6; color: white; border: 1px solid #60a5fa; }
-    .stFileUploader > div { background-color: #3b82f6; border: 1px solid #60a5fa; }
-    .metric-card {
-        background-color: #16a34a; padding: 20px; border-radius: 10px;
-        text-align: center; color: white; margin: 5px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #22c55e;
-    }
-    .metric-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
-    .metric-value { font-size: 36px; font-weight: bold; }
-    .filter-container { background-color: #1e40af; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-    .chart-container { background-color: #1e40af; padding: 15px; border-radius: 8px; }
-    .league-section { background-color: #1e40af; padding: 20px; border-radius: 8px; margin: 15px 0; }
-</style>
-""", unsafe_allow_html=True)
+    if position == 'Number 6' and api=='statbomb':
+        position = 'Number 8'
 
+    if (position == 'Number 8' or position == 'Number 10') and api=='wyscout':
+        position = 'Number 6'
+
+    if league_name not in ['All', '']:
+        complete_data = complete_data[complete_data['League'] == league_name]    
+    if season!='':
+        complete_data = complete_data[complete_data['Season']==season]
+
+    player_df_before = complete_data[complete_data['Player Name'] == player_name]    
+
+    player_df = get_player_metrics_percentile_ranks(complete_data, player_name, position, position_specific_metric)
+    if player_df is None or player_df.empty:
+        st.error(f'Player {player_name} not found.')
+        return None
+
+    params = position_specific_metric
+    values = []
+    for param in params:
+        if param in player_df.columns:
+            values.append(player_df[param].iloc[0])
+        else:
+            values.append(0)
+
+    slice_colors = ["#1A78CF"] * len(params)
+    text_colors = ["#000000"] * len(params)
+
+    baker = PyPizza(
+        params=params,
+        background_color="#F2F2F2",
+        straight_line_color="#EBEBE9",
+        straight_line_lw=1,
+        last_circle_color="#EBEBE9",
+        last_circle_lw=1,
+        other_circle_lw=0,
+        inner_circle_size=20
+    )
+
+    font_size = 12 if api == "statbomb" else 8
+
+    fig, ax = baker.make_pizza(
+        values,
+        figsize=(8, 8.5),
+        color_blank_space="same",
+        slice_colors=slice_colors,
+        value_colors=text_colors,
+        value_bck_colors=slice_colors,
+        blank_alpha=0.4,
+        kwargs_slices=dict(edgecolor="#F2F2F2", linewidth=1),
+        kwargs_params=dict(color="#000000", fontsize=font_size, fontproperties=custom_fontt.prop, va="center"),
+        kwargs_values=dict(color="#000000", fontsize=font_size, fontproperties=custom_fontt.prop, zorder=3,
+                          bbox=dict(edgecolor="#000000", facecolor="cornflowerblue", boxstyle="round,pad=0.2", lw=1))
+    )
+
+    fig.text(0.515, 0.975, f"{player_name} - {position}", size=16, fontproperties=custom_fontt.prop, ha="center", color="#000000")
+    fig.text(0.515, 0.953, "Percentile Rank vs. Positional Peers", size=13, fontproperties=custom_fontt.prop, ha="center", color="#000000")
+    
+    CREDIT_1 = f"data: {api}"
+    CREDIT_2 = "inspired by: @Worville, @FootballSlices, @somazerofc & @Soumyaj15209314"
+    fig.text(0.99, 0.02, f"{CREDIT_1}\n{CREDIT_2}", size=9, fontproperties=custom_fontt.prop, color="#000000", ha="right")
+
+    return fig
 @st.cache_data
 def get_statsbomb_data():
-    """Fetch StatsBomb data using API credentials"""
     try:
-        user = st.secrets["user"]
-        passwd = st.secrets["passwd"]
-        creds = {"user": user, "passwd": passwd}
-        
-        all_comps = sb.competitions(creds=creds)
+        creds = {"user": st.secrets["SB_USERNAME"], "passwd": st.secrets["SB_PASSWORD"]}
+        competitions = sb.competitions(creds=creds)
         dataframes = []
         
-        def calculate_age(birth_date):
-            today = datetime.today()
-            return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-        
-        for _, row in all_comps.iterrows():
+        for _, comp in competitions.iterrows():
+            comp_id = comp['competition_id']
+            season_id = comp['season_id']
+            
             try:
-                comp_id, season_id = row["competition_id"], row["season_id"]
                 df = sb.player_season_stats(comp_id, season_id, creds=creds)
-                
-                df['birth_date'] = pd.to_datetime(df['birth_date'])
-                df['Age'] = df['birth_date'].apply(calculate_age)
-                df['League'] = row['competition_name']
-                df['Season'] = row['season_name']
-                
+                df['League'] = comp['competition_name']
+                df['Season'] = comp['season_name']
                 dataframes.append(df)
             except Exception as e:
+                st.warning(f"Could not load data for {comp['competition_name']} {comp['season_name']}: {str(e)}")
                 continue
-                
+        
         return pd.concat(dataframes, ignore_index=True) if dataframes else pd.DataFrame()
+    
     except Exception as e:
-        st.error(f"StatsBomb API error: {e}")
+        st.error(f"Error loading StatsBomb data: {str(e)}")
         return pd.DataFrame()
 
-@st.cache_data
 def process_wyscout_files(uploaded_files):
-    """Process uploaded Wyscout Excel files"""
-    if not uploaded_files:
-        return pd.DataFrame()
-    
     dataframes = []
     for file in uploaded_files:
-        try:
-            df = pd.read_excel(file)
-            # Standardize column names
-            df.columns = df.columns.str.strip()
-            dataframes.append(df)
-        except Exception as e:
-            st.error(f"Error processing {file.name}: {e}")
-    
+        df = pd.read_excel(file)
+        df.columns = df.columns.str.strip()
+        dataframes.append(df)
     return pd.concat(dataframes, ignore_index=True) if dataframes else pd.DataFrame()
 
+# Initialize session state
+if 'df' not in st.session_state:
+    st.session_state.df = pd.DataFrame()
+
+st.title("Player Profile Dashboard")
+
 # Data source selection
-st.title("🎯 Player Performance Dashboard")
+data_source = st.selectbox("Select Data Source", ["StatsBomb", "Upload Wyscout Files"])
 
-data_source = st.radio("Select Data Source:", ["StatsBomb API", "Wyscout Upload"], horizontal=True)
+if data_source == "StatsBomb":
+    if st.button("Load StatsBomb Data"):
+        with st.spinner("Loading StatsBomb data..."):
+            df = get_statsbomb_data()
+            st.session_state.df = df
+            if not df.empty:
+                st.success(f"Loaded {len(df)} player records")
+    df = st.session_state.df
 
-df = pd.DataFrame()
-
-if data_source == "StatsBomb API":
-    with st.spinner("Fetching StatsBomb data..."):
-        df = get_statsbomb_data()
-        
-elif data_source == "Wyscout Upload":
-    uploaded_files = st.file_uploader(
-        "Upload Wyscout Excel files", 
-        type=['xlsx', 'xls'], 
-        accept_multiple_files=True
-    )
-    
+elif data_source == "Upload Wyscout Files":
+    uploaded_files = st.file_uploader("Upload Wyscout Excel files", type=['xlsx'], accept_multiple_files=True)
     if uploaded_files:
-        with st.spinner("Processing Wyscout files..."):
+        with st.spinner("Processing uploaded files..."):
             df = process_wyscout_files(uploaded_files)
-
-if df.empty:
-    st.warning("No data available. Please select a data source and ensure proper configuration.")
-    st.stop()
-
-# League drill-down section
-st.markdown("<div class='league-section'>", unsafe_allow_html=True)
-st.subheader("🏆 League Analysis")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    available_leagues = df['League'].dropna().unique() if 'League' in df.columns else ['All Leagues']
-    selected_league = st.selectbox("Select League", ['All Leagues'] + list(available_leagues))
-
-with col2:
-    if selected_league != 'All Leagues':
-        league_df = df[df['League'] == selected_league] if 'League' in df.columns else df
-    else:
-        league_df = df
+            st.session_state.df = df
+            if not df.empty:
+                st.success(f"Loaded {len(df)} player records")
+    df = st.session_state.df
+# Only show filters if we have data
+if not df.empty:
+    st.markdown("---")
     
-    available_seasons = league_df['Season'].dropna().unique() if 'Season' in league_df.columns else ['All Seasons']
-    selected_season = st.selectbox("Select Season", ['All Seasons'] + list(available_seasons))
-
-with col3:
-    if selected_season != 'All Seasons':
-        filtered_df = league_df[league_df['Season'] == selected_season] if 'Season' in league_df.columns else league_df
-    else:
-        filtered_df = league_df
-    
-    st.metric("Players in Selection", len(filtered_df))
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-# Main filters
-with st.container():
-    st.markdown("<div class='filter-container'>", unsafe_allow_html=True)
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    # League and Season filters
+    col1, col2 = st.columns(2)
     
     with col1:
-        player_col = 'player_name' if 'player_name' in filtered_df.columns else 'Player'
-        if player_col in filtered_df.columns:
-            selected_player = st.selectbox("Player", filtered_df[player_col].dropna().sort_values().unique())
-            player_data = filtered_df[filtered_df[player_col] == selected_player].iloc[0]
-        else:
-            st.error("Player column not found")
-            st.stop()
+        available_leagues = df['League'].dropna().unique() if 'League' in df.columns else ['All Leagues']
+        selected_league = st.selectbox("League", ['All'] + list(available_leagues))
+        league_df = df[df['League'] == selected_league] if selected_league != 'All' and 'League' in df.columns else df
     
     with col2:
-        team_col = 'team_name' if 'team_name' in filtered_df.columns else 'Team'
-        available_clubs = filtered_df[team_col].dropna().unique() if team_col in filtered_df.columns else ['N/A']
-        selected_club = st.selectbox("Club", available_clubs)
-    
-    with col3:
-        pos_col = 'primary_position_name' if 'primary_position_name' in filtered_df.columns else 'Position'
-        available_positions = filtered_df[pos_col].dropna().unique() if pos_col in filtered_df.columns else ['N/A']
-        selected_position = st.selectbox("Position", available_positions)
-    
-    with col4:
-        st.text_input("League", value=selected_league, disabled=True)
-    
-    with col5:
-        age_val = str(player_data.get('Age', 'N/A'))
-        st.text_input("Age", value=age_val, disabled=True)
-    
-    with col6:
-        minutes_col = 'minutes_played_overall' if 'minutes_played_overall' in filtered_df.columns else 'Minutes played'
-        minutes_played = int(player_data.get(minutes_col, 0)) if pd.notna(player_data.get(minutes_col, 0)) else 0
-        st.text_input("Minutes", value=str(minutes_played), disabled=True)
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+        available_seasons = league_df['Season'].dropna().unique() if 'Season' in league_df.columns else ['All Seasons']
+        selected_season = st.selectbox("Season", ['All'] + list(available_seasons))
+        filtered_df = league_df[league_df['Season'] == selected_season] if selected_season != 'All' and 'Season' in league_df.columns else league_df
 
-# Filter data based on selections
-display_df = filtered_df[
-    (filtered_df[player_col] == selected_player) &
-    (filtered_df[team_col] == selected_club) &
-    (filtered_df[pos_col] == selected_position)
-]
-
-if display_df.empty:
-    display_df = filtered_df[filtered_df[player_col] == selected_player]
-
-if not display_df.empty:
-    player_data = display_df.iloc[0]
-
-# Performance chart
-with st.container():
-    st.markdown("<div class='chart-container'>", unsafe_allow_html=True)
+    st.markdown("---")
     
-    # Define metrics based on data source
-    if data_source == "StatsBomb API":
-        metrics = [
-            'player_season_goals', 'player_season_assists', 'player_season_xg',
-            'player_season_xa', 'player_season_shots', 'player_season_key_passes',
-            'player_season_dribbles_completed', 'player_season_passing_ratio'
-        ]
+    # Player selection and profile
+    if not filtered_df.empty:
+        # Determine column names - ROBUST APPROACH
+        player_col = None
+        team_col = None
+        pos_col = None
+        
+        # Find player column
+        player_columns = ['player_name', 'Player Name', 'Player', 'player', 'name']
+        for col_name in player_columns:
+            if col_name in filtered_df.columns:
+                player_col = col_name
+                break
+        
+        # Find team column
+        team_columns = ['team_name', 'Team', 'team', 'Club', 'club']
+        for col_name in team_columns:
+            if col_name in filtered_df.columns:
+                team_col = col_name
+                break
+        
+        # Find position column
+        position_columns = ['primary_position_name', 'Position', 'position', 'pos', 'Primary Position']
+        for col_name in position_columns:
+            if col_name in filtered_df.columns:
+                pos_col = col_name
+                break
+        
+        # Player, Team, Position filters
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if player_col:
+                available_players = ['Select Player'] + list(filtered_df[player_col].dropna().unique())
+                selected_player = st.selectbox("Player", available_players)
+            else:
+                st.error("No player column found in data")
+                selected_player = 'Select Player'
+        
+        with col2:
+            if team_col:
+                available_clubs = filtered_df[team_col].dropna().unique()
+                selected_club = st.selectbox("Club", ['All'] + list(available_clubs))
+            else:
+                st.warning("No team column found")
+                selected_club = 'All'
+        
+        with col3:
+            if pos_col:
+                available_positions = filtered_df[pos_col].dropna().unique()
+                selected_position = st.selectbox("Position", ['All'] + list(available_positions))
+            else:
+                st.warning("No position column found")
+                selected_position = 'All'
+        
+        # FIXED APPROACH: Get player data first, then extract position
+        if selected_player != 'Select Player' and player_col:
+            # Filter by player first (robust approach from pizza chart)
+            player_data_df = filtered_df[filtered_df[player_col] == selected_player]
+            
+            if not player_data_df.empty:
+                # Get the first matching player record
+                player_data = player_data_df.iloc[0]
+                
+                # Extract position from player record
+                player_position = None
+                if pos_col and pos_col in player_data.index:
+                    player_position = player_data[pos_col]
+                
+                # Apply additional filters if specified
+                display_df = player_data_df.copy()
+                
+                if selected_club != 'All' and team_col and team_col in display_df.columns:
+                    display_df = display_df[display_df[team_col] == selected_club]
+                
+                if selected_position != 'All' and pos_col and pos_col in display_df.columns:
+                    display_df = display_df[display_df[pos_col] == selected_position]
+                
+                if not display_df.empty:
+                    # Display player info
+                    st.markdown("### Player Profile")
+                    
+                    # Basic info
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    with col1:
+                        st.metric("Player", selected_player)
+                    
+                    with col2:
+                        team_name = player_data.get(team_col, 'N/A') if team_col and team_col in player_data.index else 'N/A'
+                        st.metric("Team", team_name)
+                    
+                    with col3:
+                        position_display = player_position if player_position else 'N/A'
+                        st.metric("Position", position_display)
+                    
+                    with col4:
+                        minutes_cols = ['minutes_played_overall', 'Minutes played', 'minutes', 'Minutes']
+                        minutes_played = 0
+                        for min_col in minutes_cols:
+                            if min_col in player_data.index and pd.notna(player_data[min_col]):
+                                minutes_played = int(player_data[min_col])
+                                break
+                        st.metric("Minutes Played", minutes_played)
+                    
+                    # Show player stats table
+                    st.markdown("### Player Statistics")
+                    
+                    # Create a clean display dataframe
+                    display_data = display_df.copy()
+                    
+                    # Remove system columns and keep only relevant stats
+                    cols_to_remove = ['Unnamed: 0', 'index', 'level_0']
+                    for col in cols_to_remove:
+                        if col in display_data.columns:
+                            display_data = display_data.drop(columns=[col])
+                    
+                    # Display the dataframe
+                    st.dataframe(display_data.T, use_container_width=True)
+                    # Pizza Chart Section
+                    if player_position:
+                        st.markdown("### Pizza Chart")
+                        
+                        api_type = "statbomb" if data_source == "StatsBomb" else "wyscout"
+                        
+                        if st.button("Generate Pizza Chart"):
+                            with st.spinner("Generating pizza chart..."):
+                                try:
+                                    # Use the complete dataset for percentile calculations
+                                    complete_data = st.session_state.df.copy()
+                                    
+                                    # Ensure Player Name column exists for pizza chart
+                                    if player_col != 'Player Name':
+                                        complete_data['Player Name'] = complete_data[player_col]
+                                    
+                                    fig = create_pizza_chart(
+                                        complete_data=complete_data,
+                                        league_name=selected_league if selected_league != 'All' else '',
+                                        season=selected_season if selected_season != 'All' else '',
+                                        player_name=selected_player,
+                                        position=player_position,
+                                        api=api_type
+                                    )
+                                    
+                                    if fig:
+                                        st.pyplot(fig)
+                                        st.success("Pizza chart generated successfully!")
+                                    else:
+                                        st.error("Could not generate pizza chart")
+                                        
+                                except Exception as e:
+                                    st.error(f"Error generating pizza chart: {str(e)}")
+                                    st.write("Debug info:")
+                                    st.write(f"Player: {selected_player}")
+                                    st.write(f"Position: {player_position}")
+                                    st.write(f"API: {api_type}")
+                    else:
+                        st.info("Position information needed for pizza chart generation")
+                else:
+                    st.warning("No data found for the selected filters")
+            else:
+                st.warning("Player not found in filtered data")
+        else:
+            st.info("Please select a player to view their profile")
     else:
-        metrics = [
-            'Goals per 90', 'Assists per 90', 'xG per 90', 'Key passes per 90',
-            'Shots per 90', 'Successful dribbles per 90', 'Pass accuracy %'
-        ]
-    
-    available_metrics = [m for m in metrics if m in filtered_df.columns]
-    
-    if available_metrics:
-        values = []
-        labels = []
-        
-        for metric in available_metrics:
-            if pd.notna(player_data.get(metric)):
-                percentile = filtered_df[metric].rank(pct=True).loc[player_data.name] * 100
-                values.append(percentile)
-                labels.append(metric.replace('player_season_', '').replace('_', ' ').title())
-        
-        if values:
-            colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
-            
-            fig = go.Figure(go.Bar(
-                y=labels, x=values, orientation='h',
-                marker_color=colors,
-                text=[f'{v:.0f}%' for v in values],
-                textposition='middle right',
-                textfont=dict(color='white', size=12, family='Arial Black')
-            ))
-            
-            fig.update_layout(
-                title=dict(text=f"Performance Metrics - {selected_player}", 
-                          font=dict(color='white', size=16), x=0.5),
-                plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
-                font=dict(color='white'), height=500,
-                xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
-                          title="Percentile Ranking", tickfont=dict(color='white')),
-                yaxis=dict(tickfont=dict(color='white'), categoryorder='array', 
-                          categoryarray=labels[::-1]),
-                showlegend=False
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# KPI cards
-col1, col2, col3 = st.columns(3)
-
-# Calculate overall rank
-if 'values' in locals() and values:
-    overall_rank = np.mean(values)
+        st.warning("No data available after applying filters")
 else:
-    overall_rank = 0
-
-# Calculate L1 weighted rank
-try:
-    league_weight = get_weighted_score(selected_league)
-    l1_weighted_rank = overall_rank * league_weight
-except:
-    l1_weighted_rank = overall_rank * 0.95
-
-with col1:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-title">Overall Rank</div>
-        <div class="metric-value">{overall_rank:.0f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-title">L1 Weighted Rank</div>
-        <div class="metric-value">{l1_weighted_rank:.0f}%</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-title">Minutes Played</div>
-        <div class="metric-value">{minutes_played:,}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.info("Please load data to begin analysis")
