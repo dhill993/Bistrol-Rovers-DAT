@@ -94,13 +94,19 @@ data_source = st.selectbox("Select Data Source", ["StatsBomb API", "Upload Wysco
 df = pd.DataFrame()
 
 if data_source == "StatsBomb API":
-    if st.button("Load StatsBomb Data"):
-        with st.spinner("Loading StatsBomb data..."):
-            df = get_statsbomb_data()
-            if not df.empty:
-                st.success(f"Loaded {len(df)} player records")
-            else:
-                st.error("No data loaded")
+    # Auto-load StatsBomb data if API credentials are available
+    try:
+        if "user" in st.secrets and "passwd" in st.secrets:
+            with st.spinner("Loading StatsBomb data..."):
+                df = get_statsbomb_data()
+                if not df.empty:
+                    st.success(f"Loaded {len(df)} player records")
+                else:
+                    st.error("No data loaded")
+        else:
+            st.error("StatsBomb API credentials not found in secrets")
+    except Exception as e:
+        st.error(f"Error loading StatsBomb data: {e}")
 
 elif data_source == "Upload Wyscout Files":
     uploaded_files = st.file_uploader(
@@ -194,7 +200,7 @@ if not df.empty:
     if selected_player != "Select a player":
         player_data = filtered_df[filtered_df[player_col] == selected_player].iloc[0]
         
-        # Extract position from player data - FIX APPLIED HERE
+        # Extract position from player data
         player_position = "Unknown"
         if position_col and pd.notna(player_data.get(position_col)):
             player_position = player_data[position_col]
@@ -229,11 +235,12 @@ if not df.empty:
             if values:
                 colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
                 
+                # FIXED: Use valid textposition for horizontal bar chart
                 fig = go.Figure(go.Bar(
                     y=labels, x=values, orientation='h',
                     marker_color=colors,
                     text=[f'{v:.0f}%' for v in values],
-                    textposition='middle right',
+                    textposition='outside',  # Changed from 'middle right' to 'outside'
                     textfont=dict(color='white', size=12, family='Arial Black')
                 ))
                 
