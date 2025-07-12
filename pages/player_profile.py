@@ -4,30 +4,28 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 from statsbombpy import sb
-import warnings
 
-# Suppress all warnings to prevent crashes
-warnings.filterwarnings("ignore")
-pd.options.mode.chained_assignment = None
-
-# Corrected position mapping
+# Position mapping from pizza chart logic
 position_mapping = {
-    "Centre Back": "Centre Back", "Left Centre Back": "Centre Back", "Right Centre Back": "Centre Back",
-    "Outside Centre Back": "Outside Centre Back", "Left Back": "Full Back", "Right Back": "Full Back", 
-    "Number 3": "Full Back", "Left Wing Back": "Wing Back", "Right Wing Back": "Wing Back",
-    "Defensive Midfielder": "Defensive Midfielder", "Left Defensive Midfielder": "Defensive Midfielder", 
-    "Right Defensive Midfielder": "Defensive Midfielder", "Centre Defensive Midfielder": "Defensive Midfielder",
-    "Left Centre Midfield": "Central Midfielder", "Left Centre Midfielder": "Central Midfielder", 
-    "Right Centre Midfield": "Central Midfielder", "Right Centre Midfielder": "Central Midfielder", 
-    "Centre Midfield": "Central Midfielder", "Left Attacking Midfield": "Attacking Midfielder", 
-    "Right Attacking Midfield": "Attacking Midfielder", "Right Attacking Midfielder": "Attacking Midfielder", 
-    "Attacking Midfield": "Attacking Midfielder", "Centre Attacking Midfielder": "Attacking Midfielder",
-    "Left Attacking Midfielder": "Attacking Midfielder", "Secondary Striker": "Striker",
-    "Centre Forward": "Striker", "Left Centre Forward": "Striker", "Right Centre Forward": "Striker",
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", 
-    "Left Wing": "Winger", "Right Wing": "Winger", "Goalkeeper": "Goalkeeper"
+    "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
+    "Left Back": "Number 3", "Right Back": "Number 3", "Left Wing Back": "Number 3",
+    "Right Wing Back": "Number 3",
+    "Defensive Midfielder": "Number 8", "Left Defensive Midfielder": "Number 8",
+    "Right Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8",
+    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8",
+    "Centre Midfield": "Number 8", "Left Attacking Midfield": "Number 8",
+    "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8",
+    "Attacking Midfield": "Number 8",
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
+    "Left Attacking Midfielder": "Number 10",
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
+    "Left Wing": "Winger", "Right Wing": "Winger",
+    "Centre Forward": "Runner", "Left Centre Forward": "Runner", "Right Centre Forward": "Runner",
+    "Goalkeeper": "Goalkeeper"
 }
 
+# All available metrics for selection
 ALL_METRICS = [
     'player_season_aerial_ratio', 'player_season_ball_recoveries_90', 'player_season_blocks_per_shot',
     'player_season_carries_90', 'player_season_crossing_ratio', 'player_season_deep_progressions_90',
@@ -51,27 +49,13 @@ ALL_METRICS = [
     'player_season_aggressive_actions_90'
 ]
 
-st.set_page_config(page_title="Player Performance Dashboard", layout="wide", page_icon="📊")
+st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
 
+# Styling
 st.markdown("""
 <style>
     .main { background-color: #1e3a8a; color: white; }
-    .metric-card-neutral {
-        background-color: #1e40af; padding: 20px; border-radius: 10px;
-        text-align: center; color: white; margin: 5px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #3b82f6;
-    }
-    .metric-card-red {
-        background-color: #dc2626; padding: 20px; border-radius: 10px;
-        text-align: center; color: white; margin: 5px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #ef4444;
-    }
-    .metric-card-amber {
-        background-color: #d97706; padding: 20px; border-radius: 10px;
-        text-align: center; color: white; margin: 5px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #f59e0b;
-    }
-    .metric-card-green {
+    .metric-card {
         background-color: #16a34a; padding: 20px; border-radius: 10px;
         text-align: center; color: white; margin: 5px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #22c55e;
@@ -79,25 +63,13 @@ st.markdown("""
     .metric-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
     .metric-value { font-size: 36px; font-weight: bold; }
     .chart-container { background-color: #1e40af; padding: 15px; border-radius: 8px; }
-    .logo-container { text-align: center; margin: 20px 0; }
+    .stMultiSelect > div > div > div { background-color: #1e40af; }
 </style>
 """, unsafe_allow_html=True)
 
-def safe_numeric_convert(df):
-    """Safely convert numeric columns without warnings"""
-    for col in df.columns:
-        if df[col].dtype == 'object':
-            try:
-                converted = pd.to_numeric(df[col], errors='coerce')
-                if not converted.isna().all():
-                    df[col] = converted
-            except:
-                continue
-    return df
-
-@st.cache_data(ttl=3600)
+@st.cache_data
 def get_statsbomb_data():
-    """Fetch StatsBomb data with crash protection"""
+    """Fetch StatsBomb data using API credentials"""
     try:
         user = st.secrets["user"]
         passwd = st.secrets["passwd"]
@@ -106,368 +78,190 @@ def get_statsbomb_data():
         all_comps = sb.competitions(creds=creds)
         dataframes = []
         
-        progress_bar = st.progress(0)
-        total_comps = len(all_comps)
-        
-        for idx, (_, row) in enumerate(all_comps.iterrows()):
+        for _, row in all_comps.iterrows():
             try:
                 comp_id, season_id = row["competition_id"], row["season_id"]
                 df = sb.player_season_stats(comp_id, season_id, creds=creds)
                 
-                if df.empty:
-                    continue
-                
-                # Safe numeric conversion
-                df = safe_numeric_convert(df)
-                
                 df['League'] = row['competition_name']
                 df['Season'] = row['season_name']
+                
+                # Apply position mapping
                 df['mapped_position'] = df['primary_position'].map(position_mapping)
                 df = df.dropna(subset=['mapped_position'])
                 
-                if not df.empty:
-                    dataframes.append(df)
-                    
-                progress_bar.progress((idx + 1) / total_comps)
-                
-            except Exception:
+                dataframes.append(df)
+            except:
                 continue
                 
-        progress_bar.empty()
-        
-        if dataframes:
-            combined_df = pd.concat(dataframes, ignore_index=True, sort=False)
-            return combined_df
-        else:
-            return pd.DataFrame()
-            
+        return pd.concat(dataframes, ignore_index=True) if dataframes else pd.DataFrame()
     except Exception as e:
-        st.error(f"Data loading error: {str(e)}")
+        st.error(f"StatsBomb API error: {e}")
         return pd.DataFrame()
 
 def get_available_metrics(df):
+    """Get metrics that are available in the dataframe"""
     return [metric for metric in ALL_METRICS if metric in df.columns]
 
-def get_player_age(player_data):
-    age_columns = ['age', 'player_age', 'player_season_age']
-    for col in age_columns:
-        if col in player_data.index and pd.notna(player_data.get(col)):
-            age_val = player_data.get(col)
-            if isinstance(age_val, (int, float)) and age_val > 0:
-                return int(age_val)
-    return None
-
-def get_transfermarkt_url(player_name):
-    clean_name = player_name.lower().replace(' ', '-').replace('.', '').replace("'", '')
-    return f"https://www.transfermarkt.com/{clean_name}/profil/spieler"
-
-def get_kpi_card_class(percentage):
-    if percentage < 49:
-        return "metric-card-red"
-    elif percentage >= 70:
-        return "metric-card-green"
-    else:
-        return "metric-card-amber"
-
 # Main app
-st.title("📊 Player Performance Dashboard")
+st.title("🏆 Player Performance Dashboard")
 
-# Bristol Rovers Logo
-st.markdown("""
-<div class="logo-container">
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAABlVBMVEX///8AAAA8ZZbl5eXk5OTm5ubj4+Pn5+fi4uLo6Ojh4eHp6enq6urg4ODr6+vf39/s7Ozt7e3e3t7u7u7d3d3v7+/c3Nzw8PDx8fHb29vy8vLz8/Pa2trY2Nj09PT19fXX19fW1tb29vb39/fV1dXU1NT4+PjT09P5+fn6+vrS0tL7+/vR0dH8/PzQ0ND9/f3Pz8/+/v7Ozs7//v7Nzc3Ly8vMzMzKysrJycnIyMjHx8fGxsbFxcXExMTDw8PCwsLBwcHAwMC/v7++vr69vb28vLy7u7u6urq5ubm4uLi3t7e2tra1tbW0tLS0s7OysrKxsbGwsLCvr6+urq6tra2srKyrq6uqqqqpqamop6eoqKinp6empqalpaWkpKSjo6OioqKhoaGgoKCfn5+enp6dnZ2cnJybm5uampqZmZmYmJiXl5eWlpaVlZWUlJSTk5OSkpKRkZGQkJCPj4+Ojo6NjY2MjIyLi4uKioqJiYmIiIiHh4eGhoaFhYWEhISCgoKBgYGAgIB/f39+fn59fX18fHx7e3t6enp5eXl4eHh3d3d2dnZ1dXV0dHRzc3NycnJxcXFwcHBvb29ubm5tbW1sbGxra2tqamppaWloaGhnZ2dmZmZlZWVkZGRjY2NiYmJhYWFgYGBfX19eXl5dXV1cXFxbW1taWlpZWVlYWFhXV1dWVlZVVVVUVFRTU1NSUlJRUVFQUFBPT09OTk5NTU1MTExLS0tKSkpJSUlISEhHR0dGRkZFRUVERERDQ0NCQkJBQUFAQEA/Pz8+Pj49PT08PDw7Ozs6Ojo5OTk4ODg3Nzc2NjY1NTU0NDQzMzMyMjIxMTEwMDAvLy8uLi4tLS0sLCwrKysqKioqKSkoKCgnJyckJCQjIyMiIiIhISEgICAeHh4dHR0cHBwbGxsaGhoZGRkYGBgXFxcWFhYVFRUUFBQTExMSEhIREREQEBAPDw8ODg4NDQ0MDAwLCwsKCgoJCQkICAgHBwcGBgYFBQUEBAQDAwMCAgIBAQEAAAD///8=" width="100" alt="Bristol Rovers Logo">
-</div>
-""", unsafe_allow_html=True)
-
-# Load data
-with st.spinner("Loading player data..."):
+# Load StatsBomb data
+with st.spinner("Loading StatsBomb data..."):
     df = get_statsbomb_data()
+    if not df.empty:
+        st.success(f"Loaded {len(df)} player records")
 
-if df.empty:
-    st.error("No data available. Please check your connection and try again.")
-    st.stop()
-
-# Sidebar filters
-st.sidebar.header("Filters")
-
-# League filter
-leagues = sorted(df['League'].unique())
-selected_leagues = st.sidebar.multiselect("Select Leagues", leagues, default=leagues[:3] if len(leagues) >= 3 else leagues)
-
-# Position filter
-positions = sorted(df['mapped_position'].unique())
-selected_positions = st.sidebar.multiselect("Select Positions", positions, default=positions)
-
-# Filter data
-filtered_df = df[
-    (df['League'].isin(selected_leagues)) & 
-    (df['mapped_position'].isin(selected_positions))
-]
-
-if filtered_df.empty:
-    st.warning("No players match the selected filters.")
-    st.stop()
-
-# Player selection
-players = sorted(filtered_df['player_name'].unique())
-selected_player = st.selectbox("Select Player", players)
-
-if not selected_player:
-    st.warning("Please select a player.")
-    st.stop()
-
-# Get player data
-player_data = filtered_df[filtered_df['player_name'] == selected_player].iloc[0]
-
-# Metrics selection
-available_metrics = get_available_metrics(filtered_df)
-if not available_metrics:
-    st.error("No metrics available for analysis.")
-    st.stop()
-
-default_metrics = available_metrics[:6] if len(available_metrics) >= 6 else available_metrics
-selected_metrics = st.multiselect("Select Metrics for Analysis", available_metrics, default=default_metrics)
-
-if not selected_metrics:
-    st.warning("Please select at least one metric.")
-    st.stop()
-
-# Player Information Section
-st.header(f"Player Profile: {selected_player}")
-
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.markdown(f"**Team:** {player_data.get('team_name', 'N/A')}")
+if not df.empty:
+    # Filters
+    col1, col2, col3 = st.columns(3)
     
-with col2:
-    st.markdown(f"**Position:** {player_data.get('mapped_position', 'N/A')}")
+    with col1:
+        leagues = ['All'] + sorted(df['League'].unique().tolist())
+        selected_league = st.selectbox("League", leagues)
     
-with col3:
-    age = get_player_age(player_data)
-    st.markdown(f"**Age:** {age if age else 'N/A'}")
+    with col2:
+        seasons = ['All'] + sorted(df['Season'].unique().tolist())
+        selected_season = st.selectbox("Season", seasons)
     
-with col4:
-    transfermarkt_url = get_transfermarkt_url(selected_player)
-    st.markdown(f"[📊 Transfermarkt Profile]({transfermarkt_url})")
-
-# KPI Cards Section
-st.header("Performance Metrics")
-
-# Calculate percentiles for selected metrics
-position_peers = filtered_df[filtered_df['mapped_position'] == player_data['mapped_position']]
-
-kpi_cols = st.columns(min(len(selected_metrics), 4))
-
-for i, metric in enumerate(selected_metrics[:4]):
-    col_idx = i % 4
-    with kpi_cols[col_idx]:
-        if metric in player_data.index and pd.notna(player_data[metric]):
-            player_value = player_data[metric]
-            
-            # Calculate percentile (capped at 99th percentile)
-            valid_values = position_peers[metric].dropna()
-            if len(valid_values) > 1:
-                percentile = min(99, (valid_values < player_value).mean() * 100)
-            else:
-                percentile = 50
-            
-            # Get appropriate card class
-            card_class = get_kpi_card_class(percentile)
-            
-            # Format metric name
-            metric_display = metric.replace('player_season_', '').replace('_', ' ').title()
-            
-            st.markdown(f"""
-            <div class="{card_class}">
-                <div class="metric-title">{metric_display}</div>
-                <div class="metric-value">{player_value:.2f}</div>
-                <div style="font-size: 14px; margin-top: 5px;">{percentile:.0f}th percentile</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="metric-card-neutral">
-                <div class="metric-title">{metric.replace('player_season_', '').replace('_', ' ').title()}</div>
-                <div class="metric-value">N/A</div>
-                <div style="font-size: 14px; margin-top: 5px;">No data</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-# Additional KPI cards if more than 4 metrics selected
-if len(selected_metrics) > 4:
-    st.markdown("<br>", unsafe_allow_html=True)
-    remaining_metrics = selected_metrics[4:]
-    additional_cols = st.columns(min(len(remaining_metrics), 4))
+    with col3:
+        positions = ['All'] + sorted(df['mapped_position'].dropna().unique().tolist())
+        selected_position = st.selectbox("Position", positions)
     
-    for i, metric in enumerate(remaining_metrics[:4]):
-        col_idx = i % 4
-        with additional_cols[col_idx]:
-            if metric in player_data.index and pd.notna(player_data[metric]):
-                player_value = player_data[metric]
-                
-                valid_values = position_peers[metric].dropna()
-                if len(valid_values) > 1:
-                    percentile = min(99, (valid_values < player_value).mean() * 100)
-                else:
-                    percentile = 50
-                
-                card_class = get_kpi_card_class(percentile)
-                metric_display = metric.replace('player_season_', '').replace('_', ' ').title()
-                
-                st.markdown(f"""
-                <div class="{card_class}">
-                    <div class="metric-title">{metric_display}</div>
-                    <div class="metric-value">{player_value:.2f}</div>
-                    <div style="font-size: 14px; margin-top: 5px;">{percentile:.0f}th percentile</div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div class="metric-card-neutral">
-                    <div class="metric-title">{metric.replace('player_season_', '').replace('_', ' ').title()}</div>
-                    <div class="metric-value">N/A</div>
-                    <div style="font-size: 14px; margin-top: 5px;">No data</div>
-                </div>
-                """, unsafe_allow_html=True)
-
-# Radar Chart Section
-st.header("Performance Radar Chart")
-
-if len(selected_metrics) >= 3:
-    # Prepare radar chart data
-    radar_metrics = selected_metrics[:8]  # Limit to 8 metrics for readability
-    radar_values = []
-    radar_labels = []
+    # Apply filters
+    filtered_df = df.copy()
     
-    for metric in radar_metrics:
-        if metric in player_data.index and pd.notna(player_data[metric]):
-            valid_values = position_peers[metric].dropna()
-            if len(valid_values) > 1:
-                percentile = min(99, (valid_values < player_data[metric]).mean() * 100)
-                radar_values.append(percentile)
-                radar_labels.append(metric.replace('player_season_', '').replace('_', ' ').title())
-            
-    if radar_values:
-        # Close the radar chart
-        radar_values.append(radar_values[0])
-        radar_labels.append(radar_labels[0])
+    if selected_league != 'All':
+        filtered_df = filtered_df[filtered_df['League'] == selected_league]
+    
+    if selected_season != 'All':
+        filtered_df = filtered_df[filtered_df['Season'] == selected_season]
+    
+    if selected_position != 'All':
+        filtered_df = filtered_df[filtered_df['mapped_position'] == selected_position]
+    
+    # Player selection
+    players = ['Select a player'] + sorted(filtered_df['player_name'].unique().tolist())
+    selected_player = st.selectbox("Select Player", players)
+    
+    if selected_player != "Select a player":
+        player_data = filtered_df[filtered_df['player_name'] == selected_player].iloc[0]
+        player_position = player_data.get('mapped_position', 'Unknown')
         
-        fig = go.Figure()
+        # Get available metrics for this dataset
+        available_metrics = get_available_metrics(filtered_df)
         
-        fig.add_trace(go.Scatterpolar(
-            r=radar_values,
-            theta=radar_labels,
-            fill='toself',
-            name=selected_player,
-            line_color='#22c55e',
-            fillcolor='rgba(34, 197, 94, 0.3)'
-        ))
+        # Metric selection with validation
+        st.markdown("### Select Metrics (Min: 10, Max: 15)")
         
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 100],
-                    tickfont=dict(color='white'),
-                    gridcolor='rgba(255,255,255,0.3)'
-                ),
-                angularaxis=dict(
-                    tickfont=dict(color='white', size=10),
-                    gridcolor='rgba(255,255,255,0.3)'
-                ),
-                bgcolor='rgba(30, 64, 175, 0.8)'
-            ),
-            showlegend=True,
-            title=dict(
-                text=f"{selected_player} - Performance Percentiles",
-                font=dict(color='white', size=16),
-                x=0.5
-            ),
-            paper_bgcolor='rgba(30, 58, 138, 0.9)',
-            plot_bgcolor='rgba(30, 64, 175, 0.8)',
-            font=dict(color='white'),
-            height=500
+        # Create friendly names for metrics
+        metric_display_names = {
+            metric: metric.replace('player_season_', '').replace('_', ' ').title()
+            for metric in available_metrics
+        }
+        
+        selected_metrics = st.multiselect(
+            "Choose metrics to analyze:",
+            options=available_metrics,
+            format_func=lambda x: metric_display_names[x],
+            help="Select between 10 and 15 metrics for analysis"
         )
         
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.warning("Not enough valid data to create radar chart.")
-else:
-    st.info("Select at least 3 metrics to display radar chart.")
-
-# Position Comparison Section
-st.header("Position Comparison")
-
-comparison_col1, comparison_col2 = st.columns(2)
-
-with comparison_col1:
-    if selected_metrics:
-        comparison_metric = st.selectbox("Select metric for comparison", selected_metrics)
-        
-        if comparison_metric in position_peers.columns:
-            # Create histogram
-            valid_data = position_peers[comparison_metric].dropna()
+        # Validation
+        if len(selected_metrics) < 10:
+            st.warning(f"Please select at least 10 metrics. Currently selected: {len(selected_metrics)}")
+        elif len(selected_metrics) > 15:
+            st.warning(f"Please select maximum 15 metrics. Currently selected: {len(selected_metrics)}")
+        else:
+            st.success(f"✅ {len(selected_metrics)} metrics selected")
             
-            if len(valid_data) > 1:
-                fig_hist = go.Figure()
+            # Filter data by position for percentile calculation
+            position_df = filtered_df[filtered_df['mapped_position'] == player_position]
+            
+            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+            st.subheader(f"Player Profile: {selected_player} - {player_position}")
+            
+            # Calculate percentiles for selected metrics
+            values = []
+            labels = []
+            
+            for metric in selected_metrics:
+                if metric in position_df.columns and pd.notna(player_data.get(metric)):
+                    percentile = position_df[metric].rank(pct=True).loc[player_data.name] * 100
+                    values.append(percentile)
+                    labels.append(metric_display_names[metric])
+            
+            if values:
+                colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
                 
-                fig_hist.add_trace(go.Histogram(
-                    x=valid_data,
-                    nbinsx=20,
-                    name='Position Peers',
-                    marker_color='rgba(59, 130, 246, 0.7)',
-                    opacity=0.7
+                fig = go.Figure(go.Bar(
+                    y=labels, x=values, orientation='h',
+                    marker_color=colors,
+                    text=[f'{v:.0f}%' for v in values],
+                    textposition='outside',
+                    textfont=dict(color='white', size=12, family='Arial Black')
                 ))
                 
-                # Add player marker
-                if comparison_metric in player_data.index and pd.notna(player_data[comparison_metric]):
-                    player_value = player_data[comparison_metric]
-                    fig_hist.add_vline(
-                        x=player_value,
-                        line_dash="dash",
-                        line_color="#22c55e",
-                        line_width=3,
-                        annotation_text=f"{selected_player}: {player_value:.2f}",
-                        annotation_position="top"
-                    )
-                
-                fig_hist.update_layout(
-                    title=f"{comparison_metric.replace('player_season_', '').replace('_', ' ').title()} Distribution",
-                    xaxis_title="Value",
-                    yaxis_title="Frequency",
-                    paper_bgcolor='rgba(30, 58, 138, 0.9)',
-                    plot_bgcolor='rgba(30, 64, 175, 0.8)',
-                    font=dict(color='white'),
-                    height=400
+                fig.update_layout(
+                    title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
+                              font=dict(color='white', size=16), x=0.5),
+                    plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
+                    font=dict(color='white'), height=max(400, len(values) * 30),
+                    xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
+                              title="Percentile Ranking vs Same Position", tickfont=dict(color='white')),
+                    yaxis=dict(tickfont=dict(color='white'), categoryorder='array',
+                              categoryarray=labels[::-1]),
+                    showlegend=False
                 )
                 
-                st.plotly_chart(fig_hist, use_container_width=True)
-            else:
-                st.warning("Not enough data for comparison.")
-
-with comparison_col2:
-    # Top performers in position
-    if selected_metrics:
-        top_metric = st.selectbox("Show top performers by", selected_metrics, key="top_performers")
-        
-        if top_metric in position_peers.columns:
-            top_performers = position_peers.nlargest(10, top_metric)[['player_name', 'team_name', top_metric]]
-            
-            if not top_performers.empty:
-                st.subheader(f"Top 10 - {top_metric.replace('player_season_', '').replace('_', ' ').title()}")
+                st.plotly_chart(fig, use_container_width=True)
                 
-                for idx, (_, row) in enumerate(top_performers.iterrows(), 1):
-                    player_name = row['player_name']
-                    team_name = row.get('team_name', 'N/A')
-                    value = row[top_metric]
-                    
-                    # Highlight selected player
-                    if player_name == selected_player:
-                        st.markdown(f"**{idx}. {player_name}** ({team_name}) - **{value:.2f}** ⭐")
-                    else:
-                        st.markdown(f"{idx}. {player_name} ({team_name}) - {value:.2f}")
+                # Show comparison info
+                st.info(f"Percentiles calculated against {len(position_df)} players in {player_position} position")
+                
+            else:
+                st.warning("No valid data for selected metrics")
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # KPI cards
+            col1, col2, col3, col4 = st.columns(4)
+            
+            overall_rank = np.mean(values) if values else 0
+            minutes_played = int(player_data.get('player_season_minutes', 0))
+            metrics_above_70 = sum(1 for v in values if v >= 70)
+            
+            with col1:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Overall Rank</div>
+                    <div class="metric-value">{overall_rank:.0f}%</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Position</div>
+                    <div class="metric-value">{player_position}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Elite Metrics</div>
+                    <div class="metric-value">{metrics_above_70}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col4:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Minutes</div>
+                    <div class="metric-value">{minutes_played:,}</div>
+                </div>
+                """, unsafe_allow_html=True)
 
-# Footer
-st.markdown("---")
-st.markdown("**Data Source:** StatsBomb | **Dashboard:** Bristol Rovers Analytics")
+else:
+    st.error("No data available. Please check your StatsBomb API credentials.")
