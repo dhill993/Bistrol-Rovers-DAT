@@ -1,10 +1,9 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 import numpy as np
 
-from utilities.utils import get_metrics_by_position, get_player_metrics_percentile_ranks
+from utilities.utils import get_metrics_by_position, get_player_metrics_percentile_ranks, custom_fontt
+
 
 def create_summary_profile_card(
     complete_data,
@@ -14,68 +13,65 @@ def create_summary_profile_card(
     position,
     api="statbomb"
 ):
-    # Use your same position normalization rules
+    # Normalize position (like pizza chart)
     original_position = position
     if position == 'Number 6' and api == 'statbomb':
         position = 'Number 8'
-    if (position == 'Number 8' or position == 'Number 10') and api == 'wyscout':
+    if position in ['Number 8', 'Number 10'] and api == 'wyscout':
         position = 'Number 6'
 
-    # Filter dataset for selected league and season
-    filtered_df = complete_data.copy()
-    if league_name not in ['All', '']:
-        filtered_df = filtered_df[filtered_df['League'] == league_name]
-    if season != '':
-        filtered_df = filtered_df[filtered_df['Season'] == season]
+    # Filter data
+    df = complete_data.copy()
+    if league_name not in ["All", ""]:
+        df = df[df['League'] == league_name]
+    if season != "":
+        df = df[df['Season'] == season]
 
-    # Get player's data
-    player_df = filtered_df[filtered_df['Player Name'] == selected_player]
+    # Filter for player
+    player_df = df[df['Player Name'] == selected_player]
     if player_df.empty:
-        st.error(f"Player {selected_player} not found in filtered data.")
-        return None
+        st.error(f"Player {selected_player} not found in dataset.")
+        return
 
-    # Get position-specific metrics
+    # Get metrics and percentiles
     metrics = get_metrics_by_position(position, api)
-    player_percentiles = get_player_metrics_percentile_ranks(
-        filtered_df, selected_player, position, metrics
-    )
+    percentiles = get_player_metrics_percentile_ranks(df, selected_player, position, metrics)
 
-    if player_percentiles is None or player_percentiles.empty:
-        st.error(f"No percentile data found for {selected_player}.")
-        return None
+    if percentiles is None or percentiles.empty:
+        st.error(f"No percentile data available for {selected_player}.")
+        return
 
-    # Styling
-    st.markdown("### Player Summary Profile")
+    # Chart values
+    values = percentiles[metrics].iloc[0].values
+    colors = ['#58AC4E' if val >= 70 else '#1A78CF' if val >= 50 else '#aa42af' for val in values]
+    y_pos = np.arange(len(metrics))
+
+    # Plot setup
     fig, ax = plt.subplots(figsize=(10, 6))
     fig.patch.set_facecolor('#111111')
     ax.set_facecolor('#111111')
 
-    values = player_percentiles[metrics].iloc[0].values
-    colors = ['#58AC4E' if val >= 70 else '#1A78CF' if val >= 50 else '#aa42af' for val in values]
+    bars = ax.barh(y_pos, values, color=colors, edgecolor='white', height=0.5)
 
-    # Horizontal bar chart
-    y_pos = np.arange(len(metrics))
-    bars = ax.barh(y_pos, values, color=colors, edgecolor='white')
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(metrics, color='white', fontsize=10)
-    ax.set_xlim(0, 100)
+    ax.set_yticklabels(metrics, color='white', fontsize=10, fontproperties=custom_fontt)
     ax.invert_yaxis()
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("Percentile", color='white', fontsize=12, fontproperties=custom_fontt)
+    ax.set_title(f"{selected_player} | {original_position}", color='white', fontsize=18, loc='left', fontproperties=custom_fontt)
 
-    # Add value markers
+    # Add value labels
     for i, bar in enumerate(bars):
-        ax.text(bar.get_width() + 2, bar.get_y() + bar.get_height()/2,
-                f"{int(values[i])}%", va='center', color='white', fontsize=9)
+        ax.text(bar.get_width() + 2, bar.get_y() + bar.get_height() / 2,
+                f"{int(values[i])}%", va='center', color='white', fontsize=9, fontproperties=custom_fontt)
 
-    # Titles and labels
-    ax.set_xlabel("Percentile", color='white')
-    ax.set_title(f"{selected_player} | {original_position}", color='white', fontsize=16, loc='left')
-
-    # Footer info (Minutes, Age, Team)
-    info = f"""
-    **Club:** {player_df.iloc[0]['Team']}  
-    **Age:** {int(player_df.iloc[0]['Age'])}  
-    **Minutes Played:** {int(player_df.iloc[0]['Minutes'])}
-    """
-    st.markdown(info)
+    # Info panel (text)
+    st.markdown(f"""
+    <div style='background-color:#111111; padding:10px; border-radius:10px; color:white'>
+    <b>Club:</b> {player_df.iloc[0]['Team']}<br>
+    <b>Age:</b> {int(player_df.iloc[0]['Age'])}<br>
+    <b>Minutes Played:</b> {int(player_df.iloc[0]['Minutes'])}<br>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.pyplot(fig)
