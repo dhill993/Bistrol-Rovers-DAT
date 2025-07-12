@@ -5,23 +5,56 @@ import numpy as np
 from datetime import datetime
 from statsbombpy import sb
 
-# Position mapping from pizza chart logic
+# Corrected position mapping - fixes "Number 3" and adds missing positions
 position_mapping = {
-    "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
-    "Left Back": "Number 3", "Right Back": "Number 3", "Left Wing Back": "Number 3",
-    "Right Wing Back": "Number 3",
-    "Defensive Midfielder": "Number 8", "Left Defensive Midfielder": "Number 8",
-    "Right Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8",
-    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8",
-    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8",
-    "Centre Midfield": "Number 8", "Left Attacking Midfield": "Number 8",
-    "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8",
-    "Attacking Midfield": "Number 8",
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
-    "Left Attacking Midfielder": "Number 10",
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger",
-    "Left Wing": "Winger", "Right Wing": "Winger",
-    "Centre Forward": "Runner", "Left Centre Forward": "Runner", "Right Centre Forward": "Runner",
+    # Centre Backs
+    "Centre Back": "Centre Back", 
+    "Left Centre Back": "Centre Back", 
+    "Right Centre Back": "Centre Back",
+    "Outside Centre Back": "Outside Centre Back",  # Added missing position
+    
+    # Full Backs - Fixed "Number 3" mapping
+    "Left Back": "Full Back", 
+    "Right Back": "Full Back", 
+    "Number 3": "Full Back",  # Fixed: Number 3 should be Full Back
+    "Left Wing Back": "Wing Back", 
+    "Right Wing Back": "Wing Back",
+    
+    # Defensive Midfielders
+    "Defensive Midfielder": "Defensive Midfielder", 
+    "Left Defensive Midfielder": "Defensive Midfielder", 
+    "Right Defensive Midfielder": "Defensive Midfielder", 
+    "Centre Defensive Midfielder": "Defensive Midfielder",
+    
+    # Central Midfielders
+    "Left Centre Midfield": "Central Midfielder", 
+    "Left Centre Midfielder": "Central Midfielder", 
+    "Right Centre Midfield": "Central Midfielder", 
+    "Right Centre Midfielder": "Central Midfielder", 
+    "Centre Midfield": "Central Midfielder",
+    
+    # Attacking Midfielders
+    "Left Attacking Midfield": "Attacking Midfielder", 
+    "Right Attacking Midfield": "Attacking Midfielder", 
+    "Right Attacking Midfielder": "Attacking Midfielder", 
+    "Attacking Midfield": "Attacking Midfielder",
+    "Centre Attacking Midfielder": "Attacking Midfielder",
+    "Left Attacking Midfielder": "Attacking Midfielder",
+    
+    # Strikers
+    "Secondary Striker": "Striker",
+    "Centre Forward": "Striker", 
+    "Left Centre Forward": "Striker", 
+    "Right Centre Forward": "Striker",
+    
+    # Wingers
+    "Winger": "Winger", 
+    "Right Midfielder": "Winger", 
+    "Left Midfielder": "Winger", 
+    "Left Wing": "Winger", 
+    "Right Wing": "Winger",
+    
+    # Goalkeeper
     "Goalkeeper": "Goalkeeper"
 }
 
@@ -111,6 +144,12 @@ with st.spinner("Loading StatsBomb data..."):
     df = get_statsbomb_data()
     if not df.empty:
         st.success(f"Loaded {len(df)} player records")
+        
+        # Show position distribution in sidebar
+        st.sidebar.write("Position Distribution:")
+        position_counts = df['mapped_position'].value_counts()
+        for pos, count in position_counts.items():
+            st.sidebar.write(f"- {pos}: {count}")
 
 if not df.empty:
     # Filters
@@ -147,6 +186,10 @@ if not df.empty:
     if selected_player != "Select a player":
         player_data = filtered_df[filtered_df['player_name'] == selected_player].iloc[0]
         player_position = player_data.get('mapped_position', 'Unknown')
+        
+        # Show original position too
+        original_position = player_data.get('primary_position', 'Unknown')
+        st.info(f"Original Position: {original_position} → Mapped to: {player_position}")
         
         # Get available metrics for this dataset
         available_metrics = get_available_metrics(filtered_df)
@@ -229,7 +272,8 @@ if not df.empty:
             
             overall_rank = np.mean(values) if values else 0
             minutes_played = int(player_data.get('player_season_minutes', 0))
-            metrics_above_70 = sum(1 for v in values if v >= 70)
+            team_name = player_data.get('team_name', 'Unknown')
+            age = int(player_data.get('player_season_age', 0))
             
             with col1:
                 st.markdown(f"""
@@ -242,26 +286,25 @@ if not df.empty:
             with col2:
                 st.markdown(f"""
                 <div class="metric-card">
-                    <div class="metric-title">Position</div>
-                    <div class="metric-value">{player_position}</div>
+                    <div class="metric-title">Minutes Played</div>
+                    <div class="metric-value">{minutes_played:,}</div>
                 </div>
                 """, unsafe_allow_html=True)
             
             with col3:
                 st.markdown(f"""
                 <div class="metric-card">
-                    <div class="metric-title">Elite Metrics</div>
-                    <div class="metric-value">{metrics_above_70}</div>
+                    <div class="metric-title">Team</div>
+                    <div class="metric-value" style="font-size: 20px;">{team_name}</div>
                 </div>
                 """, unsafe_allow_html=True)
             
             with col4:
                 st.markdown(f"""
                 <div class="metric-card">
-                    <div class="metric-title">Minutes</div>
-                    <div class="metric-value">{minutes_played:,}</div>
+                    <div class="metric-title">Age</div>
+                    <div class="metric-value">{age}</div>
                 </div>
                 """, unsafe_allow_html=True)
-
 else:
     st.error("No data available. Please check your StatsBomb API credentials.")
