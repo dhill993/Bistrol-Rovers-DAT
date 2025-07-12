@@ -5,43 +5,60 @@ import numpy as np
 from datetime import datetime
 from statsbombpy import sb
 
-# Position-based metrics (same as pizza chart logic)
+# Position mapping from pizza chart logic
+position_mapping = {
+    "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
+    "Left Back": "Number 3", "Right Back": "Number 3", "Left Wing Back": "Number 3", 
+    "Right Wing Back": "Number 3",
+    
+    "Defensive Midfielder": "Number 8", "Left Defensive Midfielder": "Number 8", 
+    "Right Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8", 
+    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", 
+    "Centre Midfield": "Number 8", "Left Attacking Midfield": "Number 8", 
+    "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8", 
+    "Attacking Midfield": "Number 8",
+    
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10",
+    "Left Attacking Midfielder": "Number 10",
+    
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", 
+    "Left Wing": "Winger", "Right Wing": "Winger",
+    
+    "Centre Forward": "Runner", "Left Centre Forward": "Runner", "Right Centre Forward": "Runner",
+    
+    "Goalkeeper": "Goalkeeper"
+}
+
+# Position-based metrics (mapped to descriptive positions)
 POSITION_METRICS = {
     'Goalkeeper': [
-        'goalkeeper_saves', 'goalkeeper_save_percentage', 'goalkeeper_goals_conceded',
-        'goalkeeper_clean_sheets', 'passes', 'pass_accuracy'
+        'player_season_gsaa_90', 'player_season_save_ratio', 'player_season_xs_ratio',
+        'player_season_obv_gk_90', 'player_season_passing_ratio', 'player_season_forward_pass_ratio'
     ],
-    'Centre Back': [
-        'passes', 'pass_accuracy', 'defensive_actions', 'aerial_wins',
-        'clearances', 'interceptions'
+    'Number 6': [
+        'player_season_passing_ratio', 'player_season_defensive_actions_90', 'player_season_aerial_ratio',
+        'player_season_padj_clearances_90', 'player_season_padj_interceptions_90', 'player_season_ball_recoveries_90'
     ],
-    'Full Back': [
-        'passes', 'pass_accuracy', 'crosses', 'defensive_actions',
-        'dribbles', 'assists'
+    'Number 3': [
+        'player_season_passing_ratio', 'player_season_crossing_ratio', 'player_season_defensive_actions_90',
+        'player_season_dribbles_90', 'player_season_op_xa_90', 'player_season_carries_90'
     ],
-    'Wing Back': [
-        'passes', 'pass_accuracy', 'crosses', 'assists',
-        'dribbles', 'defensive_actions'
+    'Number 8': [
+        'player_season_passing_ratio', 'player_season_op_xa_90', 'player_season_defensive_actions_90',
+        'player_season_op_key_passes_90', 'player_season_dribbles_90', 'player_season_ball_recoveries_90'
     ],
-    'Defensive Midfield': [
-        'passes', 'pass_accuracy', 'defensive_actions', 'interceptions',
-        'tackles', 'aerial_wins'
-    ],
-    'Central Midfield': [
-        'passes', 'pass_accuracy', 'assists', 'key_passes',
-        'dribbles', 'defensive_actions'
-    ],
-    'Attacking Midfield': [
-        'assists', 'key_passes', 'goals', 'shots',
-        'dribbles', 'pass_accuracy'
+    'Number 10': [
+        'player_season_op_xa_90', 'player_season_op_key_passes_90', 'player_season_npg_90',
+        'player_season_np_shots_90', 'player_season_dribbles_90', 'player_season_passing_ratio'
     ],
     'Winger': [
-        'goals', 'assists', 'dribbles', 'crosses',
-        'shots', 'key_passes'
+        'player_season_npg_90', 'player_season_op_xa_90', 'player_season_dribbles_90',
+        'player_season_crossing_ratio', 'player_season_np_shots_90', 'player_season_op_key_passes_90'
     ],
-    'Striker': [
-        'goals', 'shots', 'shots_on_target', 'assists',
-        'aerial_wins', 'key_passes'
+    'Runner': [
+        'player_season_npg_90', 'player_season_np_shots_90', 'player_season_shot_on_target_ratio',
+        'player_season_op_xa_90', 'player_season_aerial_ratio', 'player_season_op_key_passes_90'
     ]
 }
 
@@ -80,6 +97,11 @@ def get_statsbomb_data():
                 
                 df['League'] = row['competition_name']
                 df['Season'] = row['season_name']
+                
+                # Apply position mapping
+                df['mapped_position'] = df['primary_position'].map(position_mapping)
+                df = df.dropna(subset=['mapped_position'])
+                
                 dataframes.append(df)
             except:
                 continue
@@ -90,18 +112,8 @@ def get_statsbomb_data():
         return pd.DataFrame()
 
 def get_position_metrics(position):
-    """Get metrics for a specific position"""
-    # Map common position variations
-    position_map = {
-        'CB': 'Centre Back', 'LB': 'Full Back', 'RB': 'Full Back',
-        'LWB': 'Wing Back', 'RWB': 'Wing Back', 'CDM': 'Defensive Midfield',
-        'CM': 'Central Midfield', 'CAM': 'Attacking Midfield', 'AM': 'Attacking Midfield',
-        'LW': 'Winger', 'RW': 'Winger', 'LM': 'Winger', 'RM': 'Winger',
-        'ST': 'Striker', 'CF': 'Striker', 'GK': 'Goalkeeper'
-    }
-    
-    mapped_position = position_map.get(position, position)
-    return POSITION_METRICS.get(mapped_position, POSITION_METRICS['Central Midfield'])
+    """Get metrics for a specific mapped position"""
+    return POSITION_METRICS.get(position, POSITION_METRICS['Number 8'])
 
 # Main app
 st.title("🏆 Player Performance Dashboard")
@@ -125,7 +137,7 @@ if not df.empty:
         selected_season = st.selectbox("Season", seasons)
     
     with col3:
-        positions = ['All'] + sorted(df['primary_position'].dropna().unique().tolist())
+        positions = ['All'] + sorted(df['mapped_position'].dropna().unique().tolist())
         selected_position = st.selectbox("Position", positions)
     
     # Apply filters
@@ -138,7 +150,7 @@ if not df.empty:
         filtered_df = filtered_df[filtered_df['Season'] == selected_season]
     
     if selected_position != 'All':
-        filtered_df = filtered_df[filtered_df['primary_position'] == selected_position]
+        filtered_df = filtered_df[filtered_df['mapped_position'] == selected_position]
     
     # Player selection
     players = ['Select a player'] + sorted(filtered_df['player_name'].unique().tolist())
@@ -146,7 +158,7 @@ if not df.empty:
     
     if selected_player != "Select a player":
         player_data = filtered_df[filtered_df['player_name'] == selected_player].iloc[0]
-        player_position = player_data.get('primary_position', 'Unknown')
+        player_position = player_data.get('mapped_position', 'Unknown')
         
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         st.subheader(f"Player Profile: {selected_player} - {player_position}")
@@ -162,7 +174,7 @@ if not df.empty:
             if metric in filtered_df.columns and pd.notna(player_data.get(metric)):
                 percentile = filtered_df[metric].rank(pct=True).loc[player_data.name] * 100
                 values.append(percentile)
-                labels.append(metric.replace('_', ' ').title())
+                labels.append(metric.replace('player_season_', '').replace('_', ' ').title())
         
         if values:
             colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
@@ -197,7 +209,7 @@ if not df.empty:
         col1, col2, col3 = st.columns(3)
         
         overall_rank = np.mean(values) if values else 0
-        minutes_played = int(player_data.get('minutes_played', 0))
+        minutes_played = int(player_data.get('player_season_minutes', 0))
         
         with col1:
             st.markdown(f"""
