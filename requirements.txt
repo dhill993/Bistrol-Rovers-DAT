@@ -5,3 +5,4 @@ plotly
 st-pages==0.4.3
 statsbombpy==1.14.0
 openpyxl==3.1.5
+scikit-learn
