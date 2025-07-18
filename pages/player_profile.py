@@ -99,7 +99,26 @@ def find_similar_players(df, player_row, selected_metrics):
     df_clean = df_clean[df_clean['player_name'] != player_row['player_name']]
     df_clean = df_clean.sort_values(by='similarity', ascending=False).head(5)
 
-    return df_clean[['player_name', 'team_name', 'Season', 'player_age', 'similarity']]
+    # Validate available columns
+    required_cols = ['player_name', 'team_name', 'season', 'age', 'similarity']
+    available_cols = df_clean.columns.str.lower().tolist()
+
+    # Map actual column names for flexibility (case-insensitive)
+    column_mapping = {
+        'player_name': next((c for c in df_clean.columns if c.lower() == 'player_name'), None),
+        'team_name': next((c for c in df_clean.columns if c.lower() == 'team_name'), None),
+        'season': next((c for c in df_clean.columns if c.lower() == 'season'), None),
+        'age': next((c for c in df_clean.columns if c.lower() in ['age', 'player_age']), None),
+        'similarity': 'similarity'
+    }
+
+    missing = [k for k, v in column_mapping.items() if v is None]
+    if missing:
+        st.warning(f"Missing columns in similarity table: {missing}")
+        return pd.DataFrame()
+
+    return df_clean[[column_mapping['player_name'], column_mapping['team_name'],
+                     column_mapping['season'], column_mapping['age'], 'similarity']]
 
 st.title("🏆 Player Performance Dashboard")
 
