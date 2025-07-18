@@ -6,7 +6,6 @@ from datetime import datetime
 from statsbombpy import sb
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Position mapping from pizza chart logic
 position_mapping = {
     "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
     "Left Back": "Number 3", "Right Back": "Number 3", "Left Wing Back": "Number 3",
@@ -49,7 +48,7 @@ ALL_METRICS = [
     'player_season_aggressive_actions_90'
 ]
 
-st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
+st.set_page_config(page_title="Player Similarity Dashboard", layout="wide")
 
 @st.cache_data
 def get_statsbomb_data():
@@ -67,16 +66,6 @@ def get_statsbomb_data():
                 df['Season'] = row['season_name']
                 df['mapped_position'] = df['primary_position'].map(position_mapping)
                 df = df.dropna(subset=['mapped_position'])
-
-                # Calculate age from date_of_birth
-                if 'date_of_birth' in df.columns:
-                    df['age'] = df['date_of_birth'].apply(
-                        lambda dob: datetime.now().year - pd.to_datetime(dob, errors='coerce').year
-                        if pd.notna(dob) else np.nan
-                    )
-                else:
-                    df['age'] = np.nan
-
                 dataframes.append(df)
             except:
                 continue
@@ -108,12 +97,10 @@ def find_similar_players(df, player_row, selected_metrics):
     df_clean = df_clean[df_clean['player_name'] != player_row['player_name']]
     df_clean = df_clean.sort_values(by='similarity', ascending=False).head(5)
 
-    # Column mapping (flexible to actual column names)
     column_mapping = {
         'player_name': next((c for c in df_clean.columns if c.lower() == 'player_name'), None),
         'team_name': next((c for c in df_clean.columns if c.lower() == 'team_name'), None),
         'season': next((c for c in df_clean.columns if c.lower() == 'season'), None),
-        'age': next((c for c in df_clean.columns if c.lower() in ['age', 'player_age']), None),
         'similarity': 'similarity'
     }
 
@@ -123,7 +110,34 @@ def find_similar_players(df, player_row, selected_metrics):
         return pd.DataFrame()
 
     return df_clean[[column_mapping['player_name'], column_mapping['team_name'],
-                     column_mapping['season'], column_mapping['age'], 'similarity']]
+                     column_mapping['season'], 'similarity']]
 
-# The rest of your code for UI and charts remains unchanged — no edits needed there
+# --- Streamlit App UI ---
 
+df = get_statsbomb_data()
+if df.empty:
+    st.error("❌ Failed to load player data. Please check StatsBomb API or network.")
+    st.stop()
+
+st.title("Most Similar Players Across All Leagues and Seasons")
+
+all_players = df['player_name'].unique()
+selected_player = st.selectbox("Choose a player", sorted(all_players))
+
+player_data = df[df['player_name'] == selected_player].iloc[0] if selected_player else None
+available_metrics = get_available_metrics(df)
+
+selected_metrics = st.multiselect("Select metrics to compare", available_metrics, default=available_metrics[:8])
+
+similar_df = find_similar_players(df, player_data, selected_metrics)
+
+if not similar_df.empty:
+    similar_df = similar_df.rename(columns={
+        similar_df.columns[0]: 'Player',
+        similar_df.columns[1]: 'Club',
+        similar_df.columns[2]: 'Season',
+        'similarity': 'Similarity'
+    })
+    st.dataframe(similar_df.style.format({'Similarity': '{:.3f}'}), use_container_width=True)
+else:
+    st.warning("No similar players found. Try adjusting the metrics.")
