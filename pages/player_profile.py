@@ -4,8 +4,8 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 from statsbombpy import sb
-from sklearn.metrics.pairwise import cosine_similarity
 
+# Position mapping from pizza chart logic
 position_mapping = {
     "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
     "Left Back": "Number 3", "Right Back": "Number 3", "Left Wing Back": "Number 3",
@@ -25,6 +25,7 @@ position_mapping = {
     "Goalkeeper": "Goalkeeper"
 }
 
+# All available metrics for selection
 ALL_METRICS = [
     'player_season_aerial_ratio', 'player_season_ball_recoveries_90', 'player_season_blocks_per_shot',
     'player_season_carries_90', 'player_season_crossing_ratio', 'player_season_deep_progressions_90',
@@ -48,96 +49,219 @@ ALL_METRICS = [
     'player_season_aggressive_actions_90'
 ]
 
-st.set_page_config(page_title="Player Similarity Dashboard", layout="wide")
+st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
+
+# Styling
+st.markdown("""
+<style>
+    .main { background-color: #1e3a8a; color: white; }
+    .metric-card {
+        background-color: #16a34a; padding: 20px; border-radius: 10px;
+        text-align: center; color: white; margin: 5px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid #22c55e;
+    }
+    .metric-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
+    .metric-value { font-size: 36px; font-weight: bold; }
+    .chart-container { background-color: #1e40af; padding: 15px; border-radius: 8px; }
+    .stMultiSelect > div > div > div { background-color: #1e40af; }
+</style>
+""", unsafe_allow_html=True)
 
 @st.cache_data
 def get_statsbomb_data():
+    """Fetch StatsBomb data using API credentials"""
     try:
         user = st.secrets["user"]
         passwd = st.secrets["passwd"]
         creds = {"user": user, "passwd": passwd}
+        
         all_comps = sb.competitions(creds=creds)
         dataframes = []
+        
         for _, row in all_comps.iterrows():
             try:
                 comp_id, season_id = row["competition_id"], row["season_id"]
                 df = sb.player_season_stats(comp_id, season_id, creds=creds)
+                
                 df['League'] = row['competition_name']
                 df['Season'] = row['season_name']
+                
+                # Apply position mapping
                 df['mapped_position'] = df['primary_position'].map(position_mapping)
                 df = df.dropna(subset=['mapped_position'])
+                
                 dataframes.append(df)
             except:
                 continue
+                
         return pd.concat(dataframes, ignore_index=True) if dataframes else pd.DataFrame()
     except Exception as e:
         st.error(f"StatsBomb API error: {e}")
         return pd.DataFrame()
 
 def get_available_metrics(df):
+    """Get metrics that are available in the dataframe"""
     return [metric for metric in ALL_METRICS if metric in df.columns]
 
-def find_similar_players(df, player_row, selected_metrics):
-    if player_row is None or not selected_metrics:
-        return pd.DataFrame()
+# Main app
+st.title("🏆 Player Performance Dashboard")
 
-    df_clean = df.dropna(subset=selected_metrics)
-    if df_clean.empty or player_row.name not in df_clean.index:
-        elite_df = df_clean.copy()
-        elite_df['elite_score'] = elite_df[selected_metrics].mean(axis=1)
-        elite_df = elite_df.nlargest(1, 'elite_score')
-        player_vector = elite_df[selected_metrics].iloc[0].values.reshape(1, -1)
-    else:
-        player_vector = df_clean.loc[[player_row.name], selected_metrics].values
+# Load StatsBomb data
+with st.spinner("Loading StatsBomb data..."):
+    df = get_statsbomb_data()
+    if not df.empty:
+        st.success(f"Loaded {len(df)} player records")
 
-    matrix = df_clean[selected_metrics].values
-    similarity_scores = cosine_similarity(player_vector, matrix)[0]
+if not df.empty:
+    # Filters
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        leagues = ['All'] + sorted(df['League'].unique().tolist())
+        selected_league = st.selectbox("League", leagues)
+    
+    with col2:
+        seasons = ['All'] + sorted(df['Season'].unique().tolist())
+        selected_season = st.selectbox("Season", seasons)
+    
+    with col3:
+        positions = ['All'] + sorted(df['mapped_position'].dropna().unique().tolist())
+        selected_position = st.selectbox("Position", positions)
+    
+    # Apply filters
+    filtered_df = df.copy()
+    
+    if selected_league != 'All':
+        filtered_df = filtered_df[filtered_df['League'] == selected_league]
+    
+    if selected_season != 'All':
+        filtered_df = filtered_df[filtered_df['Season'] == selected_season]
+    
+    if selected_position != 'All':
+        filtered_df = filtered_df[filtered_df['mapped_position'] == selected_position]
+    
+    # Player selection
+    players = ['Select a player'] + sorted(filtered_df['player_name'].unique().tolist())
+    selected_player = st.selectbox("Select Player", players)
+    
+    if selected_player != "Select a player":
+        player_data = filtered_df[filtered_df['player_name'] == selected_player].iloc[0]
+        player_position = player_data.get('mapped_position', 'Unknown')
+        
+        # Get available metrics for this dataset
+        available_metrics = get_available_metrics(filtered_df)
+        
+        # Metric selection with validation
+        st.markdown("### Select Metrics (Min: 10, Max: 15)")
+        
+        # Create friendly names for metrics
+        metric_display_names = {
+            metric: metric.replace('player_season_', '').replace('_', ' ').title()
+            for metric in available_metrics
+        }
+        
+        selected_metrics = st.multiselect(
+            "Choose metrics to analyze:",
+            options=available_metrics,
+            format_func=lambda x: metric_display_names[x],
+            help="Select between 10 and 15 metrics for analysis"
+        )
+        
+        # Validation
+        if len(selected_metrics) < 10:
+            st.warning(f"Please select at least 10 metrics. Currently selected: {len(selected_metrics)}")
+        elif len(selected_metrics) > 15:
+            st.warning(f"Please select maximum 15 metrics. Currently selected: {len(selected_metrics)}")
+        else:
+            st.success(f"✅ {len(selected_metrics)} metrics selected")
+            
+            # Filter data by position for percentile calculation
+            position_df = filtered_df[filtered_df['mapped_position'] == player_position]
+            
+            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+            st.subheader(f"Player Profile: {selected_player} - {player_position}")
+            
+            # Calculate percentiles for selected metrics
+            values = []
+            labels = []
+            
+            for metric in selected_metrics:
+                if metric in position_df.columns and pd.notna(player_data.get(metric)):
+                    percentile = position_df[metric].rank(pct=True).loc[player_data.name] * 100
+                    values.append(percentile)
+                    labels.append(metric_display_names[metric])
+            
+            if values:
+                colors = ['#16a34a' if v >= 70 else '#eab308' if v >= 50 else '#ef4444' for v in values]
+                
+                fig = go.Figure(go.Bar(
+                    y=labels, x=values, orientation='h',
+                    marker_color=colors,
+                    text=[f'{v:.0f}%' for v in values],
+                    textposition='outside',
+                    textfont=dict(color='white', size=12, family='Arial Black')
+                ))
+                
+                fig.update_layout(
+                    title=dict(text=f"Custom Metrics Analysis - {selected_player} ({player_position})",
+                              font=dict(color='white', size=16), x=0.5),
+                    plot_bgcolor='#1e40af', paper_bgcolor='#1e40af',
+                    font=dict(color='white'), height=max(400, len(values) * 30),
+                    xaxis=dict(range=[0, 100], showgrid=True, gridcolor='rgba(255,255,255,0.2)',
+                              title="Percentile Ranking vs Same Position", tickfont=dict(color='white')),
+                    yaxis=dict(tickfont=dict(color='white'), categoryorder='array',
+                              categoryarray=labels[::-1]),
+                    showlegend=False
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Show comparison info
+                st.info(f"Percentiles calculated against {len(position_df)} players in {player_position} position")
+                
+            else:
+                st.warning("No valid data for selected metrics")
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # KPI cards
+            col1, col2, col3, col4 = st.columns(4)
+            
+            overall_rank = np.mean(values) if values else 0
+            minutes_played = int(player_data.get('player_season_minutes', 0))
+            metrics_above_70 = sum(1 for v in values if v >= 70)
+            
+            with col1:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Overall Rank</div>
+                    <div class="metric-value">{overall_rank:.0f}%</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Position</div>
+                    <div class="metric-value">{player_position}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Elite Metrics</div>
+                    <div class="metric-value">{metrics_above_70}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col4:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-title">Minutes</div>
+                    <div class="metric-value">{minutes_played:,}</div>
+                </div>
+                """, unsafe_allow_html=True)
 
-    df_clean['similarity'] = similarity_scores
-    df_clean = df_clean[df_clean['player_name'] != player_row['player_name']]
-    df_clean = df_clean.sort_values(by='similarity', ascending=False).head(5)
-
-    column_mapping = {
-        'player_name': next((c for c in df_clean.columns if c.lower() == 'player_name'), None),
-        'team_name': next((c for c in df_clean.columns if c.lower() == 'team_name'), None),
-        'season': next((c for c in df_clean.columns if c.lower() == 'season'), None),
-        'similarity': 'similarity'
-    }
-
-    missing = [k for k, v in column_mapping.items() if v is None]
-    if missing:
-        st.warning(f"Missing columns in similarity table: {missing}")
-        return pd.DataFrame()
-
-    return df_clean[[column_mapping['player_name'], column_mapping['team_name'],
-                     column_mapping['season'], 'similarity']]
-
-# --- Streamlit App UI ---
-
-df = get_statsbomb_data()
-if df.empty:
-    st.error("❌ Failed to load player data. Please check StatsBomb API or network.")
-    st.stop()
-
-st.title("Most Similar Players Across All Leagues and Seasons")
-
-all_players = df['player_name'].unique()
-selected_player = st.selectbox("Choose a player", sorted(all_players))
-
-player_data = df[df['player_name'] == selected_player].iloc[0] if selected_player else None
-available_metrics = get_available_metrics(df)
-
-selected_metrics = st.multiselect("Select metrics to compare", available_metrics, default=available_metrics[:8])
-
-similar_df = find_similar_players(df, player_data, selected_metrics)
-
-if not similar_df.empty:
-    similar_df = similar_df.rename(columns={
-        similar_df.columns[0]: 'Player',
-        similar_df.columns[1]: 'Club',
-        similar_df.columns[2]: 'Season',
-        'similarity': 'Similarity'
-    })
-    st.dataframe(similar_df.style.format({'Similarity': '{:.3f}'}), use_container_width=True)
 else:
-    st.warning("No similar players found. Try adjusting the metrics.")
+    st.error("No data available. Please check your StatsBomb API credentials.")
