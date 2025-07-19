@@ -265,3 +265,60 @@ if not df.empty:
 
 else:
     st.error("No data available. Please check your StatsBomb API credentials.")
+def compare_players(filtered_df, available_metrics, metric_display_names):
+    st.markdown("## 📊 Compare Players")
+
+    # Multiselect for players
+    players = sorted(filtered_df['player_name'].unique().tolist())
+    selected_players = st.multiselect("Select up to 3 players to compare", players, max_selections=3)
+
+    if not selected_players or len(selected_players) < 2:
+        st.info("Please select at least 2 players to compare.")
+        return
+
+    # Select metrics
+    selected_metrics = st.multiselect(
+        "Choose metrics to compare (up to 10):",
+        options=available_metrics,
+        default=available_metrics[:10],
+        format_func=lambda x: metric_display_names.get(x, x)
+    )
+
+    if not selected_metrics:
+        st.warning("Please select at least one metric.")
+        return
+
+    # Filter comparison data
+    comparison_data = filtered_df[filtered_df['player_name'].isin(selected_players)]
+
+    # Create columns based on number of players
+    cols = st.columns(len(selected_players))
+
+    for i, player in enumerate(selected_players):
+        with cols[i]:
+            player_row = comparison_data[comparison_data['player_name'] == player].iloc[0]
+
+            # Player info
+            st.markdown(f"### {player}")
+            st.markdown(f"**Club:** {player_row['team_name']}")
+            st.markdown(f"**Age:** {player_row['player_age']}")
+            st.markdown(f"**Minutes:** {int(player_row['player_season_minutes']):,}")
+
+            # Metrics
+            for metric in selected_metrics:
+                value = player_row.get(metric, None)
+
+                # Format value
+                try:
+                    val_display = f"{value:.2f}" if isinstance(value, float) else str(value)
+                    bg_color = "#16a34a" if isinstance(value, (int, float)) and value >= 1 else "#1e3a8a"
+                except:
+                    val_display = "N/A"
+                    bg_color = "#6b7280"
+
+                st.markdown(f"""
+                    <div style="background-color:{bg_color};padding:6px;border-radius:6px;
+                                margin-bottom:6px;color:white;text-align:center;">
+                        <strong>{metric_display_names.get(metric, metric)}</strong><br>{val_display}
+                    </div>
+                """, unsafe_allow_html=True)
