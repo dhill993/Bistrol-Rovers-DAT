@@ -5,8 +5,6 @@ import numpy as np
 from datetime import datetime
 from statsbombpy import sb
 
-st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
-
 # Position mapping from pizza chart logic
 position_mapping = {
     "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
