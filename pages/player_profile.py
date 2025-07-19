@@ -1,3 +1,10 @@
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+import numpy as np
+from datetime import datetime
+from statsbombpy import sb
+
 st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
 
 # Position mapping from pizza chart logic
