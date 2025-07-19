@@ -1,3 +1,5 @@
+st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
+
 # Position mapping from pizza chart logic
 position_mapping = {
     "Centre Back": "Number 6", "Left Centre Back": "Number 6", "Right Centre Back": "Number 6",
@@ -41,8 +43,6 @@ ALL_METRICS = [
     'player_season_fouls_won_90', 'player_season_pressures_90', 'player_season_counterpressures_90',
     'player_season_aggressive_actions_90'
 ]
-
-st.set_page_config(page_title="Player Performance Dashboard", layout="wide")
 
 # Styling
 st.markdown("""
