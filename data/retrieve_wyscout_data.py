@@ -11,6 +11,8 @@ position_mapping = {
     "LB": "Full Back",
     "LCB": "Centre Back",
     "RCB": "Centre Back",
+    "LCB": "Outside Centre Back",
+    "RCB": "Outside Centre Back",
     "RCMF": "Number 6",
     "LCMF": "Number 6",
     "LDMF": "Number 6",
