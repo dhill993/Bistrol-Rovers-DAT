@@ -22,6 +22,18 @@ metrics_per_position = {
         "PASSES PER 90",
         "Received PASSES PER 90"
     ],
+    
+    "Outside Centre Back": [
+        "INTERCEPTIONS PER 90",
+        "PROGRESSIVE PASSES PER 90",
+        "DEFENSIVE DUELS WON %",
+        "AERIAL DUELS PER 90",
+        "AERIAL DUELS WON %",
+        "DUELS PER 90",
+        "DUELS WON %",
+        "CROSSES PER 90",
+        "DRIBBLES PER 90"
+    ],
     "Number 6": [
         "INTERCEPTIONS PER 90",
         "DEFENSIVE DUELS PER 90",
@@ -42,8 +54,8 @@ metrics_per_position = {
         "PROGRESSIVE RUNS PER 90",
         "KEY PASSES PER 90",
         "DRIBBLES PER 90",
-        "OFFENSIVE DUELS PER 90",
-        "OFFENSIVE DUELS WON %",
+        "xA PER 90",
+        "AERIAL DUELS WON %",
         "TOUCHES IN BOX PER 90",
     ],
     "Number 10": [
