@@ -23,6 +23,18 @@ metrics_per_position = {
         "Pass Forward %",
         "PR. Pass %"
     ],
+    "Outside Centre Back": [
+        "Aerial Win %",
+        "Dribbles Stopped %",
+        "PADJ Tackles",
+        "PADJ Interceptions",
+        "PR. Pass %",
+        "Carries",
+        "Successful Crosses",
+        "Dribbles",
+        "OP Passes Into Box",
+        "OP F3 Passes"
+    ],
     "Number 6": [
         "PADJ Tackles",
         "PADJ Interceptions",
@@ -39,13 +51,24 @@ metrics_per_position = {
         "PINTIN",
         "Shots",
         "Aerial Win %",
-        "xG Assisted",
+        "OP xG Assisted",
         "OP Key Passes",
         "Dribbles",
         "Carries",
         "OP Passes Into Box",
         "OBV D&C",
         "PR. Pass %"
+    ],
+    "box to box 8": [
+        "OP xG Assisted",
+        "OP Key Passes",
+        "Dribbles",
+        "Carries",
+        "PAdj Interceptions",
+        "Ball Recoveries",
+        "Dribbles Stopped %",
+        "PR. Pass %",
+        "Touches In Box"
     ],
     "Number 10": [
         "Shots",
@@ -71,7 +94,7 @@ metrics_per_position = {
         "xG Assisted",
         "OBV D&C",
     ],
-    "Centre Forward": [
+    "Centre Forward A": [
         "NP Goals",
         "Shots",
         "Shooting %",
@@ -81,31 +104,7 @@ metrics_per_position = {
         "Touches in Box",
         "Carries",
         "Shot OBV",
-        "Fouls Won",
-    ],
-    "Goal Keeper":[
-        "GK AGGRESSIVE DIST",
-        "CLAIMS %",
-        "PR. Pass %",
-        "SHOT STOPPING %",
-        "OP F3 Passes",
-        "GSAA",
-        "SAVE %",
-        "XSV %",
-        "POSITIVE OUTCOME",
-        "GOALKEEPER OBV"
-   ],
-    "Outside Centre Back": [
-        "Aerial Win %",
-        "Dribbles Stopped %",
-        "PADJ Tackles",
-        "PADJ Interceptions",
-        "PR. Pass %",
-        "Carries",
-        "Successful Crosses",
-        "Dribbles",
-        "OP Passes Into Box",
-        "OP F3 Passes"
+        "Fouls Won"
     ],
     "Runner": [
         "NP Goals",
@@ -118,9 +117,20 @@ metrics_per_position = {
         "pressures",
         "counterpressures",
         "aggressive actions"
+    ],
+    "Goal Keeper": [
+        "GK AGGRESSIVE DIST",
+        "CLAIMS %",
+        "PR. Pass %",
+        "SHOT STOPPING %",
+        "OP F3 Passes",
+        "GSAA",
+        "SAVE %",
+        "XSV %",
+        "POSITIVE OUTCOME",
+        "GOALKEEPER OBV"
     ]
 }
-
 
 profiles_zcore = {
     "Centre Back": [
