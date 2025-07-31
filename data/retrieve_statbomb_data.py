@@ -95,27 +95,33 @@ position_mapping = {
     "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", 
     "Right Wing Back": "Full Back", 
     
-    # Map all CB variants to Outside Centre Back profile
-    "Centre Back": "Outside Centre Back", "Right Centre Back": "Outside Centre Back", "Left Centre Back": "Outside Centre Back", 
+    # Map all CB variants to Centre Back (treated separately from Outside Centre Back now)
+    "Centre Back": "Centre Back", "Right Centre Back": "Centre Back", "Left Centre Back": "Centre Back", 
     
     "Number 8": "Number 8", 
-    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8", 
-    "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
-    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8", 
-    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8", 
-    "Attacking Midfield": "Number 8", 
+    "box to box 8": "box to box 8",  # Treated distinctly now
     
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", 
+    # DM roles to standard Number 8
+    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", 
+    "Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8", 
+    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", 
+    "Centre Midfield": "Number 8", 
     
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
-    "Right Wing": "Winger", 
+    "Left Attacking Midfielder": "Number 10", 
+    "Right Attacking Midfielder": "Number 10", "Right Attacking Midfield": "Number 10", 
+    "Attacking Midfield": "Number 10", "Centre Attacking Midfielder": "Number 10", 
+    "Secondary Striker": "Number 10",
     
-    # Map all CF variants to Runner profile
-    "Centre Forward": "Runner", "Left Centre Forward": "Runner", "Right Centre Forward": "Runner", 
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", 
+    "Left Wing": "Winger", "Right Wing": "Winger", 
     
-    "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goalkeeper"
+    # CF variants
+    "Centre Forward": "Centre Forward A", "Left Centre Forward": "Centre Forward A", 
+    "Right Centre Forward": "Centre Forward A",
+    
+    "Goalkeeper": "Goal Keeper"
 }
-
 
 # --- Main Statsbomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
