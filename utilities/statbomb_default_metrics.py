@@ -100,7 +100,7 @@ metrics_per_position = {
         "Shooting %",
         "xG",
         "xG/Shot",
-        "Shot Touch %",
+        "Aerial Win %",
         "Touches in Box",
         "Carries",
         "Shot OBV",
