@@ -7,31 +7,33 @@ from utilities.utils import get_player_metrics_percentile_ranks
 from utilities.utils import custom_fontt
 
 
-def create_pizza_chart(complete_data,league_name,season, player_name, position, api="statbomb"):
+def create_pizza_chart(complete_data, league_name, season, player_name, position, api="statbomb"):
+
+    # Save original for display if needed
+    shown_position = position
+
+    # Handle StatBomb/Wyscout fallback cases
+    if api == 'statbomb':
+        if position == 'Number 6':
+            position = 'Number 8'
+        elif position == 'Centre Back':
+            position = 'Outside Centre Back'
+        elif position == 'Runner':
+            position = 'Centre Forward A'
+        elif position == 'box to box 8':
+            position = 'Number 8'
+
+    elif api == 'wyscout':
+        if position in ['Number 8', 'Number 10']:
+            position = 'Number 6'
+        elif position == 'Outside Centre Back':
+            position = 'Centre Back'
+        elif position == 'Centre Forward A':
+            position = 'Runner'
+        elif position == 'Number 8':
+            position = 'box to box 8'
 
     position_specific_metric = get_metrics_by_position(position, api)
-
-# Handle StatBomb/Wyscout fallback cases
-if api == 'statbomb':
-    if position == 'Number 6':
-        position = 'Number 8'
-    elif position == 'Centre Back':
-        position = 'Outside Centre Back'
-    elif position == 'Runner':
-        position = 'Centre Forward A'
-    elif position == 'box to box 8':
-        position = 'Number 8'
-
-if api == 'wyscout':
-    if position in ['Number 8', 'Number 10']:
-        position = 'Number 6'
-    elif position == 'Outside Centre Back':
-        position = 'Centre Back'
-    elif position == 'Centre Forward A':
-        position = 'Runner'
-    elif position == 'Number 8':
-        position = 'box to box 8'
-
 
     if league_name not in ['All', '']:
         complete_data = complete_data[complete_data['League'] == league_name]    
