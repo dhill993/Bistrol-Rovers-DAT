@@ -11,11 +11,26 @@ def create_pizza_chart(complete_data,league_name,season, player_name, position, 
 
     position_specific_metric = get_metrics_by_position(position, api)
 
-    if position == 'Number 6' and api=='statbomb':
+# Handle StatBomb/Wyscout fallback cases
+if api == 'statbomb':
+    if position == 'Number 6':
+        position = 'Number 8'
+    elif position == 'Centre Back':
+        position = 'Outside Centre Back'
+    elif position == 'Runner':
+        position = 'Centre Forward A'
+    elif position == 'box to box 8':
         position = 'Number 8'
 
-    if (position == 'Number 8' or position == 'Number 10') and api=='wyscout':
+if api == 'wyscout':
+    if position in ['Number 8', 'Number 10']:
         position = 'Number 6'
+    elif position == 'Outside Centre Back':
+        position = 'Centre Back'
+    elif position == 'Centre Forward A':
+        position = 'Runner'
+    elif position == 'Number 8':
+        position = 'box to box 8'
 
 
     if league_name not in ['All', '']:
