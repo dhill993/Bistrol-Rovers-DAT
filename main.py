@@ -79,7 +79,7 @@ playing_positions = list(statsbomb_data['Position'].unique())
 playing_positions = list(statsbomb_data['Position'].unique())
 
 # Always include custom roles explicitly
-custom_roles = ["Number 6", "Box to Box 8", "Centre Forward A", "Centre Back", "Outside Centre Back"]
+custom_roles = ["Number 6", "Box to Box 8", "Centre Forward A", "Runner", "Centre Back", "Outside Centre Back"]
 
 for role in custom_roles:
     if role not in playing_positions:
