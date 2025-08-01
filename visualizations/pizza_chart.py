@@ -8,43 +8,63 @@ from utilities.utils import custom_fontt
 
 def create_pizza_chart(complete_data, league_name, season, player_name, position, api="statbomb"):
 
-    # Save original for display if needed
-    shown_position = position
+# --- Position Mapping & Normalization ---
+shown_position = position  # For UI display
 
-    # Handle StatBomb/Wyscout fallback cases
-    if api == 'statbomb':
-        if position == 'Number 6':
-            position = 'Number 8'
-        elif position == 'Centre Back':
-            position = 'Outside Centre Back'
-        elif position == 'Runner':
-            position = 'Centre Forward A'
-        elif position == 'box to box 8':
-            position = 'Number 8'
+# Define reverse-mapping raw positions (this should match your central mapping logic)
+raw_position_lookup = {
+    "Centre Back": ["Centre Back", "Left Centre Back", "Right Centre Back"],
+    "Outside Centre Back": ["Left Centre Back", "Right Centre Back"],
 
-    elif api == 'wyscout':
-        if position in ['Number 8', 'Number 10']:
-            position = 'Number 6'
-        elif position == 'Outside Centre Back':
-            position = 'Centre Back'
-        elif position == 'Centre Forward A':
-            position = 'Runner'
-        elif position == 'Number 8':
-            position = 'box to box 8'
+    "Centre Forward A": ["Centre Forward", "Right Centre Forward", "Left Centre Forward"],
+    "Runner": ["Centre Forward", "Right Centre Forward", "Left Centre Forward"],
 
-    position_specific_metric = get_metrics_by_position(position, api)
+    "box to box 8": ["Centre Midfield", "Left Centre Midfield", "Right Centre Midfield"],
+    "Number 8": ["Centre Midfield", "Left Centre Midfield", "Right Centre Midfield"],
+    "Number 6": ["Defensive Midfielder", "Centre Defensive Midfielder"],
 
-    if league_name not in ['All', '']:
-        complete_data = complete_data[complete_data['League'] == league_name]
-    if season != '':
-        complete_data = complete_data[complete_data['Season'] == season]
+    "Full Back": ["Left Back", "Right Back", "Left Wing Back", "Right Wing Back"],
+    "Winger": ["Left Wing", "Right Wing", "Left Midfielder", "Right Midfielder"],
+    "Number 10": ["Attacking Midfield", "Centre Attacking Midfielder", "Secondary Striker"],
+    "Goal Keeper": ["Goalkeeper"]
+}
 
-    player_df_before = complete_data[complete_data['Player Name'] == player_name]
+# If needed, fallback logic per API (used to choose metric set)
+metrics_position = position  # Default to input position
+if api == 'statbomb':
+    if position == 'Number 6':
+        metrics_position = 'Number 8'
+    elif position == 'Centre Back':
+        metrics_position = 'Outside Centre Back'
+    elif position == 'Runner':
+        metrics_position = 'Centre Forward A'
+    elif position == 'box to box 8':
+        metrics_position = 'Number 8'
+elif api == 'wyscout':
+    if position in ['Number 8', 'Number 10']:
+        metrics_position = 'Number 6'
+    elif position == 'Outside Centre Back':
+        metrics_position = 'Centre Back'
+    elif position == 'Centre Forward A':
+        metrics_position = 'Runner'
+    elif position == 'Number 8':
+        metrics_position = 'box to box 8'
 
-    player_df = get_player_metrics_percentile_ranks(complete_data, player_name, position, position_specific_metric)
-    if player_df is None or player_df.empty:
-        st.error(f'Player {player_name} not found.')
-        return None
+# Use raw position list to filter players
+raw_positions = raw_position_lookup.get(position, [position])
+filtered_data = complete_data[complete_data['Position'].isin(raw_positions)]
+
+if league_name not in ['All', '']:
+    filtered_data = filtered_data[filtered_data['League'] == league_name]
+if season != '':
+    filtered_data = filtered_data[filtered_data['Season'] == season]
+
+player_df_before = filtered_data[filtered_data['Player Name'] == player_name]
+
+# Now calculate percentiles based on position-specific metric logic
+position_specific_metric = get_metrics_by_position(metrics_position, api)
+player_df = get_player_metrics_percentile_ranks(filtered_data, player_name, position, position_specific_metric)
+
 
 # ✅ Filter metrics to only those present in the dataframe to avoid column errors
 available_metrics = [m for m in position_specific_metric if m in player_df.columns]
