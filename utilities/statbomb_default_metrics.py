@@ -51,7 +51,7 @@ metrics_per_position = {
         "PINTIN",
         "Shots",
         "Aerial Win %",
-        "OP xG Assisted",
+        "OP XG ASSISTED",
         "OP Key Passes",
         "Dribbles",
         "Carries",
@@ -60,7 +60,7 @@ metrics_per_position = {
         "PR. Pass %"
     ],
     "box to box 8": [
-        "OP xG Assisted",
+        "OP XG ASSISTED",
         "OP Key Passes",
         "Dribbles",
         "Carries",
