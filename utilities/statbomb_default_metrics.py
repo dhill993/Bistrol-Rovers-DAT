@@ -51,7 +51,7 @@ metrics_per_position = {
         "PINTIN",
         "Shots",
         "Aerial Win %",
-        "OP XG ASSISTED",
+        "xG Assisted",
         "OP Key Passes",
         "Dribbles",
         "Carries",
