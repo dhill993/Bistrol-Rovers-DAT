@@ -417,7 +417,7 @@ profiles_zcore = {
             "Ball Recoveries",
             "OBV D&C"
             ],
-            "Weighted Metrics": ["PINTIN", "OP Key Passes", "OBV", "xG Assisted"],
+            "Weighted Metrics": ["PINTIN", "OP Key Passes", "OBV", "OP XG ASSISTED"],
             "Z Score Name": "Creative 8 Score"
         },
         {
