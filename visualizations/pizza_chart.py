@@ -130,7 +130,7 @@ metric_values = player_df[available_metrics].iloc[0].values.tolist()
 
     fig.text(
         0.08, 0.88,
-        f"Minutes Played: {int(player_df_before['Minutes'])}  |  Age: {int(player_df_before['Age'])}",
+        f"Minutes Played: {int(player_df_before['Minutes'].values[0])}  |  Age: {int(player_df_before['Age'].values[0])}",
         size=10, ha="left", fontproperties=custom_fontt, color="#F2F2F2", alpha=0.8
     )
 
