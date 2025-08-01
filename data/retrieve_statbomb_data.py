@@ -90,36 +90,45 @@ metrics_mapping = {
     "player_season_aggressive_actions_90": "aggressive actions"
 }
 
-# --- Position Mapping ---
 position_mapping = {
     "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", 
     "Right Wing Back": "Full Back", 
+
+    # CB variants
+    "Centre Back": "Centre Back", "Right Centre Back": "Centre Back", "Left Centre Back": "Centre Back",
+    "Outside Centre Back": "Outside Centre Back",  # NEW distinct role
+
+    # Midfield
+    "Number 6": "Number 6",  # Keep distinct
+    "box to box 8": "box to box 8",  # NEW distinct role
+    "Number 8": "Number 8",
     
-    # Map all CB variants to Centre Back (treated separately from Outside Centre Back now)
-    "Centre Back": "Centre Back", "Right Centre Back": "Centre Back", "Left Centre Back": "Centre Back", 
-    
-    "Number 8": "Number 8", 
-    "box to box 8": "box to box 8",  # Treated distinctly now
-    
-    # DM roles to standard Number 8
-    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", 
-    "Defensive Midfielder": "Number 8", "Centre Defensive Midfielder": "Number 8", 
+    # Defensive mids → Number 6 (not Number 8 now, if Number 6 is distinct)
+    "Left Defensive Midfielder": "Number 6", 
+    "Right Defensive Midfielder": "Number 6", 
+    "Defensive Midfielder": "Number 6", 
+    "Centre Defensive Midfielder": "Number 6", 
+
+    # Standard central mids → Number 8
     "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
     "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", 
     "Centre Midfield": "Number 8", 
-    
+
+    # Attacking mids
     "Left Attacking Midfielder": "Number 10", 
     "Right Attacking Midfielder": "Number 10", "Right Attacking Midfield": "Number 10", 
     "Attacking Midfield": "Number 10", "Centre Attacking Midfielder": "Number 10", 
     "Secondary Striker": "Number 10",
-    
+
+    # Wingers
     "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", 
     "Left Wing": "Winger", "Right Wing": "Winger", 
-    
+
     # CF variants
     "Centre Forward": "Centre Forward A", "Left Centre Forward": "Centre Forward A", 
-    "Right Centre Forward": "Centre Forward A",
-    
+    "Right Centre Forward": "Centre Forward A", 
+    "Runner": "Runner",  # NEW distinct role
+
     "Goalkeeper": "Goal Keeper"
 }
 
