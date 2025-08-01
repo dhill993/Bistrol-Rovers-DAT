@@ -52,23 +52,12 @@ metrics_per_position = {
         "Shots",
         "Aerial Win %",
         "xG Assisted",
-        "OP Key Passes",
+        "OP XG ASSISTED",
         "Dribbles",
         "Carries",
         "OP Passes Into Box",
         "OBV D&C",
         "PR. Pass %"
-    ],
-    "box to box 8": [
-        "OP XG ASSISTED",
-        "OP Key Passes",
-        "Dribbles",
-        "Carries",
-        "PAdj Interceptions",
-        "Ball Recoveries",
-        "Dribbles Stopped %",
-        "PR. Pass %",
-        "Touches In Box"
     ],
     "Number 10": [
         "Shots",
