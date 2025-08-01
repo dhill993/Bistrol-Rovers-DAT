@@ -46,8 +46,15 @@ def create_pizza_chart(complete_data, league_name, season, player_name, position
         st.error(f'Player {player_name} not found.')
         return None
 
-    available_metrics = position_specific_metric
-    metric_values = player_df[available_metrics].iloc[0].values.tolist()
+# ✅ Filter metrics to only those present in the dataframe to avoid column errors
+available_metrics = [m for m in position_specific_metric if m in player_df.columns]
+
+if not available_metrics:
+    st.error(f"No valid metrics found for position: {shown_position}.")
+    return None
+
+metric_values = player_df[available_metrics].iloc[0].values.tolist()
+
     if len(available_metrics) != len(metric_values):
         st.error("Metric mismatch error.")
         return None
