@@ -76,12 +76,8 @@ leagues.append('All')
 seasons = list(statsbomb_data['Season'].unique())
 playing_positions = list(statsbomb_data['Position'].unique())
 
-# Always include custom roles explicitly
-custom_roles = ["Number 6", "Box to Box 8", "Centre Forward A", "Runner", "Centre Back", "Outside Centre Back"]
-
-for role in custom_roles:
-    if role not in playing_positions:
-        playing_positions.append(role)
+playing_positions = list(statsbomb_data['Position'].unique())
+playing_positions.append("Number 6")
 
 with st.expander("Expand to view pizza chart", expanded=False):
 
