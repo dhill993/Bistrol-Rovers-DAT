@@ -47,7 +47,7 @@ metrics_per_position = {
         "Received PASSES PER 90"
     ],
     "Number 8": [
-        "PAdj Interceptions",
+        "INTERCEPTIONS PER 90",
         "Aerial duels won, %",
         "xG per 90",
         "Dribbles per 90",
