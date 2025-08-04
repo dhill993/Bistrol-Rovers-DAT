@@ -48,16 +48,16 @@ metrics_per_position = {
         "Pass OBV",
     ],
     "Number 8": [
+        "xG",
+        "PADJ Interceptions",
         "PINTIN",
-        "Shots",
-        "Aerial Win %",
         "OP Key Passes",
         "OP XG ASSISTED",
-        "Dribbles",
-        "Carries",
-        "OP Passes Into Box",
-        "OBV D&C",
-        "PR. Pass %"
+        "aggressive actions",
+        "Aerial Win %",
+        "pressures",
+        "counterpressures",
+        "Scoring Contribution"
     ],
     "Number 10": [
         "Shots",
