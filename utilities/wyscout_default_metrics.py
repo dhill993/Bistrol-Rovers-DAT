@@ -57,7 +57,6 @@ metrics_per_position = {
         "xA PER 90",
         "PROGRESSIVE RUNS PER 90",
         "SUCCESSFUL DRIBBLES %",
-    ],
 ],
     "Number 10": [
         "SHOTS PER 90",
