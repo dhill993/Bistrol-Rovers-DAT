@@ -48,7 +48,7 @@ metrics_per_position = {
     ],
     "Number 8": [
         "INTERCEPTIONS PER 90",
-        "Aerial duels won, %",
+        "AERIAL DUELS WON %",
         "xG per 90",
         "Dribbles per 90",
         "Offensive duels per 90",
