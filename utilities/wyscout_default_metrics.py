@@ -47,16 +47,17 @@ metrics_per_position = {
         "Received PASSES PER 90"
     ],
     "Number 8": [
-    "INTERCEPTIONS PER 90",
-    "AERIAL DUELS WON %",
-    "xG PER 90",
-    "DRIBBLES PER 90",
-    "DUELS PER 90",
-    "TOUCHES IN BOX PER 90",
-    "PROGRESSIVE RUNS PER 90",  # <- fixed this line
-    "xA PER 90",
-    "PROGRESSIVE RUNS PER 90",  # appears again, you can remove duplicate
-    "KEY PASSES PER 90",
+        "SHOTS PER 90",
+        "xG PER 90",
+        "TOUCHES IN BOX PER 90",
+        "PASSES TO PENALTY AREA PER 90",
+        "KEY PASSES PER 90",
+        "DRIBBLES PER 90",
+        "PROGRESSIVE PASSES PER 90",
+        "xA PER 90",
+        "PROGRESSIVE RUNS PER 90",
+        "SUCCESSFUL DRIBBLES %",
+    ],
 ],
     "Number 10": [
         "SHOTS PER 90",
