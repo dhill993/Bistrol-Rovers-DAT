@@ -53,10 +53,10 @@ metrics_per_position = {
         "PINTIN",
         "OP Key Passes",
         "OP XG ASSISTED",
-        "PADJ Tackles",
-        "Aerial Win %",
-        "pressures",
-        "Ball Recoveries",
+        "Pass OBV",
+        "Successful Dribbles",
+        "xG Buildup",
+        "Carries",
         "Scoring Contribution"
     ],
     "Number 10": [
