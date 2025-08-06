@@ -19,6 +19,6 @@ name = "Upload Data"
 icon = "📋"
 
 [[pages]]
-path = "pages/player_profile.py"
-name = "Player Profile Summary"
+path = "bristol_rovers_benchmark.py"
+name = "Player Benchmark"
 icon = "🧍"
