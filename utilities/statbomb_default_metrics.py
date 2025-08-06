@@ -55,7 +55,7 @@ metrics_per_position = {
         "OP XG ASSISTED",
         "PADJ Tackles",
         "Aerial Win %",
-        "Pressures",
+        "pressures",
         "Ball Recoveries",
         "Scoring Contribution"
     ],
