@@ -23,18 +23,6 @@ metrics_per_position = {
         "Pass Forward %",
         "PR. Pass %"
     ],
-    "Outside Centre Back": [
-        "Aerial Win %",
-        "Dribbles Stopped %",
-        "PADJ Tackles",
-        "PADJ Interceptions",
-        "PR. Pass %",
-        "Carries",
-        "Successful Crosses",
-        "Dribbles",
-        "OP Passes Into Box",
-        "OP F3 Passes"
-    ],
     "Number 6": [
         "PADJ Tackles",
         "PADJ Interceptions",
