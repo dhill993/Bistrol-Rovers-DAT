@@ -11,7 +11,7 @@ metrics_per_position = {
         "PADJ Interceptions",
         "Aerial Win %"
     ],
-    "Centre Back": [
+    "Outside Centre Back": [
         "Aerial Win %",
         "Dribbles Stopped %",
         "PADJ Tackles",
