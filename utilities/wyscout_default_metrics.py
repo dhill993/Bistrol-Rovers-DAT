@@ -54,7 +54,7 @@ metrics_per_position = {
         "KEY PASSES PER 90",
         "DRIBBLES PER 90",
         "PROGRESSIVE PASSES PER 90",
-        "xA PER 90",
+        "AERIAL DUELS WON %",
         "PROGRESSIVE RUNS PER 90",
         "SUCCESSFUL DRIBBLES %",
 ],
