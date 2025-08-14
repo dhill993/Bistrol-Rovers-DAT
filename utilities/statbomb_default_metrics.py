@@ -37,14 +37,14 @@ metrics_per_position = {
     ],
     "Number 8": [
         "xG",
-        "Shots",
+        "PADJ Interceptions",
         "PINTIN",
         "OP Key Passes",
         "OP XG ASSISTED",
-        "Pass OBV",
-        "Successful Dribbles",
-        "Carries",
-        "xG Buildup",
+        "PADJ Tackles",
+        "Aerial Win %",
+        "pressures",
+        "Ball Recoveries",
         "Scoring Contribution"
     ],
     "Number 10": [
