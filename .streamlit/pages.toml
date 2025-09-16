@@ -17,3 +17,8 @@ icon = "🗂️"
 path = "data/upload_data.py"
 name = "Upload Data"
 icon = "📋"
+
+[[pages]]
+path = "Zscore_statsbomb.py"
+name = "Zscore_statsbomb"
+icon = "📋"
