@@ -1,0 +1,60 @@
+
+import streamlit as st
+import pandas as pd
+from statsbombpy import sb
+import re
+from datetime import datetime
+
+st.title('Top 10 U19 Minutes Leaders (2025/2026) by League')
+
+# --- Credentials ---
+with open('creds.txt', 'r') as f:
+    creds_txt = f.read()
+user = re.search(r'Username:\s*(.*)', creds_txt).group(1).strip()
+passwd = re.search(r'Password:\s*(.*)', creds_txt).group(1).strip()
+creds = {'user': user, 'passwd': passwd}
+
+# --- Get 2025/2026 Leagues ---
+all_comps = sb.competitions(creds=creds)
+season_comps = all_comps[all_comps['season_name'].str.contains('2025/2026')]
+leagues = season_comps[['competition_id', 'season_id', 'competition_name']]
+
+league_options = {f"{row['competition_name']} (ID: {row['competition_id']})": (row['competition_id'], row['season_id']) for _, row in leagues.iterrows()}
+
+league_choice = st.selectbox('Select League:', list(league_options.keys()))
+
+if st.button('Show U19 Minutes Leaders'):
+    comp_id, season_id = league_options[league_choice]
+    st.write(f"Fetching player stats for {league_choice}...")
+    try:
+        df = sb.player_season_stats(competition_id=comp_id, season_id=season_id, creds=creds)
+    except Exception as e:
+        st.error(f"Error fetching data: {e}")
+        st.stop()
+    # Check required columns
+    required_cols = ['player_name', 'birth_date', 'team_name', 'player_season_minutes']
+    for col in required_cols:
+        if col not in df.columns:
+            st.error(f"Column '{col}' missing in data!")
+            st.dataframe(df.head())
+            st.stop()
+    # Calculate age as of today
+    today = pd.Timestamp(datetime.today().date())
+    df['age'] = (today - pd.to_datetime(df['birth_date'], errors='coerce')).dt.days // 365
+    # Filter for age <= 19
+    u19 = df[df['age'] <= 19].copy()
+    if u19.empty:
+        st.warning('No U19 players found for this league/season.')
+        st.stop()
+    # Prepare output
+    out = u19[['player_name', 'age', 'team_name', 'player_season_minutes']].copy()
+    out['player_season_minutes'] = out['player_season_minutes'].astype(int)
+    out = out.sort_values('player_season_minutes', ascending=False).head(10)
+    out.insert(0, 'Rank', range(1, len(out) + 1))
+    out = out.rename(columns={
+        'player_name': 'Player Name',
+        'age': 'Age',
+        'team_name': 'Team',
+        'player_season_minutes': 'Minutes Played'
+    })
+    st.table(out)
