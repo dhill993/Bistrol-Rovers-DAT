@@ -19,6 +19,21 @@ name = "Upload Data"
 icon = "📋"
 
 [[pages]]
-path = "Zscore_statsbomb.py"
+path = "Zscore_statsbomb"
 name = "Zscore_statsbomb"
-icon = "📋"
+icon = "📊"
+
+[[pages]]
+path = "Zscore_Wyscout1"
+name = "Zscore_statsbomb"
+icon = "📊"
+
+[[pages]]
+path = "u19_minutes_leaders_streamlit_v2"
+name = "Zscore_statsbomb"
+icon = "📊"
+
+[[pages]]
+path = "latest_mins_script"
+name = "Zscore_statsbomb"
+icon = "📊"
