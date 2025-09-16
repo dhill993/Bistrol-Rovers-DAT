@@ -1,0 +1,296 @@
+import streamlit as st
+from statsbombpy import sb
+import requests
+from fuzzywuzzy import process
+import pandas as pd
+import time
+import re
+import json
+
+st.set_page_config(page_title='Monday Minutes Updates', page_icon='⚽', layout='centered')
+
+st.markdown("""
+    <style>
+    body, .stApp, .css-18e3th9, .css-1d391kg, .css-1cpxqw2, .css-ffhzg2, .css-1v0mbdj, .css-1lcbmhc {
+        background-color: #18191A !important;
+        color: #E4E6EB !important;
+    }
+    .stButton>button, .stTextInput>div>div>input, .stSelectbox>div>div>div>div, .stTextArea>div>textarea {
+        background-color: #242526 !important;
+        color: #E4E6EB !important;
+        border-radius: 8px !important;
+        border: 1px solid #3A3B3C !important;
+    }
+    .stDataFrame, .stTable, .stMarkdown, .stAlert, .stSuccess, .stError, .stInfo, .stWarning {
+        color: #E4E6EB !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title('⚽ Monday Minutes Updates')
+st.markdown("""
+Easily update your Monday.com player minutes from StatsBomb data.  
+Auto-detects columns, skips already-correct, and handles mixed-league boards. Now fetches all items (no 200 limit).
+""")
+
+st.subheader('1. Enter Credentials')
+api_token = st.text_input('Monday.com API Token', type='password')
+statsbomb_user = st.text_input('StatsBomb Username', value='dhillon.gil@bristolrovers.co.uk')
+statsbomb_pass = st.text_input('StatsBomb Password', value='004laVPb', type='password')
+
+def find_column(columns, patterns):
+    for pat in patterns:
+        for col in columns:
+            if re.search(pat, col['title'], re.IGNORECASE):
+                return col
+    return None
+
+def get_column_candidates(columns, patterns):
+    candidates = []
+    for col in columns:
+        for pat in patterns:
+            if re.search(pat, col['title'], re.IGNORECASE):
+                candidates.append(col)
+    return candidates
+
+# --- FIXED PAGINATION FUNCTION ---
+def fetch_all_items(board_id, api_token):
+    headers = {'Authorization': api_token, 'Content-Type': 'application/json'}
+    items = []
+
+    # Initial fetch
+    query = f"""
+    query {{
+      boards(ids: {board_id}) {{
+        items_page(limit: 200) {{
+          cursor
+          items {{
+            id
+            name
+            column_values {{ id text value type }}
+          }}
+        }}
+      }}
+    }}
+    """
+    response = requests.post('https://api.monday.com/v2', headers=headers, json={'query': query})
+    data = response.json()
+    if 'errors' in data:
+        st.error(f"Monday API error: {data['errors']}")
+        return None
+    if 'data' not in data or not data['data']['boards']:
+        st.error(f"Monday API returned no data: {data}")
+        return None
+    page = data['data']['boards'][0]['items_page']
+    items.extend(page['items'])
+    cursor = page.get('cursor')
+
+    # Loop until no cursor returned
+    while cursor:
+        query = f"""
+        query {{
+          next_items_page(limit: 200, cursor: "{cursor}") {{
+            cursor
+            items {{
+              id
+              name
+              column_values {{ id text value type }}
+            }}
+          }}
+        }}
+        """
+        response = requests.post('https://api.monday.com/v2', headers=headers, json={'query': query})
+        data = response.json()
+        if 'errors' in data:
+            st.error(f"Monday API error: {data['errors']}")
+            return None
+        page = data['data']['next_items_page']
+        items.extend(page['items'])
+        cursor = page.get('cursor')
+        time.sleep(0.2)
+    return items
+
+# --- MAIN SCRIPT ---
+if api_token and statsbomb_user and statsbomb_pass:
+    creds = {'user': statsbomb_user, 'passwd': statsbomb_pass}
+    try:
+        comps = sb.competitions(creds=creds)
+        leagues = comps[['competition_id', 'season_id', 'competition_name', 'season_name']]
+        leagues = leagues.sort_values(['competition_name', 'season_name'], ascending=[True, False]).reset_index(drop=True)
+        league_options = [f"{row['competition_name']} {row['season_name']}" for _, row in leagues.iterrows()]
+        st.subheader('2. Select League/Season')
+        league_idx = st.selectbox('League/Season', options=range(len(league_options)), format_func=lambda i: league_options[i])
+        league_row = leagues.iloc[league_idx]
+        competition_id = league_row['competition_id']
+        season_id = league_row['season_id']
+        st.success(f"Selected: {league_row['competition_name']} {league_row['season_name']}")
+        st.subheader('3. Enter Monday.com Board IDs (comma separated)')
+        board_ids_str = st.text_input('Board IDs', help='Enter one or more board IDs, separated by commas')
+        board_ids = [bid.strip() for bid in board_ids_str.split(',') if bid.strip()]
+        st.markdown('---')
+        if board_ids and st.button('Match & Update'):
+            st.info('Fetching player season stats from StatsBomb...')
+            player_season = sb.player_season_stats(competition_id=competition_id, season_id=season_id, creds=creds)
+            sb_players = player_season[['player_name', 'team_name', 'player_season_minutes']].copy()
+            sb_players['player_season_minutes'] = sb_players['player_season_minutes'].round().astype(int)
+
+            headers = {'Authorization': api_token, 'Content-Type': 'application/json'}
+            all_results = []
+            for board_id in board_ids:
+                st.info(f'Fetching ALL items for board {board_id}...')
+                # Fetch columns
+                query = (
+                    'query {'
+                    f'  boards(ids: {board_id}) {{'
+                    '    id'
+                    '    name'
+                    '    columns { id title }'
+                    '  }'
+                    '}'
+                )
+                response = requests.post('https://api.monday.com/v2', headers=headers, json={'query': query})
+                board_data = response.json()
+                if 'errors' in board_data:
+                    st.error(f"Error fetching board {board_id}: {board_data['errors']}")
+                    continue
+                if 'data' not in board_data or not board_data['data']['boards']:
+                    st.error(f"Monday API returned no data for board {board_id}: {board_data}")
+                    continue
+                board = board_data['data']['boards'][0]
+                columns = board['columns']
+                # Fetch all items with pagination
+                items = fetch_all_items(board_id, api_token)
+                if items is None:
+                    continue
+                st.info(f"Fetched {len(items)} items from board {board_id}.")
+                # Detect relevant columns
+                min_patterns = [r'minutes', r'25.?26.?minutes']
+                club_patterns = [r'current club', r'team', r'club']
+                league_patterns = [r'league']
+                min_col = find_column(columns, min_patterns)
+                club_col = find_column(columns, club_patterns)
+                league_col = find_column(columns, league_patterns)
+                if not min_col:
+                    candidates = get_column_candidates(columns, min_patterns)
+                    if candidates:
+                        min_col = st.selectbox(f"Select minutes column for board {board['name']} ({board_id})", options=candidates, format_func=lambda c: c['title'])
+                if not club_col:
+                    candidates = get_column_candidates(columns, club_patterns)
+                    if candidates:
+                        club_col = st.selectbox(f"Select club/team column for board {board['name']} ({board_id})", options=candidates, format_func=lambda c: c['title'])
+                if not min_col or not club_col:
+                    st.error(f"Could not auto-detect minutes or club/team column for board {board['name']} ({board_id})!")
+                    continue
+                min_col_id = min_col['id']
+                club_col_id = club_col['id']
+                league_col_id = league_col['id'] if league_col else None
+                st.info(f"Using '{min_col['title']}' for minutes, '{club_col['title']}' for club/team" + (f", '{league_col['title']}' for league" if league_col else ''))
+                # If mixed-league boards
+                league_value = None
+                if league_col:
+                    league_values = sorted(set(
+                        cv['text'] for item in items for cv in item['column_values'] if cv['id'] == league_col_id and cv['text']
+                    ))
+                    if league_values:
+                        league_value = st.selectbox(f"Select league for board {board['name']} ({board_id})", options=league_values)
+                # Prepare Monday player data
+                monday_players = []
+                for item in items:
+                    player_name = item['name']
+                    item_id = item['id']
+                    current_club = None
+                    minutes_val = None
+                    league_val = None
+                    for col in item['column_values']:
+                        if col['id'] == club_col_id:
+                            current_club = col['text']
+                        if col['id'] == min_col_id:
+                            minutes_val = col['text']
+                        if league_col_id and col['id'] == league_col_id:
+                            league_val = col['text']
+                    monday_players.append({'item_id': item_id, 'player_name': player_name, 'current_club': current_club, 'minutes': minutes_val, 'league': league_val})
+                monday_df = pd.DataFrame(monday_players)
+                if league_col and league_value:
+                    monday_df = monday_df[monday_df['league'] == league_value].copy()
+
+                # Matching & updating
+                results = []
+                for idx, row in monday_df.iterrows():
+                    m_name = row['player_name']
+                    m_club = row['current_club']
+                    m_minutes = row['minutes']
+                    result = process.extractOne(m_name, sb_players['player_name'])
+                    if result and result[1] >= 85:
+                        best_match = result[0]
+                        sb_row = sb_players[sb_players['player_name'] == best_match].iloc[0]
+                        new_minutes = int(sb_row['player_season_minutes'])
+                        if m_minutes and str(m_minutes).strip() != '' and int(float(m_minutes)) == new_minutes:
+                            results.append({'item_id': row['item_id'], 'player_name': m_name, 'current_club': m_club, 'minutes': m_minutes, 'status': 'Skipped (already correct)', 'sb_name': best_match, 'sb_club': sb_row['team_name'], 'new_minutes': new_minutes})
+                            continue
+                        results.append({'item_id': row['item_id'], 'player_name': m_name, 'current_club': m_club, 'minutes': m_minutes, 'status': 'To update', 'sb_name': best_match, 'sb_club': sb_row['team_name'], 'new_minutes': new_minutes})
+                        continue
+                    results.append({'item_id': row['item_id'], 'player_name': m_name, 'current_club': m_club, 'minutes': m_minutes, 'status': 'No match', 'sb_name': '', 'sb_club': '', 'new_minutes': None})
+
+                to_update = [r for r in results if r['status'] == 'To update']
+                skipped = [r for r in results if r['status'].startswith('Skipped')]
+                not_updated = [r for r in results if r['status'] not in ['To update', 'Skipped (already correct)']]
+                st.info(f'Updating {len(to_update)} matched players on Monday.com...')
+                success, failed = [], []
+                progress = st.progress(0)
+
+                for i, match in enumerate(to_update):
+                    for attempt in range(3):
+                        try:
+                            # ✅ Correct numeric column update
+                            value = json.dumps(str(match["new_minutes"]))
+                            mutation = f"""
+mutation {{
+  change_column_value(
+    item_id: {match["item_id"]},
+    board_id: {board_id},
+    column_id: "{min_col_id}",
+    value: {value}
+  ) {{
+    id
+  }}
+}}
+"""
+                            resp = requests.post('https://api.monday.com/v2', headers=headers, json={'query': mutation})
+                            if resp.status_code == 200 and 'errors' not in resp.json():
+                                success.append(match)
+                                break
+                            else:
+                                if attempt == 2:
+                                    failed.append({'match': match, 'response': resp.json()})
+                                time.sleep(0.5)
+                        except Exception as e:
+                            if attempt == 2:
+                                failed.append({'match': match, 'response': str(e)})
+                            time.sleep(0.5)
+                    progress.progress((i+1)/len(to_update))
+                progress.empty()
+                st.success(f"Update complete! Updated {len(success)} items. Skipped: {len(skipped)}. Failed: {len(failed)}")
+
+                if success:
+                    updated_df = pd.DataFrame(success)[['player_name', 'current_club', 'sb_name', 'sb_club', 'new_minutes']]
+                    st.dataframe(updated_df)
+                    csv = updated_df.to_csv(index=False).encode('utf-8')
+                    st.download_button('Download updated board as CSV', data=csv, file_name=f'updated_board_{board_id}.csv', mime='text/csv')
+                if failed:
+                    st.error('Some updates failed. See details below:')
+                    st.write(failed[:3])
+                if not_updated:
+                    st.warning(f"{len(not_updated)} players could not be matched with high confidence. Please review and update manually.")
+                    not_updated_df = pd.DataFrame(not_updated)[['player_name', 'current_club', 'minutes', 'status', 'sb_name', 'sb_club', 'new_minutes']]
+                    st.dataframe(not_updated_df)
+                    csv = not_updated_df.to_csv(index=False).encode('utf-8')
+                    st.download_button('Download unmatched as CSV', data=csv, file_name='unmatched_players.csv', mime='text/csv')
+                if skipped:
+                    st.info(f"{len(skipped)} players already had correct minutes and were skipped.")
+                    skipped_df = pd.DataFrame(skipped)[['player_name', 'current_club', 'minutes', 'sb_name', 'sb_club', 'new_minutes']]
+                    st.dataframe(skipped_df)
+            st.success('All boards processed!')
+    except Exception as e:
+        st.error(f"Error: {e}")
+else:
+    st.info("Please enter your Monday.com API token and StatsBomb credentials to begin.")
