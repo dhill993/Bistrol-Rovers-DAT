@@ -27,13 +27,3 @@ icon = "📊"
 path = "Zscore_Wyscout1"
 name = "Zscore_Wyscout"
 icon = "📊"
-
-[[pages]]
-path = "u19_minutes_leaders_streamlit_v2"
-name = "u19_minutes_leaders"
-icon = "📊"
-
-[[pages]]
-path = "latest_mins_script"
-name = "latest_mins_script"
-icon = "📊"
