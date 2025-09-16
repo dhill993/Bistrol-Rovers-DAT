@@ -1,0 +1,186 @@
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Wyscout Z-Score Profiles", layout="wide")
+st.title("Wyscout Z-Score Profiles")
+
+wyscout_profiles = {
+    "Wing Back": {
+        "raw_positions": ["LB", "LWB", "RB", "RWB"],
+        "metrics": {
+            "Dribbles stopped, %": 1,
+            "Carries": 1,
+            "xA (open play)": 1,
+            "Successful dribbles": 1,
+            "Successful crosses": 1,
+            "Ball recoveries": 1,
+            "Passes to penalty area (open play)": 1,
+            "Progressive pass, %": 1,
+            "PAdj Interceptions": 1,
+            "Aerial duels won, %": 1
+        }
+    },
+    "Centre Back": {
+        "raw_positions": ["CB", "RCB", "LCB"],
+        "metrics": {
+            "Aerial duels won, %": 1,
+            "Dribbles stopped, %": 1,
+            "PAdj Tackles": 1,
+            "PAdj Interceptions": 1,
+            "PAdj Clearances": 1,
+            "Forward pass, %": 1,
+            "Defensive regains": 1,
+            "DA OBV": 1,
+            "Ball recoveries": 1,
+            "Progressive pass, %": 1
+        }
+    },
+    "Ball Playing 6": {
+        "raw_positions": ["LDM", "CDM", "RDM", "LCM", "CM", "RCM"],
+        "metrics": {
+            "PAdj Tackles": 1,
+            "PAdj Interceptions": 1,
+            "Forward pass, %": 1,
+            "Ball recoveries": 1,
+            "Aerial duels won, %": 1,
+            "xGBuildup": 1,
+            "DA OBV": 1,
+            "Progressive pass, %": 1,
+            "Pass OBV": 1,
+            "Deep progressions": 1
+        }
+    },
+    "Destroyer 6": {
+        "raw_positions": ["LDM", "CDM", "RDM", "LCM", "CM", "RCM"],
+        "metrics": {
+            "PAdj Tackles": 1,
+            "PAdj Interceptions": 1,
+            "Forward pass, %": 1,
+            "Ball recoveries": 1,
+            "Aerial duels won, %": 1,
+            "Dribbles stopped, %": 1,
+            "DA OBV": 1,
+            "Progressive pass, %": 1,
+            "Pass OBV": 1,
+            "Defensive regains": 1
+        }
+    },
+    "No8 - Physical/Box to Box": {
+        "raw_positions": ["LDM", "CDM", "RDM", "LCM", "CM", "RCM"],
+        "metrics": {
+            "xG": 1,
+            "Key passes (open play)": 1,
+            "xA (open play)": 1,
+            "PAdj Interceptions": 1,
+            "PAdj Tackles": 1,
+            "Aerial duels won, %": 1,
+            "Pressures": 1,
+            "Ball recoveries": 1,
+            "Passes into final third": 1,
+            "Scoring contribution": 1
+        }
+    },
+    "No8 - Technical/Creative": {
+        "raw_positions": ["LDM", "CDM", "RDM", "LCM", "CM", "RCM"],
+        "metrics": {
+            "xG": 1,
+            "Shots": 1,
+            "xA (open play)": 1,
+            "Key passes (open play)": 1,
+            "Pass OBV": 1,
+            "Dribble success, %": 1,
+            "xGBuildup": 1,
+            "Carries": 1,
+            "Passes into final third": 1,
+            "Scoring contribution": 1
+        }
+    },
+    "No10": {
+        "raw_positions": ["LCM", "CM", "RCM", "LAM", "CAM", "RAM"],
+        "metrics": {
+            "Shots": 1,
+            "xG": 1,
+            "Scoring contribution": 1,
+            "Progressive pass, %": 1,
+            "Key passes (open play)": 1,
+            "Successful dribbles": 1,
+            "Passes into final third": 1,
+            "xA": 1,
+            "Carries": 1,
+            "Shooting, %": 1
+        }
+    },
+    "Winger": {
+        "raw_positions": ["LM", "LW", "RM", "RW"],
+        "metrics": {
+            "xG": 1,
+            "Shots": 1,
+            "Key passes (open play)": 1,
+            "Dribbles": 1,
+            "Successful dribbles": 1,
+            "OBV": 1,
+            "Passes into final third": 1,
+            "Successful crosses": 1,
+            "xA": 1,
+            "D&C OBV": 1
+        }
+    },
+    "Target Forward": {
+        "raw_positions": ["CF", "RCF", "LCF"],
+        "metrics": {
+            "NP Goals": 1,
+            "Shots": 1,
+            "Shooting, %": 1,
+            "xG": 1,
+            "xG/Shot": 1,
+            "Shot touch, %": 1,
+            "Aerial duels won, %": 1,
+            "Touches in box": 1,
+            "Carries": 1,
+            "Fouls won": 1
+        }
+    },
+    "CF Runner": {
+        "raw_positions": ["CF", "RCF", "LCF"],
+        "metrics": {
+            "NP Goals": 1,
+            "Shots": 1,
+            "Shooting, %": 1,
+            "xG": 1,
+            "xG/Shot": 1,
+            "Shot touch, %": 1,
+            "Aggressive actions": 1,
+            "Fouls won": 1,
+            "Pressures": 1,
+            "Counterpressures": 1
+        }
+    }
+}
+
+wyscout_file = st.file_uploader("Upload Wyscout Excel file", type=['xlsx'])
+profile = st.selectbox("Select Z-Score Profile", list(wyscout_profiles.keys()))
+min_minutes = st.slider("Minimum Minutes Played", 0, 2000, 500, 50)
+
+if wyscout_file and st.button("Run Z-Score Analysis (Wyscout)"):
+    df = pd.read_excel(wyscout_file)
+    raw_positions = set(wyscout_profiles[profile]['raw_positions'])
+    df_filt = df[df['Minutes played'] > min_minutes].copy()
+    df_filt = df_filt[df_filt['Position'].apply(lambda x: any(pos.strip() in raw_positions for pos in str(x).split(',')))]
+    metrics = wyscout_profiles[profile]['metrics'].copy()
+    # --- Z-score calculation ---
+    z_df = df_filt[['Player', 'Team within selected timeframe', 'Age', 'Minutes played']].copy()
+    z_scores = []
+    for m, w in metrics.items():
+        if m in df_filt:
+            z = (df_filt[m] - df_filt[m].mean()) / (df_filt[m].std(ddof=0) + 1e-8)
+            z_df[m + ' (z)'] = z
+            z_scores.append(z * w)
+    if z_scores:
+        z_df['Profile Z-Score'] = sum(z_scores) / len(z_scores)
+        z_df = z_df.sort_values('Profile Z-Score', ascending=False).head(10)
+        st.dataframe(z_df)
+        st.write(f"Showing top 10 players for profile: {profile}")
+        csv = z_df.to_csv(index=False).encode('utf-8')
+        st.download_button("Download Results as CSV", csv, "wyscout_zscore_results.csv", "text/csv")
+    else:
+        st.warning("No metrics found in your file for this profile.")
