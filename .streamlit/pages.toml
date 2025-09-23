@@ -27,3 +27,8 @@ icon = "📊"
 path = "Zscore_Wyscout1"
 name = "Zscore_Wyscout"
 icon = "📊"
+
+[[pages]]
+path = "Export"
+name = "Export"
+icon = "📊"
