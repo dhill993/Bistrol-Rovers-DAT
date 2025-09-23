@@ -1,32 +1,39 @@
 import streamlit as st
 import pandas as pd
 import io
+from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
 
-# --- Load your processed StatsBomb data ---
-# Adjust the path if needed
-DATA_PATH = "data/processed/players_combined.csv"
-try:
-    df = pd.read_csv(DATA_PATH)
-except FileNotFoundError:
-    st.error(f"File not found: {DATA_PATH}")
-    st.stop()
+st.header("Export All StatsBomb Players by League & Position")
 
-# --- UI for League and Position selection ---
-st.header("Export All Players by League & Position (StatsBomb)")
+# Load the same data as the rest of your app
+with st.spinner("Loading StatsBomb data..."):
+    statsbomb_data = get_statsbomb_player_season_stats()
 
-leagues = sorted(df['League'].dropna().unique())
-positions = sorted(df['Position'].dropna().unique())
+# Get unique leagues and positions
+leagues = sorted(statsbomb_data['League'].dropna().unique())
+positions = sorted(statsbomb_data['Position'].dropna().unique())
 
 selected_league = st.selectbox("Select League", leagues)
 selected_position = st.selectbox("Select Position", positions)
 
-# --- Filter DataFrame ---
-filtered = df[(df['League'] == selected_league) & (df['Position'] == selected_position)]
+# Filter DataFrame
+filtered = statsbomb_data[
+    (statsbomb_data['League'] == selected_league) &
+    (statsbomb_data['Position'] == selected_position)
+]
 
-# --- Show and Export Table ---
 if not filtered.empty:
     # Show all columns, or select a subset if you want
-    st.dataframe(filtered)
+    st.dataframe(filtered, use_container_width=True)
+
+    # Download as CSV
+    csv = filtered.to_csv(index=False)
+    st.download_button(
+        label="Download as CSV",
+        data=csv,
+        file_name=f"{selected_league}_{selected_position}_statsbomb_players.csv",
+        mime="text/csv"
+    )
 
     # Download as Excel
     excel_buffer = io.BytesIO()
@@ -37,17 +44,8 @@ if not filtered.empty:
     st.download_button(
         label="Download as Excel",
         data=excel_buffer,
-        file_name=f"{selected_league}_{selected_position}_players.xlsx",
+        file_name=f"{selected_league}_{selected_position}_statsbomb_players.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    # Download as CSV
-    csv = filtered.to_csv(index=False)
-    st.download_button(
-        label="Download as CSV",
-        data=csv,
-        file_name=f"{selected_league}_{selected_position}_players.csv",
-        mime="text/csv"
     )
 else:
     st.warning("No players found for this league and position.")
