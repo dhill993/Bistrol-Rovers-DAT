@@ -16,12 +16,12 @@ metrics_per_position = {
         "Dribbles Stopped %",
         "PADJ Tackles",
         "PADJ Interceptions",
-        "PADJ Clearances",
-        "Defensive Regains",
-        "DA OBV",
-        "Ball Recoveries",
-        "Pass Forward %",
-        "PR. Pass %"
+        "PR. Pass %",
+        "Carries",
+        "Successful Crosses",
+        "Dribbles",
+        "OP Passes Into Box",
+        "OP F3 Passes"
     ],
     "Number 6": [
         "PADJ Tackles",
