@@ -11,12 +11,18 @@ st.header("Export StatsBomb Weighted Scores by League, Position & Season")
 with st.spinner("Loading StatsBomb data..."):
     statsbomb_data = get_statsbomb_player_season_stats()
 
-leagues = sorted(statsbomb_data['League'].dropna().unique())
-positions = sorted(statsbomb_data['Position'].dropna().unique())
-seasons = sorted(statsbomb_data['Season'].dropna().unique())
+# Debug: Show columns and sample data if needed
+# st.write("Columns:", statsbomb_data.columns.tolist())
+# st.write(statsbomb_data.head())
 
+# Dropdowns for League, Position, and Season (season filtered by league)
+leagues = sorted(statsbomb_data['League'].dropna().unique())
 selected_league = st.selectbox("Select League", leagues)
+
+positions = sorted(statsbomb_data[statsbomb_data['League'] == selected_league]['Position'].dropna().unique())
 selected_position = st.selectbox("Select Position", positions)
+
+seasons = sorted(statsbomb_data[statsbomb_data['League'] == selected_league]['Season'].dropna().unique())
 selected_season = st.selectbox("Select Season", seasons)
 
 # Filter for league, position, season
