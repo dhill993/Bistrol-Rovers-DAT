@@ -18,7 +18,7 @@ metrics_per_position = {
         "PADJ Interceptions",
         "PR. Pass %",
         "Carries",
-        "Successful Crosses",
+        "OBV D&C",
         "Dribbles",
         "OP Passes Into Box",
         "OP F3 Passes"
