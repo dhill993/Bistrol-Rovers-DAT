@@ -93,39 +93,60 @@ metrics_mapping = {
 # --- Position Mapping ---
 position_mapping = {
     # Full Backs
-    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", 
-    "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
+    "Full Back": ["Full Back"], 
+    "Left Back": ["Full Back"], 
+    "Right Back": ["Full Back"], 
+    "Left Wing Back": ["Full Back"], 
+    "Right Wing Back": ["Full Back"],
     
     # CB → Outside Centre Back
-    "Centre Back": "Outside Centre Back", "Right Centre Back": "Outside Centre Back", "Left Centre Back": "Outside Centre Back",
+    "Centre Back": ["Outside Centre Back"], 
+    "Right Centre Back": ["Outside Centre Back"], 
+    "Left Centre Back": ["Outside Centre Back"],
     
     # Midfielders
-    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
-    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", 
-    "Centre Midfield": "Number 8", 
-    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", 
-    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8", 
+    "Left Centre Midfield": ["Number 8"], 
+    "Left Centre Midfielder": ["Number 8"], 
+    "Right Centre Midfield": ["Number 8"], 
+    "Right Centre Midfielder": ["Number 8"], 
+    "Centre Midfield": ["Number 8"], 
+    "Left Attacking Midfield": ["Number 8"], 
+    "Right Attacking Midfield": ["Number 8"], 
+    "Right Attacking Midfielder": ["Number 8"], 
+    "Attacking Midfield": ["Number 8"], 
     
     # Defensive Midfield → Number 6
-    "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", 
-    "Right Defensive Midfielder": "Number 6", "Defensive Midfielder": "Number 6", 
-    "Centre Defensive Midfielder": "Number 6", 
+    "Number 6": ["Number 6"], 
+    "Left Defensive Midfielder": ["Number 6"], 
+    "Right Defensive Midfielder": ["Number 6"], 
+    "Defensive Midfielder": ["Number 6"], 
+    "Centre Defensive Midfielder": ["Number 6"], 
     
     # Playmaker / Secondary Striker → Number 10
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", "Left Attacking Midfielder": "Number 10", 
+    "Secondary Striker": ["Number 10"], 
+    "Centre Attacking Midfielder": ["Number 10"], 
+    "Left Attacking Midfielder": ["Number 10"], 
     
     # Wingers
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", 
-    "Left Wing": "Winger", "Right Wing": "Winger",
+    "Winger": ["Winger"], 
+    "Right Midfielder": ["Winger"], 
+    "Left Midfielder": ["Winger"], 
+    "Left Wing": ["Winger"], 
+    "Right Wing": ["Winger"],
     
     # CF variants
-    "Centre Forward": "Runner", "Left Centre Forward": "Centre Forward A", "Right Centre Forward": "Runner",
+    "Centre Forward": ["Runner", "Centre Forward A"],  # maps to multiple profiles
+    "Left Centre Forward": ["Centre Forward A"], 
+    "Right Centre Forward": ["Runner"],
     
-    "Goalkeeper": "Goalkeeper"
+    # Goalkeeper
+    "Goalkeeper": ["Goalkeeper"]
 }
 
-# Apply mapping to create a new column
-statsbomb_data["Mapped Position"] = statsbomb_data["Position"].map(position_mapping).fillna(statsbomb_data["Position"])
+# --- Apply mapping safely ---
+# Use .apply + explode to handle multiple mapped profiles
+statsbomb_data["Mapped Position"] = statsbomb_data["Position"].apply(lambda x: position_mapping.get(x, [x]))
+statsbomb_data = statsbomb_data.explode("Mapped Position")
 
 # --- Main Statsbomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
