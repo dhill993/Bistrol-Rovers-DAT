@@ -15,8 +15,10 @@ with st.spinner("Loading StatsBomb data..."):
 leagues = sorted(statsbomb_data['League'].dropna().unique())
 selected_league = st.selectbox("Select League", leagues)
 
-positions = sorted(statsbomb_data[statsbomb_data['League'] == selected_league]['Position'].dropna().unique())
-selected_position = st.selectbox("Select Position", positions)
+from statbomb_default_metrics import metrics_per_position
+
+all_positions = list(metrics_per_position.keys())
+
 
 seasons = sorted(statsbomb_data[statsbomb_data['League'] == selected_league]['Season'].dropna().unique())
 selected_season = st.selectbox("Select Season", seasons)
