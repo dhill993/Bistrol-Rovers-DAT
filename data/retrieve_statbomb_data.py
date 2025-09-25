@@ -98,22 +98,31 @@ position_mapping = {
     # Map all CB variants to Outside Centre Back profile
     "Centre Back": "Outside Centre Back", "Right Centre Back": "Outside Centre Back", "Left Centre Back": "Outside Centre Back", 
     
+    # Midfield roles
     "Number 8": "Number 8", 
-    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8", 
-    "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
-    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8", 
+    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", 
+    "Centre Midfield": "Number 8", 
     "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8", 
     "Attacking Midfield": "Number 8", 
+
+    # Defensive Midfield roles → Number 6
+    "Number 6": "Number 6",
+    "Left Defensive Midfielder": "Number 6", 
+    "Right Defensive Midfielder": "Number 6", 
+    "Defensive Midfielder": "Number 6", 
+    "Centre Defensive Midfielder": "Number 6", 
     
-    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", 
+    # Playmaker / Secondary striker
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", "Left Attacking Midfielder": "Number 10", 
     
-    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
-    "Right Wing": "Winger", 
+    # Wingers
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", "Right Wing": "Winger", 
     
-    # Map all CF variants to Runner profile
+    # Centre Forwards → Runner
     "Centre Forward": "Runner", "Left Centre Forward": "Runner", "Right Centre Forward": "Runner", 
     
-    "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goalkeeper"
+    "Goalkeeper": "Goalkeeper"
 }
 
 
