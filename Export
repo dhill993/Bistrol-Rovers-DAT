@@ -15,7 +15,7 @@ with st.spinner("Loading StatsBomb data..."):
 leagues = sorted(statsbomb_data['League'].dropna().unique())
 selected_league = st.selectbox("Select League", leagues)
 
-from statbomb_default_metrics import metrics_per_position
+from utilities.statbomb_default_metrics import metrics_per_position
 
 # Use your dictionary keys as the master list of positions
 all_positions = list(metrics_per_position.keys())
