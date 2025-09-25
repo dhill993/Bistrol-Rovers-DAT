@@ -17,7 +17,13 @@ selected_league = st.selectbox("Select League", leagues)
 
 from statbomb_default_metrics import metrics_per_position
 
+# Use your dictionary keys as the master list of positions
 all_positions = list(metrics_per_position.keys())
+
+positions_in_data = statsbomb_data[statsbomb_data['League'] == selected_league]['Position'].dropna().unique()
+positions = sorted(set(all_positions) | set(positions_in_data))
+
+selected_position = st.selectbox("Select Position", positions)
 
 
 seasons = sorted(statsbomb_data[statsbomb_data['League'] == selected_league]['Season'].dropna().unique())
