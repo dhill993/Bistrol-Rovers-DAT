@@ -29,12 +29,55 @@ selected_position = st.selectbox("Select Position", positions)
 seasons = sorted(statsbomb_data[statsbomb_data['League'] == selected_league]['Season'].dropna().unique())
 selected_season = st.selectbox("Select Season", seasons)
 
-# Filter for league, position, season
+# Create Mapped Position column (put this after loading statsbomb_data)
+position_mapping = {
+    # Full Backs
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", 
+    "Left Wing Back": "Full Back", "Right Wing Back": "Full Back",
+    
+    # CB → Outside Centre Back
+    "Centre Back": "Outside Centre Back", "Right Centre Back": "Outside Centre Back", "Left Centre Back": "Outside Centre Back",
+    
+    # Midfielders
+    "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", 
+    "Centre Midfield": "Number 8", 
+    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", 
+    "Right Attacking Midfielder": "Number 8", "Attacking Midfield": "Number 8", 
+    
+    # Defensive Midfield → Number 6
+    "Number 6": "Number 6", "Left Defensive Midfielder": "Number 6", 
+    "Right Defensive Midfielder": "Number 6", "Defensive Midfielder": "Number 6", 
+    "Centre Defensive Midfielder": "Number 6", 
+    
+    # Playmaker / Secondary Striker → Number 10
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", "Left Attacking Midfielder": "Number 10", 
+    
+    # Wingers
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", 
+    "Left Wing": "Winger", "Right Wing": "Winger",
+    
+    # CF variants
+    "Centre Forward": "Runner", "Left Centre Forward": "Centre Forward A", "Right Centre Forward": "Runner",
+    
+    "Goalkeeper": "Goalkeeper"
+}
+
+statsbomb_data["Mapped Position"] = statsbomb_data["Position"].map(position_mapping).fillna(statsbomb_data["Position"])
+
+# Dropdown using Mapped Position
+all_positions = list(metrics_per_position.keys())  # all metric profiles
+positions_in_data = statsbomb_data[statsbomb_data['League'] == selected_league]['Mapped Position'].dropna().unique()
+positions = sorted(set(all_positions) | set(positions_in_data))
+selected_position = st.selectbox("Select Position", positions)
+
+# Filter using Mapped Position
 filtered = statsbomb_data[
     (statsbomb_data['League'] == selected_league) &
-    (statsbomb_data['Position'] == selected_position) &
+    (statsbomb_data['Mapped Position'] == selected_position) &
     (statsbomb_data['Season'] == selected_season)
 ]
+
 
 if not filtered.empty:
     # Get overall rank for all players in this group
