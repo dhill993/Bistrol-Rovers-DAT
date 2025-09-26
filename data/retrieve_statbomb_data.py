@@ -134,11 +134,6 @@ position_mapping = {
     "Goalkeeper": ["Goal Keeper"]
 }
 
-# Apply mapped position inside function (after rename etc.)
-df['Mapped Position'] = df['Position'].apply(lambda x: position_mapping.get(x, [x]))
-df = df.explode('Mapped Position')  # duplicate rows for multiple mapped profiles
-
-
 # --- Main StatsBomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
 def get_statsbomb_player_season_stats():
@@ -148,33 +143,16 @@ def get_statsbomb_player_season_stats():
     all_comps = sb.competitions(creds=creds)
     dataframes = []
 
-    def calculate_age(birth_date):
-        today = datetime.today()
-        return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-
     for _, row in all_comps.iterrows():
         try:
             comp_id, season_id = row["competition_id"], row["season_id"]
             df = sb.player_season_stats(comp_id, season_id, creds=creds)
 
-            df['birth_date'] = pd.to_datetime(df['birth_date'])
-            df['Age'] = df['birth_date'].apply(calculate_age)
-
-            available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
-            df = df[available_cols]
-
-            df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
-            df = df.apply(pd.to_numeric, errors='ignore')
-
-            df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
-
-            # Apply mapped position
-            df['Mapped Position'] = df['Position'].apply(lambda x: position_mapping.get(x, x))
-
-            df = df.dropna(subset=['Position'])
-            df['Position'] = df['Position'].astype(str).str.strip()
-            df['Minutes'] = df['Minutes'].astype(int)
-            df = df[df['Minutes'] >= 500]
+            # --- Apply mapping here ---
+            df['Mapped Position'] = df['primary_position'].apply(
+                lambda x: position_mapping.get(x, [x])
+            )
+            df = df.explode('Mapped Position')
 
             dataframes.append(df)
 
@@ -182,12 +160,4 @@ def get_statsbomb_player_season_stats():
             print(f"Error loading {row['competition_name']} {row['season_name']}: {e}")
 
     combined_df = pd.concat(dataframes, ignore_index=True)
-
-    for col in ['Pass Forward %', 'Scoring Contribution']:
-        if col not in combined_df.columns:
-            combined_df[col] = 0
-
     return combined_df
-
-def get_player_season_data():
-    return get_statsbomb_player_season_stats()
