@@ -92,49 +92,52 @@ metrics_mapping = {
 
 # --- Position Mapping ---
 position_mapping = {
-    "Full Back": "Full Back",
-    "Left Back": "Full Back",
-    "Right Back": "Full Back",
-    "Left Wing Back": "Full Back",
-    "Right Wing Back": "Full Back",
+    "Full Back": ["Full Back"],
+    "Left Back": ["Full Back"],
+    "Right Back": ["Full Back"],
+    "Left Wing Back": ["Full Back"],
+    "Right Wing Back": ["Full Back"],
 
-    # Map all CB variants to Outside Centre Back profile
-    "Centre Back": "Outside Centre Back",
-    "Right Centre Back": "Outside Centre Back",
-    "Left Centre Back": "Outside Centre Back",
+    # Outside CB
+    "Centre Back": ["Outside Centre Back"],
+    "Right Centre Back": ["Outside Centre Back"],
+    "Left Centre Back": ["Outside Centre Back"],
 
-    "Number 8": "Number 8",
-    "Left Defensive Midfielder": "Number 8",
-    "Right Defensive Midfielder": "Number 8",
-    "Defensive Midfielder": "Number 8",
-    "Centre Defensive Midfielder": "Number 8",
-    "Left Centre Midfield": "Number 8",
-    "Left Centre Midfielder": "Number 8",
-    "Right Centre Midfield": "Number 8",
-    "Right Centre Midfielder": "Number 8",
-    "Centre Midfield": "Number 8",
-    "Left Attacking Midfield": "Number 8",
-    "Right Attacking Midfield": "Number 8",
-    "Right Attacking Midfielder": "Number 8",
-    "Attacking Midfield": "Number 8",
+    # Defensive / Central mids map to both 6 & 8
+    "Defensive Midfielder": ["Number 6", "Number 8"],
+    "Centre Defensive Midfielder": ["Number 6", "Number 8"],
+    "Left Defensive Midfielder": ["Number 6", "Number 8"],
+    "Right Defensive Midfielder": ["Number 6", "Number 8"],
 
-    "Secondary Striker": "Number 10",
-    "Centre Attacking Midfielder": "Number 10",
+    "Centre Midfield": ["Number 8"],
+    "Left Centre Midfield": ["Number 8"],
+    "Right Centre Midfield": ["Number 8"],
 
-    "Winger": "Winger",
-    "Right Midfielder": "Winger",
-    "Left Midfielder": "Winger",
-    "Left Wing": "Winger",
-    "Right Wing": "Winger",
+    # Attacking mids
+    "Centre Attacking Midfielder": ["Number 10"],
+    "Secondary Striker": ["Number 10"],
+    "Left Attacking Midfielder": ["Number 8", "Number 10"],
+    "Right Attacking Midfielder": ["Number 8", "Number 10"],
 
-    # Map all CF variants to Runner profile
-    "Centre Forward": "Runner",
-    "Left Centre Forward": "Runner",
-    "Right Centre Forward": "Runner",
+    # Wingers
+    "Winger": ["Winger"],
+    "Right Midfielder": ["Winger"],
+    "Left Midfielder": ["Winger"],
+    "Left Wing": ["Winger"],
+    "Right Wing": ["Winger"],
 
-    "Left Attacking Midfielder": "Number 10",
-    "Goalkeeper": "Goalkeeper"
-    }
+    # CFs → Both CF A and Runner
+    "Centre Forward": ["Centre Forward A", "Runner"],
+    "Left Centre Forward": ["Centre Forward A", "Runner"],
+    "Right Centre Forward": ["Centre Forward A", "Runner"],
+
+    "Goalkeeper": ["Goal Keeper"]
+}
+
+# Apply mapped position inside function (after rename etc.)
+df['Mapped Position'] = df['Position'].apply(lambda x: position_mapping.get(x, [x]))
+df = df.explode('Mapped Position')  # duplicate rows for multiple mapped profiles
+
 
 # --- Main StatsBomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
