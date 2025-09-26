@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import io
+
 from data.retrieve_statbomb_data import get_statsbomb_player_season_stats
 from visualizations.overall_rank import get_overall_rank
 from utilities.utils import get_weighted_score
-from utilities.statbomb_default_metrics import metrics_per_position
 
 st.header("Export All Players' Weighted Rank by League, Position & Season")
 
@@ -12,32 +12,47 @@ st.header("Export All Players' Weighted Rank by League, Position & Season")
 with st.spinner("Loading StatsBomb data..."):
     statsbomb_data = get_statsbomb_player_season_stats()
 
-# Dropdowns for League, Position, and Season
+# Dropdowns for League, Position, and Season (season filtered by league)
 leagues = sorted(statsbomb_data['League'].dropna().unique())
 selected_league = st.selectbox("Select League", leagues)
 
-all_positions = list(metrics_per_position.keys())
-positions_in_data = statsbomb_data[statsbomb_data['League'] == selected_league]['Position'].dropna().unique()
-positions = sorted(set(all_positions) | set(positions_in_data))
+positions = sorted(
+    statsbomb_data[statsbomb_data['League'] == selected_league]['Position'].dropna().unique()
+)
 selected_position = st.selectbox("Select Position", positions)
 
-seasons = sorted(statsbomb_data[statsbomb_data['League'] == selected_league]['Season'].dropna().unique())
+seasons = sorted(
+    statsbomb_data[statsbomb_data['League'] == selected_league]['Season'].dropna().unique()
+)
 selected_season = st.selectbox("Select Season", seasons)
 
-# Filter using Mapped Position
+# Filter for league, position, season
 filtered = statsbomb_data[
     (statsbomb_data['League'] == selected_league) &
-    (statsbomb_data['Mapped Position'] == selected_position) &
+    (statsbomb_data['Position'] == selected_position) &
     (statsbomb_data['Season'] == selected_season)
 ]
 
 if not filtered.empty:
-    overall_rank_df = get_overall_rank(statsbomb_data, selected_league, selected_season, selected_position, api='statbomb')
+    # Get overall rank for all players in this group
+    overall_rank_df = get_overall_rank(
+        statsbomb_data,
+        selected_league,
+        selected_season,
+        selected_position,
+        api='statbomb'
+    )
+
+    # Calculate weighted score for all players
     points_of_this_league = get_weighted_score(selected_league)
     points_of_league_one = get_weighted_score("League One")
     factor = points_of_this_league / points_of_league_one
-    overall_rank_df['Score weighted against League One'] = overall_rank_df['Overall Score'] * factor
 
+    overall_rank_df['Score weighted against League One'] = (
+        overall_rank_df['Overall Score'] * factor
+    )
+
+    # Merge with Age and Minutes from original data (if not already present)
     if 'Age' not in overall_rank_df.columns or 'Minutes' not in overall_rank_df.columns:
         overall_rank_df = overall_rank_df.merge(
             filtered[['Player Name', 'Age', 'Minutes']],
@@ -45,10 +60,14 @@ if not filtered.empty:
             how='left'
         )
 
-    export_df = overall_rank_df[['Player Name', 'Age', 'Minutes', 'Overall Score', 'Score weighted against League One']]
+    # Show only the columns you want
+    export_df = overall_rank_df[
+        ['Player Name', 'Age', 'Minutes', 'Overall Score', 'Score weighted against League One']
+    ]
 
     st.dataframe(export_df, use_container_width=True)
 
+    # Download as CSV
     csv = export_df.to_csv(index=False)
     st.download_button(
         label="Download as CSV",
@@ -57,15 +76,19 @@ if not filtered.empty:
         mime="text/csv"
     )
 
+    # Download as Excel
     excel_buffer = io.BytesIO()
     with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
         export_df.to_excel(writer, index=False, sheet_name='Players')
+        writer.save()
     excel_buffer.seek(0)
+
     st.download_button(
         label="Download as Excel",
         data=excel_buffer,
         file_name=f"{selected_league}_{selected_position}_{selected_season}_weighted_ranks.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
 else:
     st.warning("No players found for this league, position, and season.")
