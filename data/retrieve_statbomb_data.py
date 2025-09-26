@@ -92,49 +92,32 @@ metrics_mapping = {
 
 # --- Position Mapping ---
 position_mapping = {
-    "Full Back": ["Full Back"],
-    "Left Back": ["Full Back"],
-    "Right Back": ["Full Back"],
-    "Left Wing Back": ["Full Back"],
-    "Right Wing Back": ["Full Back"],
-
-    # Outside CB
-    "Centre Back": ["Outside Centre Back"],
-    "Right Centre Back": ["Outside Centre Back"],
-    "Left Centre Back": ["Outside Centre Back"],
-
-    # Defensive / Central mids map to both 6 & 8
-    "Defensive Midfielder": ["Number 6", "Number 8"],
-    "Centre Defensive Midfielder": ["Number 6", "Number 8"],
-    "Left Defensive Midfielder": ["Number 6", "Number 8"],
-    "Right Defensive Midfielder": ["Number 6", "Number 8"],
-
-    "Centre Midfield": ["Number 8"],
-    "Left Centre Midfield": ["Number 8"],
-    "Right Centre Midfield": ["Number 8"],
-
-    # Attacking mids
-    "Centre Attacking Midfielder": ["Number 10"],
-    "Secondary Striker": ["Number 10"],
-    "Left Attacking Midfielder": ["Number 8", "Number 10"],
-    "Right Attacking Midfielder": ["Number 8", "Number 10"],
-
-    # Wingers
-    "Winger": ["Winger"],
-    "Right Midfielder": ["Winger"],
-    "Left Midfielder": ["Winger"],
-    "Left Wing": ["Winger"],
-    "Right Wing": ["Winger"],
-
-    # CFs → Both CF A and Runner
-    "Centre Forward": ["Centre Forward A", "Runner"],
-    "Left Centre Forward": ["Centre Forward A", "Runner"],
-    "Right Centre Forward": ["Centre Forward A", "Runner"],
-
-    "Goalkeeper": ["Goal Keeper"]
+    "Full Back": "Full Back", "Left Back": "Full Back", "Right Back": "Full Back", "Left Wing Back": "Full Back", 
+    "Right Wing Back": "Full Back", 
+    
+    # Map all CB variants to Outside Centre Back profile
+    "Centre Back": "Outside Centre Back", "Right Centre Back": "Outside Centre Back", "Left Centre Back": "Outside Centre Back", 
+    
+    "Number 8": "Number 8", 
+    "Left Defensive Midfielder": "Number 8", "Right Defensive Midfielder": "Number 8", "Defensive Midfielder": "Number 8", 
+    "Centre Defensive Midfielder": "Number 8", "Left Centre Midfield": "Number 8", "Left Centre Midfielder": "Number 8", 
+    "Right Centre Midfield": "Number 8", "Right Centre Midfielder": "Number 8", "Centre Midfield": "Number 8", 
+    "Left Attacking Midfield": "Number 8", "Right Attacking Midfield": "Number 8", "Right Attacking Midfielder": "Number 8", 
+    "Attacking Midfield": "Number 8", 
+    
+    "Secondary Striker": "Number 10", "Centre Attacking Midfielder": "Number 10", 
+    
+    "Winger": "Winger", "Right Midfielder": "Winger", "Left Midfielder": "Winger", "Left Wing": "Winger", 
+    "Right Wing": "Winger", 
+    
+    # Map all CF variants to Runner profile
+    "Centre Forward": "Runner", "Left Centre Forward": "Runner", "Right Centre Forward": "Runner", 
+    
+    "Left Attacking Midfielder": "Number 10", "Goalkeeper": "Goalkeeper"
 }
 
-# --- Main StatsBomb Load Function ---
+
+# --- Main Statsbomb Load Function ---
 @st.cache_data(ttl=14400, show_spinner=False)
 def get_statsbomb_player_season_stats():
     user = st.secrets["user"]
@@ -143,21 +126,45 @@ def get_statsbomb_player_season_stats():
     all_comps = sb.competitions(creds=creds)
     dataframes = []
 
+    def calculate_age(birth_date):
+        today = datetime.today()
+        return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
     for _, row in all_comps.iterrows():
         try:
             comp_id, season_id = row["competition_id"], row["season_id"]
             df = sb.player_season_stats(comp_id, season_id, creds=creds)
 
-            # --- Apply mapping here ---
-            df['Mapped Position'] = df['primary_position'].apply(
-                lambda x: position_mapping.get(x, [x])
-            )
-            df = df.explode('Mapped Position')
+            df['birth_date'] = pd.to_datetime(df['birth_date'])
+            df['Age'] = df['birth_date'].apply(calculate_age)
+
+            available_cols = [col for col in statbomb_metrics_needed if col in df.columns]
+            df = df[available_cols]
+
+            df = df.replace([np.nan, 'NaN', 'None', '', 'nan', 'null'], 0)
+            df = df.apply(pd.to_numeric, errors='ignore')
+
+            df.rename(columns={k: v for k, v in metrics_mapping.items() if k in df.columns}, inplace=True)
+
+            df['Position'] = df['Position'].map(position_mapping)
+            df = df.dropna(subset=['Position'])
+            df['Position'] = df['Position'].astype(str).str.strip()
+            df = df[df['Minutes'] >= 500]
+            df['Minutes'] = df['Minutes'].astype(int)
 
             dataframes.append(df)
 
         except Exception as e:
-            print(f"Error loading {row['competition_name']} {row['season_name']}: {e}")
+            print(f"Error: {e}")
 
     combined_df = pd.concat(dataframes, ignore_index=True)
+
+    # Ensure missing columns exist with default 0 to avoid 'not in index' errors
+    for col in ['Pass Forward %', 'Scoring Contribution']:
+        if col not in combined_df.columns:
+            combined_df[col] = 0
+
     return combined_df
+
+def get_player_season_data():
+    return get_statsbomb_player_season_stats()
