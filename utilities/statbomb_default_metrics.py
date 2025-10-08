@@ -93,7 +93,7 @@ metrics_per_position = {
         "Fouls Won",
         "pressures",
         "counterpressures",
-        "aggressive actions"
+        "Aerial Win %"
     ],
     "Goal Keeper": [
         "GK AGGRESSIVE DIST",
