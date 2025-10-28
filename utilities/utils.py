@@ -135,7 +135,7 @@ def get_weighted_score(league_name):
         "France 3": 0.68,
         "Japan 2": 0.68,
         "Iceland 1": 0.64,
-        "Finland 1": 0.64,
+        "Veikkausliiga": 0.64,
         "Latvia 1": 0.64,
         "Norway 2": 0.64,
         "Sweden 2": 0.64,
