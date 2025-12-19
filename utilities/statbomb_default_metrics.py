@@ -42,10 +42,10 @@ metrics_per_position = {
         "OP Key Passes",
         "OP XG ASSISTED",
         "Pass OBV",
-        "Successful Dribbles",
+        "Ball Recoveries",
         "Carries",
         "xG Buildup",
-        "Scoring Contribution"
+        "PADJ Interceptions"
     ],
     "Number 10": [
         "Shots",
