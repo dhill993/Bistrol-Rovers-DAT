@@ -102,7 +102,7 @@ def get_weighted_score(league_name):
         "Portugal 1": 0.83,
         "Belgium 1": 0.82,
         "Championship": 0.80,
-        "MLS": 0.79,
+        "Major League Soccer": 0.79,
         "Japan 1": 0.78,
         "Turkey 1": 0.78,
         "Norway 1": 0.77,
