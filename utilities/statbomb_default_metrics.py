@@ -95,7 +95,7 @@ metrics_per_position = {
         "counterpressures",
         "Aerial Win %"
     ],
-    "Goal Keeper": [
+    "Goalkeeper": [
         "GK AGGRESSIVE DIST",
         "CLAIMS %",
         "PR. Pass %",
