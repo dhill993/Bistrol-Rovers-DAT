@@ -96,11 +96,8 @@ metrics_per_position = {
         "Aerial Win %"
     ],
     "Goalkeeper": [
-        "GK AGGRESSIVE DIST",
         "CLAIMS %",
-        "PR. Pass %",
         "SHOT STOPPING %",
-        "OP F3 Passes",
         "GSAA",
         "SAVE %",
         "XSV %",
