@@ -88,14 +88,12 @@ metrics_per_position = {
         "Shots",
         "Shooting %",
         "xG",
-        "OP XG ASSISTED",
         "Touches in Box",
         "Fouls Won",
         "PADJ Pressures",
         "Carries",
         "Aerial Win %"
         "xG/Shot",
-        "Shot OBV"
     ],
     "Goalkeeper": [
         "CLAIMS %",
