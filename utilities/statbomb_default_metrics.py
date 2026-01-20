@@ -91,7 +91,7 @@ metrics_per_position = {
         "OP XG ASSISTED",
         "Touches in Box",
         "Fouls Won",
-        "Pressures",
+        "PADJ Pressures",
         "Carries",
         "Aerial Win %"
     ],
