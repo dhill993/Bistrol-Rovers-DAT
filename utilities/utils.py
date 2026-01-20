@@ -155,7 +155,7 @@ def get_weighted_score(league_name):
         "Wales 1": 0.42,
         "NIreland1": 0.43,
         "Ireland 2": 0.41,
-        "Scotland 3": 0.41,
+        "Premier League 2 Division One": 0.41,
         "VNL 2": 0.40
     }
 
