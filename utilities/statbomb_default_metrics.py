@@ -93,8 +93,7 @@ metrics_per_position = {
         "PADJ Pressures",
         "Carries",
         "Aerial Win %",
-        "xG/Shot",
-        "Shot OBV"
+        "xG/Shot"
     ],
     "Goalkeeper": [
         "CLAIMS %",
