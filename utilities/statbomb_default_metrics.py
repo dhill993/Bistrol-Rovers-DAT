@@ -84,7 +84,7 @@ metrics_per_position = {
         "Fouls Won"
     ],
     "Runner": [
-        "OP Key Passes",
+        "NP Goals",
         "Shots",
         "Shooting %",
         "xG",
@@ -94,6 +94,8 @@ metrics_per_position = {
         "PADJ Pressures",
         "Carries",
         "Aerial Win %"
+        "xG/Shot",
+        "Shot OBV"
     ],
     "Goalkeeper": [
         "CLAIMS %",
