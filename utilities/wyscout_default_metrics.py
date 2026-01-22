@@ -92,7 +92,7 @@ metrics_per_position = {
         "TOUCHES IN BOX PER 90",
         "xA PER 90",
         "ASSISTS PER 90",
-        "ACCELERATIONS PER 90"
+        "AERIAL DUELS WON %"
     ],
     "Goal Keeper": [
         "Clean sheets",
