@@ -99,12 +99,8 @@ metrics_per_position = {
         "Save rate (%)",
         "Prevented goals per 90",
         "ACCURATE PASSES %",
-        "Short / medium passes per 90",
-        "LONG PASSES PER 90",
-        "AVERAGE LONG PASS LENGTH",
-        "PASSES TO FINAL THIRD PER 90",
-        "PASSES TO PENALTY AREA PER 90",
-        "Exits Per 90"
+        "Exits Per 90",
+        "AERIAL DUELS PER 90"
     ]
 }
 
