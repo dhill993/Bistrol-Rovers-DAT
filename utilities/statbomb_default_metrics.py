@@ -57,7 +57,7 @@ metrics_per_position = {
         "xG Assisted",
         "Carries",
         "Shooting %",
-        "PR. Pass %",
+        "Aerial Win %",
     ],
     "Winger": [
         "xG",
