@@ -84,14 +84,16 @@ metrics_per_position = {
         "Fouls Won"
     ],
     "Runner": [
-        "NP Goals",
+        "Scoring Contribution",
+        "OP Key Passes",
+        "xG Assisted",
         "Shots",
         "Shooting %",
         "xG",
         "Touches in Box",
         "Fouls Won",
-        "PADJ Pressures",
-        "Carries",
+        "Aggressive Actions",
+        "Shot OBV",
         "Aerial Win %",
         "xG/Shot"
     ],
