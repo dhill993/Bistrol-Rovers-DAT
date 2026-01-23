@@ -92,7 +92,7 @@ metrics_per_position = {
         "xG",
         "Touches in Box",
         "Fouls Won",
-        "Aggressive Actions",
+        "aggressive actions",
         "Shot OBV",
         "Aerial Win %",
         "xG/Shot"
