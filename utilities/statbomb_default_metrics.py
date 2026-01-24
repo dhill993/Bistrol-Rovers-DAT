@@ -45,7 +45,7 @@ metrics_per_position = {
 "OBV D&C",
  "Carries",
 "xG Buildup",
- "Crossing%",
+ "Successful Crosses",
     ],
     "Number 10": [
         "Shots",
@@ -57,7 +57,7 @@ metrics_per_position = {
         "xG Assisted",
         "Carries",
         "Pass OBV",
-        "Crossing%",
+        "Successful Crosses",
     ],
     "Winger": [
         "xG",
