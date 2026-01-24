@@ -65,7 +65,7 @@ metrics_per_position = {
         "OP Key Passes",
         "Dribbles",
         "Successful Dribbles",
-        "OBV",
+        "Pass OBV",
         "PINTIN",
         "Successful Crosses",
         "xG Assisted",
