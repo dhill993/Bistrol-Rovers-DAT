@@ -26,14 +26,14 @@ metrics_per_position = {
     "Number 6": [
         "PADJ Tackles",
         "PADJ Interceptions",
-        "Pass Forward %",
+        "OP F3 Passes",
         "Ball Recoveries",
         "Aerial Win %",
         "Dribbles Stopped %",
         "DA OBV",
         "Deep Progressions",
         "PR. Pass %",
-        "Pass OBV",
+        "xG Buildup",
     ],
   "Number 8": [
    "xG",
