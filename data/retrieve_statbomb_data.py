@@ -150,7 +150,7 @@ def get_statsbomb_player_season_stats():
             df['Position'] = df['Position'].map(position_mapping)
             df = df.dropna(subset=['Position'])
             df['Position'] = df['Position'].astype(str).str.strip()
-            df = df[df['Minutes'] >= 500]
+            df = df[df['Minutes'] >= 350]
             df['Minutes'] = df['Minutes'].astype(int)
 
             dataframes.append(df)
