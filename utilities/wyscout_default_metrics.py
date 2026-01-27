@@ -35,7 +35,6 @@ metrics_per_position = {
         "DRIBBLES PER 90"
     ],
     "Number 6": [
-        "PADJ INTERCEPTIONS",
         "DEFENSIVE DUELS PER 90",
         "DEFENSIVE DUELS WON %",
         "ACCURATE PASSES %",
