@@ -21,6 +21,8 @@ metrics_per_position = {
         "DA OBV",
         "Ball Recoveries",
         "Pass Forward %",
+        "Dribbles",
+        "OP F3 Passes",
         "PR. Pass %"
     ],
     "Number 6": [
@@ -31,8 +33,9 @@ metrics_per_position = {
         "Aerial Win %",
         "Dribbles Stopped %",
         "DA OBV",
-        "Deep Progressions",
+        "Defensive Regains",
         "PR. Pass %",
+        "PADJ Clearances",
         "xG Buildup",
     ],
   "Number 8": [
