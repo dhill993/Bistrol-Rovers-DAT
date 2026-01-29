@@ -51,16 +51,17 @@ metrics_per_position = {
  "Successful Crosses",
     ],
     "Number 10": [
-        "Shots",
         "xG",
-        "Scoring Contribution",
+        "Shots",
         "OP Key Passes",
-        "OBV D&C",
-        "PINTIN",
-        "xG Assisted",
+        "Dribbles",
+        "Successful Dribbles",
         "Carries",
-        "Pass OBV",
+        "PINTIN",
         "Successful Crosses",
+        "Fouls Won"
+        "Scoring Contribution"
+        "xG Assisted",
     ],
     "Winger": [
         "xG",
@@ -68,11 +69,12 @@ metrics_per_position = {
         "OP Key Passes",
         "Dribbles",
         "Successful Dribbles",
-        "Pass OBV",
+        "Carries",
         "PINTIN",
         "Successful Crosses",
+        "Fouls Won"
+        "Scoring Contribution"
         "xG Assisted",
-        "OBV D&C",
     ],
     "Centre Forward A": [
         "NP Goals",
