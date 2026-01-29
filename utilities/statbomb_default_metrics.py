@@ -59,8 +59,8 @@ metrics_per_position = {
         "Carries",
         "PINTIN",
         "Successful Crosses",
-        "Fouls Won"
-        "Scoring Contribution"
+        "Fouls Won",
+        "Scoring Contribution",
         "xG Assisted",
     ],
     "Winger": [
@@ -72,8 +72,8 @@ metrics_per_position = {
         "Carries",
         "PINTIN",
         "Successful Crosses",
-        "Fouls Won"
-        "Scoring Contribution"
+        "Fouls Won",
+        "Scoring Contribution",
         "xG Assisted",
     ],
     "Centre Forward A": [
