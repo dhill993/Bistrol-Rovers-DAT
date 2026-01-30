@@ -34,9 +34,8 @@ metrics_per_position = {
         "Dribbles Stopped %",
         "DA OBV",
         "Defensive Regains",
+        "Aggressive Actions",
         "PR. Pass %",
-        "PADJ Clearances",
-        "xG Buildup",
     ],
   "Number 8": [
    "xG",
