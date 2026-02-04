@@ -90,7 +90,7 @@ metrics_per_position = {
     "Runner": [
         "NP Goals",
         "aggressive actions",
-        "Pressures",
+        "pressures",
         "Shots",
         "Shooting %",
         "xG",
