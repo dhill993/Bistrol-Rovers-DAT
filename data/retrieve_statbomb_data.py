@@ -25,7 +25,7 @@ statbomb_metrics_needed = [
     "player_season_clcaa","player_season_gsaa_ratio","player_season_gsaa_90",
     "player_season_save_ratio","player_season_xs_ratio","player_season_positive_outcome_score",
     "player_season_obv_gk_90","player_season_forward_pass_ratio","player_season_xg_chain",
-    "player_season_forward_pass_proportion","player_season_scoring_contribution_90",
+    "player_season_forward_pass_proportion","player_season_scoring_contribution_90", "player_season_np_xg_faced_90","player_season_ot_shots_faced_ratio", 
     "player_season_fouls_won_90", "player_season_pressures_90","player_season_counterpressures_90","player_season_aggressive_actions_90"
 ]
 
@@ -88,6 +88,8 @@ metrics_mapping = {
     "player_season_pressures_90": "pressures",
     "player_season_counterpressures_90": "counterpressures",
     "player_season_xg_chain": "xGChain",
+    "player_season_np_xg_faced_90": "xG Faced",
+    "player_season_ot_shots_faced_ratio": "OT Shots",
     "player_season_aggressive_actions_90": "aggressive actions"
 }
 
