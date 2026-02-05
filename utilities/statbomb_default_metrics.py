@@ -106,8 +106,9 @@ metrics_per_position = {
         "SAVE %",
         "XSV %",
         "POSITIVE OUTCOME",
+        "xG Faced",
         "GK AGGRESSIVE DIST",
-        "GOALKEEPER OBV"
+        "OP F3 Passes"
     ]
 }
 
