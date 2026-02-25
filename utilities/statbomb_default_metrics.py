@@ -90,7 +90,7 @@ metrics_per_position = {
     "Runner": [
         "Aerial Win %",
         "Fouls Won",
-        "OP Key Passes"",
+        "OP Key Passes",
         "Shots",
         "Shooting %",
         "xG",
